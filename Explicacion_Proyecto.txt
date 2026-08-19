@@ -1,0 +1,162 @@
+# Torneos Amateur BA — Documento de proyecto
+
+## 1. Resumen ejecutivo
+
+App web que centraliza torneos de fútbol amateur en Buenos Aires, hoy dispersos en Instagram con información escueta y demoras de respuesta. Permite filtrar por zona, modalidad y precio, y deriva al usuario a WhatsApp/Instagram del organizador para el contacto final. No maneja inscripciones ni pagos.
+
+**Objetivo del proyecto**: resolver un problema personal real (como jugador amateur), aportar valor a la comunidad futbolera de Buenos Aires, y servir como proyecto de aprendizaje concreto del stack TypeScript + Next.js + Supabase + Vercel. No se construye con expectativa de negocio escalable ni de ingresos significativos — cualquier monetización futura (destacados pagos para organizadores) es upside, no el motor del proyecto.
+
+**Alcance geográfico inicial**: Buenos Aires (CABA + zona metropolitana).
+
+**Modelo de carga de datos del MVP**: manual/curada por el propio desarrollador como admin. Sin scraping automatizado ni cuentas públicas de usuario en esta etapa.
+
+---
+
+## 2. Problema y usuario
+
+**Problema**: encontrar información de torneos amateur hoy requiere buscar manualmente en Instagram, con datos incompletos (precio, fecha o modalidad ausentes en el post), demoras en la respuesta del organizador vía DM, y sin forma de comparar opciones lado a lado.
+
+**Usuario principal**: personas adultas (mayormente laboralmente activas o estudiantes) que juegan fútbol amateur y buscan anotarse a torneos en su zona.
+
+**Usuario secundario (fase posterior)**: organizadores de torneos que quieran ganar visibilidad sin depender exclusivamente de Instagram.
+
+---
+
+## 3. Alcance del MVP
+
+### Incluido
+- Listado público de torneos con filtros: zona, modalidad, rango de precio, estado, fecha
+- Filtros reflejados en query params de la URL (compartibles)
+- Página de detalle por torneo
+- Botón de contacto directo (deep link a WhatsApp/Instagram del organizador)
+- Panel admin protegido por login (Supabase Auth) para cargar/editar/eliminar torneos
+- Subida de flyer/imagen del torneo (Supabase Storage)
+- Indicador de frescura del dato ("actualizado hace X días")
+
+### Explícitamente fuera del MVP
+- Scraping automatizado de Instagram
+- Inscripción o pagos dentro de la app
+- Cuentas públicas de usuario (favoritos, notificaciones)
+- Sistema de votos o ranking por popularidad
+- Mapa interactivo
+- Destacados pagos (dejar el espacio contemplado en el layout, pero sin activar)
+- Funcionalidad de "buscar equipo"/matching de jugadores
+
+---
+
+## 4. Stack técnico
+
+| Capa | Tecnología |
+|---|---|
+| Frontend | Next.js (App Router) + TypeScript |
+| Estilos | Tailwind CSS |
+| Backend / DB | Supabase (Postgres + Auth + Storage) |
+| Deploy | Vercel |
+
+**Justificación**: stack moderno, con buen soporte de comunidad y documentación, adecuado para aprendizaje progresivo. Supabase evita tener que levantar backend propio para auth/storage/DB en el MVP.
+
+---
+
+## 5. Modelo de datos
+
+```sql
+-- Enum de modalidad
+create type sport_modality as enum ('futbol_5', 'futbol_7', 'futbol_8', 'futbol_11');
+
+-- Enum de estado
+create type tournament_status as enum ('abierto', 'cerrado', 'en_curso', 'finalizado');
+
+create table tournaments (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  description text,
+  sport_modality sport_modality not null,
+  zone text not null, -- ej: "Palermo", "Zona Norte"
+  location_lat float,
+  location_lng float,
+  price numeric,
+  price_currency text default 'ARS',
+  start_date date not null,
+  end_date date,
+  inscription_deadline date,
+  status tournament_status not null default 'abierto',
+  contact_whatsapp text,
+  contact_instagram text,
+  source_url text,
+  image_url text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  verified_at timestamptz,
+  created_by uuid references auth.users(id)
+);
+```
+
+**Nota sobre `zone`**: se define como texto libre en el MVP en vez de una tabla `zones` con jerarquía (CABA > Palermo, Zona Norte > Vicente López), para no sobre-ingenierizar antes de validar el producto. Evaluar migrar a tabla normalizada si el volumen de torneos y la necesidad de agrupar zonas lo justifica.
+
+**`verified_at`**: reemplaza la noción de "estado en vivo" (no hay forma de verificar automáticamente si un torneo sigue vigente, a diferencia de un ping a un servidor). Se actualiza manualmente al confirmar que el dato sigue siendo correcto, y alimenta el indicador de frescura en la UI.
+
+---
+
+## 6. Seguridad — Row Level Security (RLS)
+
+Punto crítico del proyecto, a revisar con especial cuidado durante el desarrollo:
+
+- **Lectura pública**: cualquiera puede hacer `SELECT` sobre `tournaments` sin autenticarse.
+- **Escritura restringida**: `INSERT`, `UPDATE`, `DELETE` solo permitidos a usuarios autenticados con rol admin (en el MVP, un único usuario admin).
+- **Separación de keys**: la `anon key` es la única expuesta al cliente (frontend); la `service_role key` nunca debe usarse fuera de contextos server-side controlados.
+- Cada policy de RLS debe revisarse línea por línea antes de aplicarse, sin delegarla ciegamente a un agente de IA.
+
+---
+
+## 7. Componentes de UI / páginas
+
+Estructura de referencia (inspirada parcialmente en el patrón de listados tipo directorio con filtros, adaptada al caso de uso):
+
+### Header / Nav
+Logo, nombre del proyecto, botón "Cargar torneo" (placeholder si el form aún no está listo), login admin.
+
+### Home (`/`)
+- Panel de filtros: zona, modalidad, rango de precio, estado, fecha de inicio
+- Listado de cards de torneos: imagen/flyer, nombre, zona, modalidad, precio, estado, "actualizado hace X días", botón "Contactar"
+- Paginación
+
+### Detalle de torneo (`/torneos/[id]`)
+Información completa, flyer en tamaño grande, botón de contacto destacado.
+
+### Panel admin (`/admin`)
+Protegido por Supabase Auth. Formulario de alta/edición de torneo, subida de flyer, listado con edición/eliminación.
+
+### Barra de stats (opcional, evaluar según volumen)
+Torneos activos, publicados esta semana, zonas cubiertas — no mostrar si el número es muy bajo al inicio, puede jugar en contra de la percepción de actividad.
+
+---
+
+## 8. Roadmap sugerido
+
+1. Setup del proyecto Next.js + conexión a Supabase
+2. Modelo de datos + RLS (revisión manual detallada)
+3. Home con listado y filtros
+4. Página de detalle
+5. Panel admin con auth y carga de torneos
+6. Deploy en Vercel
+7. Validación con usuarios reales / primeros torneos cargados manualmente
+8. (Futuro, condicionado a validación) Evaluar scraping asistido por LLM para extracción de datos desde flyers/captions, apertura de carga a organizadores, destacados pagos
+
+---
+
+## 9. Riesgos y decisiones conscientes
+
+- **Mantenimiento de datos frescos** es un costo operativo recurrente, no un costo de desarrollo único. Sin scraping, depende de carga manual sostenida en el tiempo.
+- **Cold start**: sin torneos cargados, no hay valor para el usuario; sin usuarios, no hay incentivo para que organizadores carguen por su cuenta. Se resuelve en el MVP con carga manual inicial por parte del desarrollador.
+- **Expectativa de negocio**: proyecto sin objetivo de monetización significativa. Cualquier ingreso futuro (destacados) es secundario al valor de uso personal/comunitario y de aprendizaje técnico.
+- **Escalabilidad a otros nichos** (voluntariados, torneos de básquet, etc.) es una posibilidad de reuso de arquitectura de código, no una extensión automática del mismo negocio — cada nicho nuevo requeriría tracción, confianza y carga de datos propias desde cero.
+
+---
+
+## 10. Forma de trabajo con el agente de código
+
+- Avanzar paso a paso según el roadmap de la sección 8, sin adelantar etapas.
+- Explicar decisiones de arquitectura no solicitadas explícitamente antes de aplicarlas.
+- Detenerse y explicar en detalle (esperando confirmación) todo cambio relacionado a RLS y autenticación.
+- Priorizar código simple y legible por sobre abstracciones tempranas, dado el objetivo de aprendizaje del stack.
+- Actuar también como tutor: explicar el código generado, no solo producirlo.

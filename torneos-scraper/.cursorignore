@@ -1,0 +1,38 @@
+# Dependencias masivas (¡Lo más importante!)
+node_modules/
+.venv/
+env/
+venv/
+vendor/
+
+# Carpetas de producción, compilación y caché
+dist/
+build/
+.next/
+.nuxt/
+out/
+.cache/
+.parcel-cache/
+
+# Archivos de datos, bases de datos locales y logs
+*.log
+*.sqlite
+*.db
+.elasticbeanstalk/
+
+# Archivos multimedia y diseño pesados
+*.mp4
+*.mp3
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.pdf
+
+# Archivos del sistema y configuraciones locales
+.DS_Store
+Thumbs.db
+.env
+.env.local
+.env.*.local

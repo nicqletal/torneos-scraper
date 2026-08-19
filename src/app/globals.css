@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes slow-pan {
+  0% { transform: translateY(0) scale(1.05); }
+  50% { transform: translateY(-3%) scale(1.05); }
+  100% { transform: translateY(0) scale(1.05); }
+}
+
+.bg-mesh {
+  background-color: #050505; /* Fondo negro profundo */
+}
+
+.bg-mesh::before {
+  content: '';
+  position: fixed; /* Fijo para que no mueva la página al scrollear */
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1; /* Va detrás de todo el contenido */
+  background-image: 
+    radial-gradient(at 50% 0%, rgba(30, 30, 45, 0.6) 0px, transparent 70%),
+    radial-gradient(at 0% 100%, rgba(20, 40, 35, 0.4) 0px, transparent 60%);
+  animation: slow-pan 40s ease-in-out infinite;
+  pointer-events: none;
+  will-change: transform;
+}
