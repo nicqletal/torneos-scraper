@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { Trophy, Plus } from "lucide-react";
+import { createClient } from "@/utils/supabase/server";
+import { UserMenu } from "@/components/UserMenu";
+import { Footer } from "@/components/Footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,11 +22,20 @@ export const metadata: Metadata = {
   description: "Encuentra torneos de fútbol amateur en tu zona",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // If user is authenticated, click leads directly to /crear-torneo.
+  // Otherwise, it redirects to login and then forwards to /crear-torneo.
+  const loadTournamentPath = user ? "/crear-torneo" : "/login?next=/crear-torneo";
+
   return (
     <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-foreground bg-mesh">
@@ -36,20 +48,39 @@ export default function RootLayout({
               </div>
               <span className="font-bold text-xl tracking-tight text-white">Torneos Scraper</span>
             </Link>
-            <Link 
-              href="/admin" 
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Cargar torneo
-            </Link>
+            
+            <div className="flex items-center gap-4">
+              {!user && (
+                <Link 
+                  href="/login" 
+                  className="text-sm font-medium text-white/60 hover:text-white transition-colors"
+                >
+                  Iniciar sesión
+                </Link>
+              )}
+
+              <Link 
+                href={loadTournamentPath} 
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-emerald-500 hover:bg-emerald-600 text-zinc-950 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Cargar torneo
+              </Link>
+
+              {user && user.email && (
+                <UserMenu email={user.email} />
+              )}
+            </div>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 container mx-auto px-4 py-8">
+        <main className="flex-1 container mx-auto px-4 py-8 flex flex-col justify-start">
           {children}
         </main>
+
+        {/* Footer */}
+        <Footer />
       </body>
     </html>
   );
