@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback } from 'react'
-import { Filter, Trophy, Activity } from 'lucide-react'
+import { Filter, Trophy, Activity, ChevronRight } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export function Filters() {
   const router = useRouter()
@@ -27,68 +28,95 @@ export function Filters() {
   const currentModality = searchParams.get('modality') || ''
   const currentStatus = searchParams.get('status') || ''
 
+  const modalities = [
+    { value: '', label: 'TODAS LAS MODALIDADES' },
+    { value: 'futbol_5', label: 'FÚTBOL 5' },
+    { value: 'futbol_7', label: 'FÚTBOL 7' },
+    { value: 'futbol_8', label: 'FÚTBOL 8' },
+    { value: 'futbol_11', label: 'FÚTBOL 11' },
+  ]
+
+  const statuses = [
+    { value: '', label: 'TODOS LOS ESTADOS' },
+    { value: 'abierto', label: 'INSCRIPCIÓN ABIERTA' },
+    { value: 'en_curso', label: 'EN CURSO' },
+    { value: 'cerrado', label: 'INSCRIPCIÓN CERRADA' },
+    { value: 'finalizado', label: 'FINALIZADOS' },
+  ]
+
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-5 flex flex-col gap-6">
-      <div className="flex items-center gap-2 text-white font-bold pb-2 border-b border-white/10">
-        <Filter className="w-4 h-4 text-emerald-400" />
-        <span>Filtros</span>
+    <div className="bg-brand-surface border border-brand-border p-5 flex flex-col gap-6">
+      
+      {/* Title Header */}
+      <div className="flex items-center gap-2 text-white font-display text-lg tracking-wider pb-3 border-b border-brand-border uppercase font-bold">
+        <Filter className="w-4 h-4 text-brand-lime stroke-[2.5]" />
+        <span>PANEL DE FILTROS</span>
       </div>
 
-      <div>
-        <h3 className="font-bold text-sm text-white/90 mb-3 flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-emerald-400" />
-          Modalidad
+      {/* Modality Section */}
+      <div className="flex flex-col gap-3">
+        <h3 className="font-display tracking-wider text-xs text-white/50 uppercase flex items-center gap-1.5 font-bold">
+          <Trophy className="w-3.5 h-3.5 text-brand-lime" />
+          MODALIDAD DE JUEGO
         </h3>
-        <div className="flex flex-col gap-2">
-          {[
-            { value: '', label: 'Todas' },
-            { value: 'futbol_5', label: 'Fútbol 5' },
-            { value: 'futbol_7', label: 'Fútbol 7' },
-            { value: 'futbol_8', label: 'Fútbol 8' },
-            { value: 'futbol_11', label: 'Fútbol 11' },
-          ].map((mod) => (
-            <label key={mod.value} className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
-              <input
-                type="radio"
-                name="modality"
-                value={mod.value}
-                checked={currentModality === mod.value}
-                onChange={(e) => updateFilter('modality', e.target.value)}
-                className="accent-emerald-500"
-              />
-              {mod.label}
-            </label>
-          ))}
+        
+        <div className="flex flex-col gap-1.5">
+          {modalities.map((mod) => {
+            const isActive = currentModality === mod.value
+            return (
+              <button
+                key={mod.value}
+                onClick={() => updateFilter('modality', mod.value)}
+                className={`relative w-full text-left px-3 py-2 text-xs font-display tracking-wider uppercase transition-all duration-150 flex items-center justify-between border cursor-pointer ${
+                  isActive
+                    ? 'bg-brand-lime text-brand-bg border-brand-lime font-bold'
+                    : 'bg-brand-secondary/40 text-white/80 hover:text-white border-brand-border hover:bg-brand-secondary'
+                }`}
+              >
+                <span>{mod.label}</span>
+                {isActive ? (
+                  <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
+                ) : (
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                )}
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      <div>
-        <h3 className="font-bold text-sm text-white/90 mb-3 flex items-center gap-2">
-          <Activity className="w-4 h-4 text-emerald-400" />
-          Estado
+      {/* Status Section */}
+      <div className="flex flex-col gap-3">
+        <h3 className="font-display tracking-wider text-xs text-white/50 uppercase flex items-center gap-1.5 font-bold">
+          <Activity className="w-3.5 h-3.5 text-brand-lime" />
+          ESTADO DE INSCRIPCIÓN
         </h3>
-        <div className="flex flex-col gap-2">
-          {[
-            { value: '', label: 'Todos' },
-            { value: 'abierto', label: 'Abiertos' },
-            { value: 'en_curso', label: 'En curso' },
-            { value: 'cerrado', label: 'Cerrados' },
-            { value: 'finalizado', label: 'Finalizados' },
-          ].map((status) => (
-            <label key={status.value} className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
-              <input
-                type="radio"
-                name="status"
-                value={status.value}
-                checked={currentStatus === status.value}
-                onChange={(e) => updateFilter('status', e.target.value)}
-                className="accent-emerald-500"
-              />
-              {status.label}
-            </label>
-          ))}
+
+        <div className="flex flex-col gap-1.5">
+          {statuses.map((status) => {
+            const isActive = currentStatus === status.value
+            return (
+              <button
+                key={status.value}
+                onClick={() => updateFilter('status', status.value)}
+                className={`relative w-full text-left px-3 py-2 text-xs font-display tracking-wider uppercase transition-all duration-150 flex items-center justify-between border cursor-pointer ${
+                  isActive
+                    ? 'bg-brand-lime text-brand-bg border-brand-lime font-bold'
+                    : 'bg-brand-secondary/40 text-white/80 hover:text-white border-brand-border hover:bg-brand-secondary'
+                }`}
+              >
+                <span>{status.label}</span>
+                {isActive ? (
+                  <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
+                ) : (
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                )}
+              </button>
+            )
+          })}
         </div>
       </div>
+
     </div>
   )
 }

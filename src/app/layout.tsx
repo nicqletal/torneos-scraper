@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Bebas_Neue, Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
 import { Trophy, Plus } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
@@ -7,19 +7,20 @@ import { UserMenu } from "@/components/UserMenu";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const bebasNeue = Bebas_Neue({
+  weight: "400",
+  variable: "--font-bebas-neue",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Torneos Scraper",
-  description: "Encuentra torneos de fútbol amateur en tu zona",
+  title: "Torneos Scraper | Plataforma de Fútbol Amateur",
+  description: "Encuentra y organiza torneos de fútbol amateur en tu zona. Rendimiento, estadísticas y pasión amateur.",
 };
 
 export default async function RootLayout({
@@ -37,23 +38,28 @@ export default async function RootLayout({
   const loadTournamentPath = user ? "/crear-torneo" : "/login?next=/crear-torneo";
 
   return (
-    <html lang="es" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-background text-foreground bg-mesh">
+    <html 
+      lang="es" 
+      className={`${bebasNeue.variable} ${plusJakartaSans.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-brand-bg text-foreground">
         {/* Sticky Header */}
-        <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/80 backdrop-blur-md">
+        <header className="sticky top-0 z-50 w-full border-b border-brand-border bg-brand-secondary/90 backdrop-blur-md">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-md bg-emerald-500 flex items-center justify-center font-bold text-white shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-                <Trophy className="w-5 h-5 text-zinc-950" />
+              <div className="w-8 h-8 rounded-sm bg-brand-lime flex items-center justify-center font-bold text-brand-bg shadow-sm transition-transform duration-200 group-hover:scale-105">
+                <Trophy className="w-4.5 h-4.5 stroke-[2.5]" />
               </div>
-              <span className="font-bold text-xl tracking-tight text-white">Torneos Scraper</span>
+              <span className="font-display text-2xl tracking-wider uppercase text-white group-hover:text-brand-lime transition-colors">
+                Torneos Scraper
+              </span>
             </Link>
             
             <div className="flex items-center gap-4">
               {!user && (
                 <Link 
                   href="/login" 
-                  className="text-sm font-medium text-white/60 hover:text-white transition-colors"
+                  className="text-xs font-semibold uppercase tracking-wider text-white/70 hover:text-brand-lime transition-colors font-display"
                 >
                   Iniciar sesión
                 </Link>
@@ -61,9 +67,9 @@ export default async function RootLayout({
 
               <Link 
                 href={loadTournamentPath} 
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-emerald-500 hover:bg-emerald-600 text-zinc-950 transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-white text-brand-bg hover:text-brand-bg transition-all duration-200 font-display shadow-sm"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5 stroke-[3]" />
                 Cargar torneo
               </Link>
 

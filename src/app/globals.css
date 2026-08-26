@@ -1,42 +1,58 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #0c0f0d;
+  --foreground: #f4f6f5;
+  
+  --font-bebas-neue: var(--font-bebas-neue);
+  --font-plus-jakarta: var(--font-plus-jakarta);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+  /* Brand color tokens */
+  --color-brand-bg: #0c0f0d;
+  --color-brand-secondary: #141a16;
+  --color-brand-surface: #1e2922;
+  --color-brand-border: #262626;
+  --color-brand-lime: #CCFF00;
+  
+  /* Tailwind standard mappings */
+  --color-background: #0c0f0d;
+  --color-foreground: #f4f6f5;
+  --color-border: #262626;
+  
+  /* Font Family Mappings */
+  --font-display: var(--font-bebas-neue), sans-serif;
+  --font-sans: var(--font-plus-jakarta), sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-brand-bg);
+  color: var(--color-foreground);
+  font-family: var(--font-plus-jakarta), sans-serif;
 }
 
-@keyframes slow-pan {
-  0% { transform: translateY(0) scale(1.05); }
-  50% { transform: translateY(-3%) scale(1.05); }
-  100% { transform: translateY(0) scale(1.05); }
+/* Custom scrollbar matching our sports dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.bg-mesh {
-  background-color: #050505; /* Fondo negro profundo */
+::-webkit-scrollbar-track {
+  background: #0c0f0d;
 }
 
-.bg-mesh::before {
-  content: '';
-  position: fixed; /* Fijo para que no mueva la página al scrollear */
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: -1; /* Va detrás de todo el contenido */
-  background-image: 
-    radial-gradient(at 50% 0%, rgba(30, 30, 45, 0.6) 0px, transparent 70%),
-    radial-gradient(at 0% 100%, rgba(20, 40, 35, 0.4) 0px, transparent 60%);
-  animation: slow-pan 40s ease-in-out infinite;
-  pointer-events: none;
-  will-change: transform;
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #CCFF00;
+}
+
+/* Highlight style selection */
+::selection {
+  background-color: #CCFF00;
+  color: #0c0f0d;
 }

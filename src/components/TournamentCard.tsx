@@ -1,10 +1,13 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { MapPin, Users, Clock, ArrowRight, Trophy, ImageOff } from 'lucide-react'
 
-export type Tournament = {
+export interface Tournament {
   id: string
   name: string
   description: string | null
@@ -20,19 +23,27 @@ export type Tournament = {
   updated_at: string
 }
 
-// TODO: agregar cupos y format de torneo, si tiene arbitro, si tiene premios, cuantos premios son
-// TODO: limite de jugadores, si se puede pagar con mercado pago, etc.
-// TODO: si tiene fotografo , cuanto cuesta y cuanto sale las fotos, si tiene utilero
-// TODO: https://www.40servidoresmc.es/anadir-servidor
+export interface TournamentCardProps {
+  tournament: Tournament
+  index: number
+}
 
-export function TournamentCard({ tournament }: { tournament: Tournament }) {
+export function TournamentCard({ tournament, index }: TournamentCardProps) {
   const lastUpdated = new Date(tournament.verified_at || tournament.updated_at)
 
-  const statusColors = {
-    abierto: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-    cerrado: 'bg-red-500/10 text-red-500 border-red-500/20',
-    en_curso: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-    finalizado: 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20',
+  // Status mapping to brand-lime styling or sport indicators
+  const statusLabels = {
+    abierto: 'Inscripción Abierta',
+    cerrado: 'Inscripción Cerrada',
+    en_curso: 'En Juego',
+    finalizado: 'Torneo Finalizado',
+  }
+
+  const statusStyles = {
+    abierto: 'text-brand-lime border-brand-lime bg-brand-lime/5',
+    cerrado: 'text-red-400 border-red-500/30 bg-red-950/20',
+    en_curso: 'text-sky-400 border-sky-500/30 bg-sky-950/20',
+    finalizado: 'text-zinc-500 border-zinc-700 bg-zinc-800/20',
   }
 
   const modalityLabels = {
@@ -42,69 +53,102 @@ export function TournamentCard({ tournament }: { tournament: Tournament }) {
     futbol_11: 'Fútbol 11',
   }
 
+  // Format index as scoreboard double-digit (e.g. "01", "02")
+  const scoreboardIndex = String(index + 1).padStart(2, '0')
+
   return (
-    <div className="flex flex-col rounded-xl border border-white/10 bg-white/5 overflow-hidden transition-all hover:border-white/20 hover:bg-white/10 group">
-      <div className="relative h-48 w-full bg-black/40">
-        {true ? (
-          <Image
-            src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=600&auto=format&fit=crop"
-            alt={`Flyer de ${tournament.name}`}
-            fill
-            className={`object-cover group-hover:scale-105 transition-transform duration-300 ${tournament.status === 'cerrado' ? 'grayscale' : ''}`}
-          />
-        ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white/20">
-            <ImageOff className="w-8 h-8 mb-1" />
-            <span className="text-xs">Sin imagen</span>
-          </div>
-        )}
-        <div className="absolute top-3 left-3 flex gap-2">
-          <span className={`px-2 py-1 text-xs font-semibold rounded-md border backdrop-blur-md ${statusColors[tournament.status]}`}>
-            {tournament.status.replace('_', ' ').toUpperCase()}
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
+      whileHover={{ y: -4, borderColor: '#CCFF00' }}
+      className="flex flex-col bg-brand-surface border border-brand-border h-full transition-colors duration-200"
+    >
+      {/* Flyer Header */}
+      <div className="relative h-44 w-full bg-brand-bg overflow-hidden group">
+        <Image
+          src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=600&auto=format&fit=crop"
+          alt={`Flyer de ${tournament.name}`}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority={index < 3}
+          className={`object-cover transition-transform duration-500 group-hover:scale-105 ${
+            tournament.status === 'cerrado' ? 'grayscale opacity-60' : 'opacity-85 group-hover:opacity-100'
+          }`}
+        />
+        
+        {/* Floating elements inside image */}
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-surface via-transparent to-transparent opacity-90" />
+        
+        <div className="absolute top-3 left-3">
+          <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest border font-display rounded-sm ${statusStyles[tournament.status]}`}>
+            {statusLabels[tournament.status]}
           </span>
+        </div>
+
+        <div className="absolute bottom-3 right-3 text-[10px] text-white/50 bg-brand-bg/80 px-2 py-0.5 border border-brand-border rounded-sm backdrop-blur-xs font-mono">
+          REF: #{tournament.id.slice(0, 5).toUpperCase()}
         </div>
       </div>
 
+      {/* Main Info Body */}
       <div className="p-5 flex flex-col flex-1">
-        <h3 className="text-xl font-bold text-white mb-2 line-clamp-1 group-hover:text-emerald-400 transition-colors">
-          {tournament.name}
-        </h3>
-
-        <div className="flex items-center gap-4 text-xs text-white/60 mb-4">
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-            {tournament.zone}
+        
+        {/* Editorial Title Header */}
+        <div className="flex items-start mb-4">
+          <span className="font-display text-4xl text-brand-lime/30 tracking-wider select-none leading-none mr-3 border-r border-brand-border/40 pr-3 font-bold">
+            {scoreboardIndex}
           </span>
-          <span className="flex items-center gap-1">
-            <Users className="w-3.5 h-3.5 text-emerald-400" />
-            {modalityLabels[tournament.sport_modality]}
-          </span>
+          <h3 className="text-xl font-bold tracking-tight text-white line-clamp-2 uppercase font-display leading-tight flex-1">
+            {tournament.name}
+          </h3>
         </div>
 
-        <div className="mt-auto pt-4 border-t border-white/10 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-white/40 mb-1 flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              hace {formatDistanceToNow(lastUpdated, { locale: es })}
-            </p>
+        {/* Tabular Sports Metrics Layout */}
+        <div className="grid grid-cols-2 gap-px bg-brand-border/60 border border-brand-border/60 mb-5 text-xs text-white/80">
+          <div className="bg-brand-surface p-2.5 flex flex-col gap-1">
+            <span className="text-[10px] uppercase text-white/40 tracking-wider font-mono">Zona</span>
+            <span className="font-semibold flex items-center gap-1 truncate">
+              <MapPin className="w-3.5 h-3.5 text-brand-lime shrink-0" />
+              {tournament.zone}
+            </span>
+          </div>
+
+          <div className="bg-brand-surface p-2.5 flex flex-col gap-1">
+            <span className="text-[10px] uppercase text-white/40 tracking-wider font-mono">Modalidad</span>
+            <span className="font-semibold flex items-center gap-1 truncate">
+              <Users className="w-3.5 h-3.5 text-brand-lime shrink-0" />
+              {modalityLabels[tournament.sport_modality]}
+            </span>
+          </div>
+        </div>
+
+        {/* Footer Row (Price & CTA Button) */}
+        <div className="mt-auto pt-4 border-t border-brand-border flex items-center justify-between gap-2">
+          <div className="flex flex-col">
+            <span className="text-[9px] uppercase tracking-wider text-white/40 font-mono flex items-center gap-1">
+              <Clock className="w-3 h-3 text-brand-lime" />
+              Actualizado {formatDistanceToNow(lastUpdated, { addSuffix: true, locale: es })}
+            </span>
             {tournament.price ? (
-              <p className="font-medium text-emerald-400 text-base">
-                ${tournament.price} <span className="text-xs text-white/40">{tournament.price_currency}</span>
-              </p>
+              <span className="text-lg font-bold text-white font-mono mt-1">
+                ${tournament.price} <span className="text-xs font-normal text-white/40">{tournament.price_currency}</span>
+              </span>
             ) : (
-              <p className="text-xs text-white/40">Precio a consultar</p>
+              <span className="text-xs text-white/50 font-semibold mt-1">Precio a consultar</span>
             )}
           </div>
 
           <Link
             href={`/torneos/${tournament.id}`}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-lg transition-colors"
+            className="inline-flex items-center gap-1 px-3 py-2 bg-brand-border hover:bg-brand-lime hover:text-brand-bg text-white text-xs font-bold uppercase tracking-wider rounded-sm transition-all duration-200 font-display group-hover:bg-brand-lime group-hover:text-brand-bg shadow-sm"
           >
-            Ver más
-            <ArrowRight className="w-3.5 h-3.5" />
+            Ficha
+            <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </Link>
         </div>
+
       </div>
-    </div>
+    </motion.div>
   )
 }

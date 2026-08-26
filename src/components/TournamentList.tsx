@@ -1,11 +1,14 @@
 import { createClient } from '@/utils/supabase/server'
 import { TournamentCard, Tournament } from './TournamentCard'
+import { Trophy, HelpCircle } from 'lucide-react'
+
+interface TournamentListProps {
+  searchParams: { [key: string]: string | string[] | undefined }
+}
 
 export async function TournamentList({ 
   searchParams 
-}: { 
-  searchParams: { [key: string]: string | string[] | undefined } 
-}) {
+}: TournamentListProps) {
   const supabase = await createClient()
 
   const awaitedParams = await searchParams
@@ -28,21 +31,25 @@ export async function TournamentList({
   if (error) {
     console.error('Error fetching tournaments:', error)
     return (
-      <div className="p-8 border border-red-500/20 bg-red-500/10 rounded-xl text-center">
-        <p className="text-red-400">Hubo un error al cargar los torneos.</p>
+      <div className="p-8 border border-red-500/30 bg-red-950/20 text-center rounded-sm">
+        <p className="text-red-400 font-display text-sm tracking-wider uppercase">
+          Hubo un error al cargar los torneos deportivos.
+        </p>
       </div>
     )
   }
 
   if (!tournaments || tournaments.length === 0) {
     return (
-      <div className="p-12 border border-white/10 bg-white/5 rounded-xl text-center flex flex-col items-center justify-center">
-        <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
-          <span className="text-2xl">🏆</span>
+      <div className="p-12 border border-brand-border bg-brand-surface text-center flex flex-col items-center justify-center rounded-sm">
+        <div className="w-12 h-12 bg-brand-secondary border border-brand-border flex items-center justify-center mb-4">
+          <HelpCircle className="w-6 h-6 text-brand-lime" />
         </div>
-        <h3 className="text-xl font-bold text-white mb-2">No hay torneos</h3>
-        <p className="text-white/50 max-w-sm">
-          No encontramos torneos que coincidan con tus filtros. Probá cambiando las opciones o limpiando la búsqueda.
+        <h3 className="text-xl font-bold font-display tracking-wider text-white mb-2 uppercase">
+          No hay torneos registrados
+        </h3>
+        <p className="text-white/50 max-w-sm text-xs leading-relaxed">
+          No encontramos torneos que coincidan con tus filtros. Probá cambiando las opciones en el panel lateral o limpiando los filtros de búsqueda.
         </p>
       </div>
     )
@@ -50,8 +57,12 @@ export async function TournamentList({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-      {tournaments.map((tournament: Tournament) => (
-        <TournamentCard key={tournament.id} tournament={tournament} />
+      {tournaments.map((tournament: Tournament, index: number) => (
+        <TournamentCard 
+          key={tournament.id} 
+          tournament={tournament} 
+          index={index} 
+        />
       ))}
     </div>
   )
