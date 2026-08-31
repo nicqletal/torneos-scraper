@@ -1,0 +1,67 @@
+# Walkthrough del Proyecto: Torneos Scraper
+
+Este documento detalla el estado actual del proyecto, la arquitectura tecnológica elegida, los lenguajes utilizados y las decisiones tomadas respecto al diseño UI/UX.
+
+---
+
+## 🛠️ Tecnologías y Lenguajes Utilizados
+
+El proyecto está construido con un stack moderno y eficiente enfocado en el rendimiento, la facilidad de desarrollo y una excelente experiencia de usuario:
+
+### 1. **Next.js 15 (App Router)**
+* **Para qué se usa:** Es la base de toda la aplicación web.
+* **Por qué se eligió:** 
+  * Permite combinar **React Server Components (RSC)** con componentes de cliente (`'use client'`). Esto optimiza la carga de la página (SSR - Server-Side Rendering) y mejora el posicionamiento SEO.
+  * Facilita el enrutamiento de manera intuitiva y el manejo de estados de carga dinámicos con `<Suspense>`.
+  * Optimiza la comunicación con Supabase mediante el uso seguro de variables de entorno y server actions en el backend.
+
+### 2. **TypeScript**
+* **Para qué se usa:** Tipado estático en todo el código (`.ts` y `.tsx`).
+* **Por qué se eligió:**
+  * Proporciona seguridad en el desarrollo al definir interfaces estrictas para datos como los torneos (`Tournament`), estados y respuestas de API.
+  * Reduce errores en tiempo de ejecución y mejora el autocompletado y la refactorización dentro del editor de código.
+
+### 3. **Tailwind CSS v4**
+* **Para qué se usa:** Estilado visual de la interfaz.
+* **Por qué se eligió:**
+  * Permite definir una estética consistente de manera rápida utilizando clases de utilidad integradas.
+  * En su versión 4, introduce el nuevo motor `@theme` directamente en el archivo `globals.css` (en lugar de un archivo de configuración separado), haciendo que la definición de variables y colores de marca sea más rápida y escalable.
+
+### 4. **Supabase**
+* **Para qué se usa:** Backend-as-a-Service (Base de datos Postgres, autenticación y almacenamiento).
+* **Por qué se eligió:**
+  * Ofrece integración nativa con Next.js y persistencia en tiempo real.
+  * Maneja la autenticación de usuarios de forma robusta e interactúa directamente desde Server Components utilizando clientes configurados con cookies seguras.
+
+### 5. **Framer Motion & Lucide React**
+* **Para qué se usa:** 
+  * **Framer Motion:** Animaciones, transiciones fluidas de página y micro-interacciones (por ejemplo, efectos de elevación al pasar el mouse por encima de las tarjetas).
+  * **Lucide React:** Iconografía limpia y consistente (trofeos, mapas, relojes, flechas, etc.).
+
+---
+
+## 🎨 Decisiones de Diseño UI/UX
+
+La interfaz fue diseñada con una estética deportiva de alta gama, inspirada en revistas y portales de deportes de vanguardia.
+
+### 1. Diseño de las Interfaces (Layout & Cards)
+* **Visual Premium y Editorial:** Se utiliza una tipografía display de gran peso y espaciada (`Bebas Neue`) para los encabezados principales, en contraste con una tipografía sans-serif limpia (`Plus Jakarta Sans`) para el contenido de lectura.
+* **Scoreboard Indexing:** Las tarjetas de los torneos muestran un índice numérico de doble dígito (ej. `01`, `02`) que simula un tablero de puntuaciones deportivo y aporta ritmo visual.
+* **Diseño en Rejilla Modular:** Estructura limpia basada en bordes finos que encuadran la información de manera precisa.
+
+### 2. Paleta de Colores (Fútbol Nocturno y Táctico)
+Se seleccionó una paleta oscura, moderna y con un contraste vibrante:
+
+| Color | Código HEX | Rol en la Interfaz |
+| :--- | :--- | :--- |
+| **Fondo Principal** | `#0c0f0d` | Negro verdoso muy oscuro. Evoca la estética de los partidos de fútbol amateur nocturnos bajo reflectores. |
+| **Fondo Secundario** | `#141a16` | Tono ligeramente más claro para la cabecera (Header) y el pie de página (Footer), creando profundidad. |
+| **Superficie** | `#1e2922` | Verde oscuro profundo utilizado en los contenedores de las tarjetas y el panel de filtros. |
+| **Bordes** | `#262626` | Gris oscuro para divisiones sutiles que no sobrecargan la vista. |
+| **Acento (Lime)** | `#CCFF00` | **Electric Lime**. Verde lima de alto impacto que simula el color de las pelotas de tenis/fútbol o pecheras deportivas. Se usa para botones activos, indicadores de estado, hovers y llamadas a la acción (CTAs). |
+
+### 3. Navegabilidad y Flujos
+* **Header Persistente (Sticky):** El menú superior acompaña la navegación del usuario con accesos directos al inicio, inicio de sesión y el botón destacado de "Cargar torneo".
+* **Flujo de Carga Protegido:** El botón "Cargar torneo" verifica si el usuario está autenticado. Si no lo está, lo redirige al flujo de login y, tras iniciar sesión con éxito, lo redirige automáticamente de vuelta al formulario de creación utilizando parámetros de búsqueda (`?next=/crear-torneo`).
+* **Panel de Filtros Reactivo:** Ubicado de forma lateral fija en pantallas grandes para un acceso inmediato, actualiza la URL en tiempo real sin recargar la página completa, logrando una experiencia de SPA (Single Page Application).
+* **Ficha de Torneo:** Cada tarjeta de torneo incluye un botón de llamada a la acción claro ("Ficha") que redirige al detalle de ese torneo específico.

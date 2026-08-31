@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
-import { Trophy, Plus } from "lucide-react";
+import { Trophy, Plus, Star } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { UserMenu } from "@/components/UserMenu";
 import { Footer } from "@/components/Footer";
@@ -56,6 +56,15 @@ export default async function RootLayout({
             </Link>
             
             <div className="flex items-center gap-4">
+              {/* COMENTARIO: Enlace a la página de favoritos disponible para todos */}
+              <Link
+                href="/favoritos"
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/70 hover:text-brand-lime transition-colors font-display"
+              >
+                <Star className="w-4 h-4" />
+                Favoritos
+              </Link>
+
               {!user && (
                 <Link 
                   href="/login" 

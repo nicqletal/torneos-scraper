@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { Filters } from '@/components/Filters'
 import { TournamentList } from '@/components/TournamentList'
+import { createClient } from '@/utils/supabase/server'
 
 interface HomeProps {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
@@ -8,6 +9,19 @@ interface HomeProps {
 
 export default async function Home(props: HomeProps) {
   const searchParams = await props.searchParams
+  
+  const supabase = await createClient()
+  const { data: zonesData } = await supabase
+    .from('tournaments')
+    .select('zone')
+  
+  const uniqueZones = Array.from(
+    new Set(
+      zonesData
+        ?.map((t) => t.zone?.trim())
+        .filter(Boolean) || []
+    )
+  ).sort() as string[]
 
   return (
     <div className="flex flex-col gap-8">
@@ -30,7 +44,7 @@ export default async function Home(props: HomeProps) {
           <Suspense fallback={
             <div className="h-96 bg-brand-surface border border-brand-border animate-pulse rounded-sm" />
           }>
-            <Filters />
+            <Filters zones={uniqueZones} />
           </Suspense>
         </div>
 

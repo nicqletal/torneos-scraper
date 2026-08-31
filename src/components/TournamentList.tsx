@@ -23,6 +23,16 @@ export async function TournamentList({
     query = query.eq('status', awaitedParams.status as string)
   }
 
+  if (awaitedParams.zone) {
+    query = query.eq('zone', awaitedParams.zone as string)
+  }
+
+  if (awaitedParams.priceRange) {
+    const [minStr, maxStr] = (awaitedParams.priceRange as string).split('-')
+    if (minStr) query = query.gte('price', parseInt(minStr))
+    if (maxStr) query = query.lte('price', parseInt(maxStr))
+  }
+
   // Order by closest start_date first
   query = query.order('start_date', { ascending: true })
 

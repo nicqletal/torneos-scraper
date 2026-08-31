@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { MapPin, Users, Clock, ArrowRight, Trophy, ImageOff } from 'lucide-react'
+import { MapPin, Users, Clock, ArrowRight, Trophy, ImageOff, Star } from 'lucide-react'
+import { useFavorites } from '@/hooks/useFavorites'
 
 export interface Tournament {
   id: string
@@ -29,6 +30,10 @@ export interface TournamentCardProps {
 }
 
 export function TournamentCard({ tournament, index }: TournamentCardProps) {
+  // COMENTARIO: Inicializamos el hook de favoritos
+  const { isFavorite, toggleFavorite, isMounted } = useFavorites()
+  const isFav = isMounted ? isFavorite(tournament.id) : false
+
   const lastUpdated = new Date(tournament.verified_at || tournament.updated_at)
 
   // Status mapping to brand-lime styling or sport indicators
@@ -85,6 +90,20 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
             {statusLabels[tournament.status]}
           </span>
         </div>
+
+        {/* COMENTARIO: Botón de Favoritos en la esquina superior derecha */}
+        <button
+          onClick={(e) => {
+            e.preventDefault(); // Por si en el futuro la tarjeta se envuelve en un Link
+            toggleFavorite(tournament.id);
+          }}
+          className="absolute top-3 right-3 p-1.5 rounded-full bg-brand-bg/60 backdrop-blur-sm border border-brand-border text-white/70 hover:text-brand-lime hover:border-brand-lime transition-all duration-200 z-10 hover:scale-110"
+          aria-label={isFav ? "Quitar de favoritos" : "Agregar a favoritos"}
+        >
+          <Star 
+            className={`w-4 h-4 transition-all duration-300 ${isFav ? 'fill-brand-lime text-brand-lime' : ''}`} 
+          />
+        </button>
 
         <div className="absolute bottom-3 right-3 text-[10px] text-white/50 bg-brand-bg/80 px-2 py-0.5 border border-brand-border rounded-sm backdrop-blur-xs font-mono">
           REF: #{tournament.id.slice(0, 5).toUpperCase()}
