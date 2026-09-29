@@ -10,6 +10,11 @@ export default async function LoginPage({
   const awaitedParams = await searchParams
   const error = awaitedParams.error as string | undefined
   const next = awaitedParams.next as string || '/admin'
+  // The mode lives in the URL (not in client state) so the page stays a Server Component
+  const isSignup = awaitedParams.modo === 'registro'
+  const toggleHref = isSignup
+    ? `/login?next=${encodeURIComponent(next)}`
+    : `/login?modo=registro&next=${encodeURIComponent(next)}`
 
   return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center p-4">
@@ -21,7 +26,9 @@ export default async function LoginPage({
       </Link>
 
       <div className="w-full max-w-sm p-8 bg-white/5 border border-white/10 rounded-2xl shadow-xl backdrop-blur-sm">
-        <h1 className="text-2xl font-bold text-center mb-6">Iniciar sesión</h1>
+        <h1 className="text-2xl font-bold text-center mb-6">
+          {isSignup ? 'Crear cuenta' : 'Iniciar sesión'}
+        </h1>
 
         {error && (
           <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center">
@@ -31,7 +38,23 @@ export default async function LoginPage({
 
         <form className="flex flex-col gap-4">
           <input type="hidden" name="next" value={next} />
-          
+
+          {isSignup && (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="display_name" className="text-sm text-white/70 font-medium">Nombre</label>
+              <input
+                id="display_name"
+                name="display_name"
+                type="text"
+                required
+                minLength={2}
+                maxLength={50}
+                className="px-4 py-2 bg-black/40 border border-white/10 rounded-lg focus:outline-none focus:border-emerald-500 text-white transition-colors"
+                placeholder="Como te van a ver los demás"
+              />
+            </div>
+          )}
+
           <div className="flex flex-col gap-1.5">
             <label htmlFor="email" className="text-sm text-white/70 font-medium">Email</label>
             <input 
@@ -56,20 +79,21 @@ export default async function LoginPage({
           </div>
 
           <div className="mt-4 flex flex-col gap-3">
-            <button 
-              formAction={login}
+            <button
+              formAction={isSignup ? signup : login}
               className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg transition-colors shadow-lg shadow-emerald-500/20"
             >
-              Ingresar
-            </button>
-            <button 
-              formAction={signup}
-              className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-white/80 font-medium rounded-lg transition-colors border border-white/10"
-            >
-              Registrarme
+              {isSignup ? 'Registrarme' : 'Ingresar'}
             </button>
           </div>
         </form>
+
+        <p className="mt-6 text-center text-sm text-white/60">
+          {isSignup ? '¿Ya tenés cuenta?' : '¿No tenés cuenta?'}{' '}
+          <Link href={toggleHref} className="font-medium text-white hover:text-emerald-400 transition-colors">
+            {isSignup ? 'Iniciá sesión' : 'Registrate'}
+          </Link>
+        </p>
       </div>
     </div>
   )

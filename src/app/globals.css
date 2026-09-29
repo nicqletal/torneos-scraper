@@ -15,7 +15,8 @@
   --color-brand-surface: #1e2922;
   --color-brand-border: #262626;
   --color-brand-lime: #CCFF00;
-  
+  --color-brand-danger: #f87171;
+
   /* Tailwind standard mappings */
   --color-background: #0c0f0d;
   --color-foreground: #f4f6f5;

@@ -31,15 +31,27 @@ export async function signup(formData: FormData) {
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  const displayName = ((formData.get('display_name') as string) || '').trim()
   const nextUrl = formData.get('next') as string || '/admin'
 
+  // Same rule as the check on profiles.display_name. Validating here avoids
+  // the generic "Database error saving new user" from the trigger.
+  if (displayName.length < 2 || displayName.length > 50) {
+    redirect(`/login?modo=registro&error=${encodeURIComponent('El nombre tiene que tener entre 2 y 50 caracteres')}&next=${encodeURIComponent(nextUrl)}`)
+  }
+
+  // display_name travels in the user metadata; the handle_new_user trigger
+  // reads it to create the profile.
   const { error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: { display_name: displayName },
+    },
   })
 
   if (error) {
-    redirect(`/login?error=Error en registro&next=${encodeURIComponent(nextUrl)}`)
+    redirect(`/login?modo=registro&error=Error en registro&next=${encodeURIComponent(nextUrl)}`)
   }
 
   revalidatePath('/', 'layout')
