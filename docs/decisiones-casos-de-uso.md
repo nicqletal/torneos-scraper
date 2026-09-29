@@ -34,9 +34,9 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 ## Cuenta y acceso
 
 - **Una sola cuenta por persona.** Con ella se puede ser jugador, capitán y organizador a la vez.
-- **Registro:** se entra directo, sin confirmar el email. El único mail que manda la app es el de "Olvidé mi contraseña". El SMTP gratis de Supabase manda muy pocos por hora: alcanza para la entrega, pero con usuarios reales hace falta un servicio aparte (por ejemplo, Resend).
+- **Registro:** pide email, contraseña y **nombre** (el nombre es público, así que no se deriva del email). Se entra directo, sin confirmar el email. El único mail que manda la app es el de "Olvidé mi contraseña". El SMTP gratis de Supabase manda muy pocos por hora: alcanza para la entrega, pero con usuarios reales hace falta un servicio aparte (por ejemplo, Resend).
 - **Portada:** `/` es siempre la vista de jugador (catálogo). La barra superior tiene "Soy organizador" (lleva al panel de organizador y pide sesión) y "Volver a jugador".
-- **Perfil:** nombre, foto (JPG/PNG/WebP, máx. 2 MB), zona y **WhatsApp**. El WhatsApp es opcional, pero obligatorio para crear un equipo o tomar la capitanía.
+- **Perfil:** nombre, foto (JPG/PNG/WebP, máx. 2 MB), zona y **WhatsApp**. El WhatsApp es opcional, pero obligatorio para crear un equipo o tomar la capitanía. Se guarda solo con dígitos, en formato argentino de celular (`549` + 10 dígitos), que es lo que pide `wa.me`.
 - **El rol de administrador no se puede editar desde la app.** Se asigna a mano en la base. El usuario edita nombre, foto, zona y WhatsApp, y nunca el rol.
 - **Cerrar sesión** cierra solo el dispositivo actual.
 - **Volver a la acción después del login (`next`):** solo se aceptan rutas internas. Ojo: `//sitio.com` empieza con `/` y es externa, así que hay que rechazarla también.
@@ -100,8 +100,13 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 
 ## Equipos
 
-- **Crear:** nombre, zona, modalidad habitual y nivel (recreativo, intermedio o competitivo). El escudo es opcional. Máximo 3 equipos como capitán. Hace falta tener WhatsApp en el perfil.
+- **Crear:** nombre, zona, modalidad habitual y nivel (recreativo, intermedio o competitivo). El escudo es opcional (JPG/PNG/WebP, máx. 2 MB). Los nombres se pueden repetir: públicamente se distinguen por la zona. Hace falta tener WhatsApp en el perfil.
+- **Máximo 3 equipos como capitán:** cuentan las capitanías actuales, sin importar si el equipo lo creó o recibió la capitanía. Los equipos disueltos no cuentan. No se puede pasar la capitanía a alguien que ya capitanea 3.
+- **Plantel:** sin tope de jugadores por ahora.
 - **Invitar:** link con validez de 7 días. Regenerarlo invalida el anterior. Quien lo abre entra directo al plantel.
+  - Si el equipo está disuelto, el link deja de valer y muestra el mismo mensaje que un link vencido.
+  - Si quien lo abre ya está en el plantel, no hay error: lo lleva a la página del equipo.
+  - Un usuario suspendido puede sumarse a un equipo, pero no puede recibir la capitanía.
 - **Editar:** solo el capitán (nombre, escudo, zona, modalidad, nivel).
 - **Salir:** cualquier jugador. El capitán primero tiene que pasar la capitanía.
 - **Sacar a un jugador:** el capitán puede sacar a cualquiera.
