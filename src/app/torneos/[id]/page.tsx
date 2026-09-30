@@ -33,6 +33,13 @@ export default async function TournamentDetail({
     notFound()
   }
 
+  // Torneo con organizador: su nombre enlaza a la página pública del organizador.
+  // `user_id` apunta a auth.users (no a profiles), así que no se puede embeber:
+  // va en una consulta aparte. Los torneos copiados no tienen organizador.
+  const { data: organizer } = tournament.user_id
+    ? await supabase.from('profiles').select('display_name').eq('id', tournament.user_id).maybeSingle()
+    : { data: null }
+
   const status = tournament.status as TournamentStatus
   const verification = verificationAge(tournament.verified_at, status, new Date())
 
@@ -136,6 +143,15 @@ export default async function TournamentDetail({
                   <UserRound className="w-3.5 h-3.5 text-brand-lime" />
                   Organiza {tournament.organizer_name}
                 </span>
+              )}
+              {organizer && (
+                <Link
+                  href={`/organizadores/${tournament.user_id}`}
+                  className="flex items-center gap-1.5 px-3 py-1 border border-brand-border bg-brand-secondary/40 text-white/80 hover:text-brand-lime hover:border-brand-lime rounded-sm uppercase transition-colors"
+                >
+                  <UserRound className="w-3.5 h-3.5 text-brand-lime" />
+                  Organiza: {organizer.display_name}
+                </Link>
               )}
               {verification && <VerificationBadge age={verification} className="px-3 py-1" />}
             </div>
