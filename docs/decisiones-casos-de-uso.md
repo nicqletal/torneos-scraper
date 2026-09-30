@@ -79,7 +79,10 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 ### Verificación y "Observado"
 
 - **"Sigue vigente"** actualiza la fecha de verificación. **Editar el torneo no cuenta como verificarlo.**
-- Pasados 30 días sin verificar, el torneo se muestra en ámbar; pasados 60, en rojo con "sin confirmar".
+- Pasados 30 días sin verificar, el torneo se muestra en ámbar; pasados 60, en rojo con "sin confirmar". Se cuentan días completos desde la última verificación: el día 30 ya es ámbar y el 60 ya es rojo.
+- Un torneo recién creado cuenta como verificado al crearlo.
+- Un torneo **Finalizado** no se verifica: no muestra antigüedad ni botón "Sigue vigente", y en el panel va al final.
+- En el panel del organizador van primero los que llevan 30 días o más sin verificar, del más viejo al más nuevo.
 - **Observado** es una marca aparte, que pone el administrador por reportes. "Sigue vigente" no la saca: solo la saca el administrador.
 
 ### Baja

@@ -1,9 +1,14 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Edit2, Trash2, Plus, Trophy, MessageCircle } from 'lucide-react'
-import { revalidatePath } from 'next/cache'
-import { TournamentStatus, statusLabels } from '@/utils/tournament-status'
+import { ArrowLeft, Eye, Pencil, Plus, Trophy, CheckCircle2, Ban, Users } from 'lucide-react'
+import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
+import { sortForPanel, verificationAge } from '@/utils/tournament-verification'
+import { VerificationBadge } from '@/components/VerificationBadge'
+import { verifyTournament } from './actions'
+
+const actionClass =
+  'inline-flex items-center gap-1.5 px-3 py-2 border border-brand-border bg-brand-secondary text-white/80 hover:text-brand-lime hover:border-brand-lime text-xs font-display font-bold uppercase tracking-wider rounded-sm transition-colors'
 
 export default async function MisTorneosPage() {
   const supabase = await createClient()
@@ -13,117 +18,149 @@ export default async function MisTorneosPage() {
     redirect('/login?next=/mis-torneos')
   }
 
-  // Fetch only tournaments belonging to this user
-  const { data: tournaments, error } = await supabase
+  // `status` es una columna calculada: hay que pedirla explícitamente.
+  const { data, error } = await supabase
     .from('tournaments')
-    .select('*, status')
+    .select('id, name, zone, sport_modality, capacity, verified_at, status')
     .eq('user_id', user.id)
-    .order('created_at', { ascending: false } as any) // fallback if created_at is present, otherwise just let postgres sort
+    .order('start_date', { ascending: true })
 
-  async function handleDelete(formData: FormData) {
-    'use server'
-    const supabase = await createClient()
-    const id = formData.get('id') as string
-
-    const { error } = await supabase
-      .from('tournaments')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      console.error(error)
-    }
-
-    revalidatePath('/mis-torneos')
-    revalidatePath('/')
+  if (error) {
+    console.error(error)
+    return (
+      <div className="max-w-4xl mx-auto p-8 border border-brand-red/40 bg-brand-red/5 text-center rounded-sm">
+        <p className="text-brand-red font-display text-sm tracking-wider uppercase">
+          No pudimos cargar tus torneos. Probá de nuevo.
+        </p>
+      </div>
+    )
   }
 
+  const now = new Date()
+  const tournaments = sortForPanel(
+    (data ?? []).map((t) => ({ ...t, status: t.status as TournamentStatus })),
+    now
+  )
+
+  // Hasta que exista la tabla de inscripciones, cuenta 0.
+  const inscriptions = 0
+
   return (
-    <div className="max-w-4xl mx-auto py-8">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <Link href="/" className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-3 group">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            Volver al inicio
-          </Link>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white">Mis torneos</h1>
-          <p className="text-white/60 text-sm mt-1">Gestiona y publica los torneos que organizas</p>
+    <div className="max-w-4xl mx-auto flex flex-col gap-8">
+      <Link
+        href="/"
+        className="inline-flex items-center gap-2 text-xs font-display font-bold uppercase tracking-wider text-white/50 hover:text-brand-lime transition-colors w-fit group"
+      >
+        <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
+        <span>Volver al listado</span>
+      </Link>
+
+      <div className="border-b border-brand-border pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-5xl font-display tracking-widest font-bold text-white uppercase leading-none">
+            Mis torneos
+          </h1>
+          <p className="text-white/60 text-xs tracking-wider uppercase font-mono">
+            Tocá “Sigue vigente” para que la gente sepa que el torneo está en pie.
+          </p>
         </div>
 
         <Link
           href="/crear-torneo"
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold rounded-xl transition-colors shadow-lg shadow-emerald-500/20"
+          className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Nuevo Torneo
+          Cargar torneo
         </Link>
       </div>
 
-      {tournaments && tournaments.length > 0 ? (
-        <div className="border border-white/10 bg-white/5 rounded-2xl overflow-hidden backdrop-blur-sm">
-          <div className="divide-y divide-white/10">
-            {tournaments.map((tournament) => (
-              <div key={tournament.id} className="p-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4 hover:bg-white/5 transition-colors">
-                <div>
-                  <h3 className="font-bold text-lg text-white mb-1">{tournament.name}</h3>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/60">
-                    <span>{tournament.zone}</span>
-                    <span>•</span>
-                    <span className="capitalize">{tournament.sport_modality.replace('_', ' ')}</span>
-                    <span>•</span>
-                    <span className="text-emerald-400">{statusLabels[tournament.status as TournamentStatus]}</span>
-                  </div>
+      {tournaments.length > 0 ? (
+        <ul className="flex flex-col gap-3">
+          {tournaments.map((tournament) => {
+            const age = verificationAge(tournament.verified_at, tournament.status, now)
+
+            return (
+              <li
+                key={tournament.id}
+                className="p-5 bg-brand-surface border border-brand-border rounded-sm flex flex-col gap-4"
+              >
+                <div className="flex flex-col gap-2">
+                  <h2 className="text-2xl font-display font-bold tracking-wider text-white uppercase leading-tight">
+                    {tournament.name}
+                  </h2>
+                  <p className="text-xs text-white/50 font-mono uppercase">
+                    {tournament.zone} · {tournament.sport_modality.replace('futbol_', 'Fútbol ')}
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <Link
-                    href={`/torneos/${tournament.id}`}
-                    className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/80 hover:text-white transition-colors"
-                    title="Ver página"
-                  >
-                    <Trophy className="w-4 h-4" />
-                  </Link>
-
-                  <Link
-                    href={`/mis-torneos/${tournament.id}/editar`}
-                    className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/80 hover:text-white transition-colors"
-                    title="Editar"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </Link>
-
-                  <form action={handleDelete}>
-                    <input type="hidden" name="id" value={tournament.id} />
-                    <button
-                      type="submit"
-                      className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg text-red-400 hover:text-red-300 transition-colors"
-                      title="Eliminar"
-                      onClick={(e) => {
-                        if (!confirm('¿Estás seguro de que quieres eliminar este torneo?')) {
-                          e.preventDefault()
-                        }
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </form>
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase">
+                  <span className={`px-2.5 py-1 border font-display font-bold tracking-widest rounded-sm ${statusStyles[tournament.status]}`}>
+                    {statusLabels[tournament.status]}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-brand-border text-white/70 rounded-sm">
+                    <Users className="w-3.5 h-3.5 text-brand-lime" />
+                    {tournament.capacity
+                      ? `${inscriptions}/${tournament.capacity} equipos`
+                      : `${inscriptions} equipos · sin cupo`}
+                  </span>
+                  {age && <VerificationBadge age={age} className="px-2.5 py-1" />}
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-brand-border">
+                  <Link href={`/torneos/${tournament.id}`} className={actionClass}>
+                    <Eye className="w-3.5 h-3.5" />
+                    Ver
+                  </Link>
+                  <Link href={`/mis-torneos/${tournament.id}/editar`} className={actionClass}>
+                    <Pencil className="w-3.5 h-3.5" />
+                    Editar
+                  </Link>
+
+                  {/* Un Finalizado no se verifica ni se da de baja: queda como trayectoria. */}
+                  {tournament.status !== 'finalizado' && (
+                    <>
+                      <form action={verifyTournament}>
+                        <input type="hidden" name="id" value={tournament.id} />
+                        <button
+                          type="submit"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-brand-lime hover:bg-white text-brand-bg text-xs font-display font-bold uppercase tracking-wider rounded-sm transition-colors cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Sigue vigente
+                        </button>
+                      </form>
+
+                      {/* La baja se conecta en su propio issue (función de Postgres + confirmación). */}
+                      <button
+                        type="button"
+                        disabled
+                        title="Próximamente"
+                        className={`${actionClass} ml-auto opacity-40 cursor-not-allowed hover:text-white/80 hover:border-brand-border`}
+                      >
+                        <Ban className="w-3.5 h-3.5" />
+                        Dar de baja
+                      </button>
+                    </>
+                  )}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
       ) : (
-        <div className="p-16 border border-dashed border-white/20 bg-white/5 rounded-2xl text-center flex flex-col items-center justify-center">
-          <Trophy className="w-12 h-12 text-white/20 mb-4 stroke-1" />
-          <h3 className="text-xl font-bold text-white mb-2">Aún no publicaste torneos</h3>
-          <p className="text-white/50 text-sm max-w-sm mb-6">
-            Comienza a publicar y gestionar tus torneos de fútbol amateur de forma rápida.
+        <div className="p-12 bg-brand-surface border border-dashed border-brand-border rounded-sm text-center flex flex-col items-center gap-4">
+          <Trophy className="w-12 h-12 text-brand-lime/40 stroke-1" />
+          <h2 className="text-2xl font-display font-bold tracking-wider text-white uppercase">
+            Todavía no publicaste torneos
+          </h2>
+          <p className="text-white/50 text-sm max-w-sm">
+            Cargalo acá y los equipos te van a contactar por WhatsApp o Instagram.
           </p>
           <Link
             href="/crear-torneo"
-            className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold rounded-xl transition-colors shadow-lg shadow-emerald-500/20"
+            className="px-6 py-3 bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm transition-colors"
           >
-            Publicar mi primer torneo
+            Cargar mi primer torneo
           </Link>
         </div>
       )}

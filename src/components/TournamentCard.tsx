@@ -3,11 +3,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { formatDistanceToNow } from 'date-fns'
-import { es } from 'date-fns/locale'
-import { MapPin, Users, Clock, ArrowRight, Trophy, ImageOff } from 'lucide-react'
+import { MapPin, Users, ArrowRight, Trophy, ImageOff } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { priceLabel } from '@/utils/tournament-price'
+import type { VerificationAge } from '@/utils/tournament-verification'
+import { VerificationBadge } from './VerificationBadge'
 
 export interface Tournament {
   id: string
@@ -22,18 +22,18 @@ export interface Tournament {
   contact_whatsapp: string | null
   contact_instagram: string | null
   image_url: string | null
-  verified_at: string | null
+  verified_at: string
   updated_at: string
 }
 
 export interface TournamentCardProps {
   tournament: Tournament
   index: number
+  // Antigüedad de verificación; null si no aplica (Finalizado).
+  verification: VerificationAge | null
 }
 
-export function TournamentCard({ tournament, index }: TournamentCardProps) {
-  const lastUpdated = new Date(tournament.verified_at || tournament.updated_at)
-
+export function TournamentCard({ tournament, index, verification }: TournamentCardProps) {
   const modalityLabels = {
     futbol_5: 'Fútbol 5',
     futbol_7: 'Fútbol 7',
@@ -113,11 +113,10 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
 
         {/* Footer Row (Price & CTA Button) */}
         <div className="mt-auto pt-4 border-t border-brand-border flex items-center justify-between gap-2">
-          <div className="flex flex-col">
-            <span className="text-[9px] uppercase tracking-wider text-white/40 font-mono flex items-center gap-1">
-              <Clock className="w-3 h-3 text-brand-lime" />
-              Actualizado {formatDistanceToNow(lastUpdated, { addSuffix: true, locale: es })}
-            </span>
+          <div className="flex flex-col items-start">
+            {verification && (
+              <VerificationBadge age={verification} className="text-[9px] tracking-wider px-1.5 py-0.5" />
+            )}
             <span className="text-lg font-bold text-white font-mono mt-1">
               {priceLabel(tournament.price)}
             </span>

@@ -23,7 +23,9 @@ export interface TournamentInput {
 
 // Las columnas de `TournamentInput`, para leerlas de la base al editar. Son
 // también las únicas que el organizador puede editar (grant de update en
-// supabase/migrations/20260930000004_tournaments_update_form_columns.sql).
+// supabase/migrations/20260930000004_tournaments_update_form_columns.sql) y,
+// junto con `user_id`, las únicas con las que puede crear (grant de insert en
+// supabase/migrations/20260930000005_tournaments_verify.sql).
 // Va en un solo literal porque supabase-js lo parsea para tipar el resultado.
 export const TOURNAMENT_FORM_COLUMNS =
   'name, sport_modality, zone, inscription_deadline, start_date, end_date, price, capacity, description, rules, venue_address, contact_whatsapp, contact_instagram'

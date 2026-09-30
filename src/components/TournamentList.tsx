@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { TournamentCard, Tournament } from './TournamentCard'
 import { Trophy, HelpCircle } from 'lucide-react'
+import { verificationAge } from '@/utils/tournament-verification'
 
 interface TournamentListProps {
   searchParams: { [key: string]: string | string[] | undefined }
@@ -60,6 +61,11 @@ export async function TournamentList({
     )
   }
 
+  // La antigüedad se calcula acá, en el servidor, y la tarjeta (de cliente) la
+  // recibe hecha: si la calculara la tarjeta, el "ahora" del servidor y el del
+  // navegador podrían no coincidir al hidratar.
+  const now = new Date()
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {tournaments.map((tournament: Tournament, index: number) => (
@@ -67,6 +73,7 @@ export async function TournamentList({
           key={tournament.id} 
           tournament={tournament} 
           index={index} 
+          verification={verificationAge(tournament.verified_at, tournament.status, now)}
         />
       ))}
     </div>

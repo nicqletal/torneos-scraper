@@ -15,6 +15,9 @@
   --color-brand-surface: #1e2922;
   --color-brand-border: #262626;
   --color-brand-lime: #CCFF00;
+  /* Antigüedad de verificación: ámbar a los 30 días, rojo "sin confirmar" a los 60 */
+  --color-brand-amber: #FFB020;
+  --color-brand-red: #FF4D4D;
   
   /* Tailwind standard mappings */
   --color-background: #0c0f0d;

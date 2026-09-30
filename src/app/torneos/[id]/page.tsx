@@ -7,6 +7,8 @@ import { es } from 'date-fns/locale'
 import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink, UserRound, ScrollText, CheckCircle2 } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { priceLabel } from '@/utils/tournament-price'
+import { verificationAge } from '@/utils/tournament-verification'
+import { VerificationBadge } from '@/components/VerificationBadge'
 
 interface TournamentDetailProps {
   params: Promise<{ id: string }>
@@ -31,6 +33,7 @@ export default async function TournamentDetail({
   }
 
   const status = tournament.status as TournamentStatus
+  const verification = verificationAge(tournament.verified_at, status, new Date())
 
   // Recién publicado desde /crear-torneo: se le muestra al organizador cómo lo
   // ve la gente. Solo al dueño, por si comparte el link con el ?publicado=1.
@@ -119,6 +122,7 @@ export default async function TournamentDetail({
                   Organiza {tournament.organizer_name}
                 </span>
               )}
+              {verification && <VerificationBadge age={verification} className="px-3 py-1" />}
             </div>
           </div>
 
