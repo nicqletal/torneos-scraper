@@ -66,6 +66,18 @@ src/components/               Filters, TournamentList, TournamentCard, UserMenu,
 - Después de escribir en la base, `revalidatePath('/')` y la ruta afectada.
 - Los colores se usan por token (`bg-brand-lime`, `border-brand-border`), nunca hex sueltos ni utilidades de Tailwind por defecto tipo `emerald-500`. **Hay deuda de diseño**: `/login`, `/crear-torneo` y `/mis-torneos` todavía usan el estilo viejo (esmeralda, `rounded-2xl`) en vez del sistema lima/negro del resto.
 
+## Base de datos local y tests
+
+El esquema vive en `supabase/migrations/` y los tests de base (pgTAP) en `supabase/tests/`. Hace falta Docker corriendo y el Supabase CLI actualizado (`brew upgrade supabase`; el `config.toml` no lo lee una versión vieja).
+
+```bash
+supabase start      # levanta la base local y aplica las migraciones
+supabase db reset   # la recrea desde cero con las migraciones del repo
+supabase test db    # corre los tests pgTAP de supabase/tests/
+```
+
+Toda policy de RLS nueva viene con su test en `supabase/tests/`.
+
 ## Seguridad — leer antes de tocar
 
 RLS y auth son el punto crítico del proyecto:
