@@ -13,7 +13,12 @@ export async function TournamentList({
 
   const awaitedParams = await searchParams
 
-  let query = supabase.from('tournaments').select('*')
+  // `status` es una columna calculada (función `public.status` en la base):
+  // no viene con '*', hay que pedirla. Los Finalizados nunca salen en el catálogo.
+  let query = supabase
+    .from('tournaments')
+    .select('*, status')
+    .neq('status', 'finalizado')
 
   if (awaitedParams.modality) {
     query = query.eq('sport_modality', awaitedParams.modality as string)

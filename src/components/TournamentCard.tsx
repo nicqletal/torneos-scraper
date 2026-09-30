@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { MapPin, Users, Clock, ArrowRight, Trophy, ImageOff } from 'lucide-react'
+import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 
 export interface Tournament {
   id: string
@@ -15,7 +16,8 @@ export interface Tournament {
   zone: string
   price: number | null
   price_currency: string
-  status: 'abierto' | 'cerrado' | 'en_curso' | 'finalizado'
+  // Columna calculada: hay que pedirla explícitamente con select('*, status')
+  status: TournamentStatus
   contact_whatsapp: string | null
   contact_instagram: string | null
   image_url: string | null
@@ -30,21 +32,6 @@ export interface TournamentCardProps {
 
 export function TournamentCard({ tournament, index }: TournamentCardProps) {
   const lastUpdated = new Date(tournament.verified_at || tournament.updated_at)
-
-  // Status mapping to brand-lime styling or sport indicators
-  const statusLabels = {
-    abierto: 'Inscripción Abierta',
-    cerrado: 'Inscripción Cerrada',
-    en_curso: 'En Juego',
-    finalizado: 'Torneo Finalizado',
-  }
-
-  const statusStyles = {
-    abierto: 'text-brand-lime border-brand-lime bg-brand-lime/5',
-    cerrado: 'text-red-400 border-red-500/30 bg-red-950/20',
-    en_curso: 'text-sky-400 border-sky-500/30 bg-sky-950/20',
-    finalizado: 'text-zinc-500 border-zinc-700 bg-zinc-800/20',
-  }
 
   const modalityLabels = {
     futbol_5: 'Fútbol 5',

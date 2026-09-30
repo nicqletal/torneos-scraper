@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Edit2, Trash2, Plus, Trophy, MessageCircle } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
+import { TournamentStatus, statusLabels } from '@/utils/tournament-status'
 
 export default async function MisTorneosPage() {
   const supabase = await createClient()
@@ -15,7 +16,7 @@ export default async function MisTorneosPage() {
   // Fetch only tournaments belonging to this user
   const { data: tournaments, error } = await supabase
     .from('tournaments')
-    .select('*')
+    .select('*, status')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false } as any) // fallback if created_at is present, otherwise just let postgres sort
 
@@ -70,7 +71,7 @@ export default async function MisTorneosPage() {
                     <span>•</span>
                     <span className="capitalize">{tournament.sport_modality.replace('_', ' ')}</span>
                     <span>•</span>
-                    <span className="capitalize text-emerald-400">{tournament.status}</span>
+                    <span className="text-emerald-400">{statusLabels[tournament.status as TournamentStatus]}</span>
                   </div>
                 </div>
 

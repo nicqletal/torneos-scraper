@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink, UserRound } from 'lucide-react'
+import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 
 interface TournamentDetailProps {
   params: Promise<{ id: string }>
@@ -18,7 +19,7 @@ export default async function TournamentDetail({
   
   const { data: tournament, error } = await supabase
     .from('tournaments')
-    .select('*')
+    .select('*, status')
     .eq('id', id)
     .single()
 
@@ -26,26 +27,17 @@ export default async function TournamentDetail({
     notFound()
   }
 
-  const statusLabels = {
-    abierto: 'Inscripción Abierta',
-    cerrado: 'Inscripción Cerrada',
-    en_curso: 'En Juego',
-    finalizado: 'Torneo Finalizado',
-  }
+  const status = tournament.status as TournamentStatus
 
-  const statusColors = {
-    abierto: 'text-brand-lime border-brand-lime bg-brand-lime/5',
-    cerrado: 'text-red-400 border-red-500/30 bg-red-950/20',
-    en_curso: 'text-sky-400 border-sky-500/30 bg-sky-950/20',
-    finalizado: 'text-zinc-500 border-zinc-700 bg-zinc-800/20',
-  }
-  
   const modalityLabels = {
     futbol_5: 'Fútbol 5',
     futbol_7: 'Fútbol 7',
     futbol_8: 'Fútbol 8',
     futbol_11: 'Fútbol 11',
   }
+
+  const formatDate = (date: string) =>
+    format(new Date(date + 'T00:00:00'), "d 'de' MMMM, yyyy", { locale: es })
 
   const defaultWhatsappMessage = encodeURIComponent(`Hola, vengo de Torneos Scraper. Me interesa el torneo "${tournament.name}"!`)
 
@@ -71,13 +63,13 @@ export default async function TournamentDetail({
             fill
             priority
             sizes="(max-width: 768px) 100vw, 400px"
-            className={`object-cover ${tournament.status === 'cerrado' ? 'grayscale opacity-60' : 'opacity-90'}`}
+            className={`object-cover ${status === 'cerrado' ? 'grayscale opacity-60' : 'opacity-90'}`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/85 via-transparent to-transparent" />
           
           <div className="absolute top-4 left-4">
-            <span className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider border font-display rounded-sm ${statusColors[tournament.status as keyof typeof statusColors]}`}>
-              {statusLabels[tournament.status as keyof typeof statusLabels]}
+            <span className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider border font-display rounded-sm ${statusStyles[status]}`}>
+              {statusLabels[status]}
             </span>
           </div>
 
@@ -104,6 +96,13 @@ export default async function TournamentDetail({
                 <Users className="w-3.5 h-3.5" />
                 {modalityLabels[tournament.sport_modality as keyof typeof modalityLabels]}
               </span>
+              {/* Torneo copiado: no tiene organizador en la app, solo el nombre del real */}
+              {tournament.organizer_name && (
+                <span className="flex items-center gap-1.5 px-3 py-1 border border-brand-border bg-brand-secondary/40 text-white/80 rounded-sm uppercase">
+                  <UserRound className="w-3.5 h-3.5 text-brand-lime" />
+                  Organiza {tournament.organizer_name}
+                </span>
+              )}
             </div>
           </div>
 
@@ -132,27 +131,29 @@ export default async function TournamentDetail({
 
             <div className="h-px bg-brand-border w-full" />
             
-            {/* Start and End Dates */}
+            {/* Cierre, inicio y fin (las tres son obligatorias) y cupo */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <span className="text-white/40 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1.5 mb-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-brand-lime" />
-                  FECHA DE INICIO
-                </span>
-                <p className="font-semibold text-white text-sm">
-                  {format(new Date(tournament.start_date + 'T00:00:00'), "d 'de' MMMM, yyyy", { locale: es })}
-                </p>
-              </div>
-              
-              {tournament.end_date && (
-                <div>
+              {[
+                ['CIERRE DE INSCRIPCIÓN', tournament.inscription_deadline],
+                ['FECHA DE INICIO', tournament.start_date],
+                ['FECHA DE FINALIZACIÓN', tournament.end_date],
+              ].map(([label, date]) => (
+                <div key={label}>
                   <span className="text-white/40 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1.5 mb-1.5">
                     <Calendar className="w-3.5 h-3.5 text-brand-lime" />
-                    FECHA DE FINALIZACIÓN
+                    {label}
                   </span>
-                  <p className="font-semibold text-white text-sm">
-                    {format(new Date(tournament.end_date + 'T00:00:00'), "d 'de' MMMM, yyyy", { locale: es })}
-                  </p>
+                  <p className="font-semibold text-white text-sm">{formatDate(date)}</p>
+                </div>
+              ))}
+
+              {tournament.capacity && (
+                <div>
+                  <span className="text-white/40 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1.5 mb-1.5">
+                    <Users className="w-3.5 h-3.5 text-brand-lime" />
+                    CUPO
+                  </span>
+                  <p className="font-semibold text-white text-sm">{tournament.capacity} equipos</p>
                 </div>
               )}
             </div>

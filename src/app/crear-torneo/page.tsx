@@ -1,7 +1,9 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Trophy, Save } from 'lucide-react'
+import { revalidatePath } from 'next/cache'
+import { ArrowLeft, Trophy } from 'lucide-react'
+import { CreateTournamentForm, CreateTournamentState } from './CreateTournamentForm'
 
 export default async function CrearTorneoPage() {
   const supabase = await createClient()
@@ -11,45 +13,66 @@ export default async function CrearTorneoPage() {
     redirect('/login?next=/crear-torneo')
   }
 
-  // Server Action inline/inside file or external for submission
-  async function handleSubmit(formData: FormData) {
+  // Server Action: valida las fechas y el cupo antes de insertar. Si algo no
+  // cierra, devuelve el error y lo cargado para que el formulario no se vacíe.
+  // Los `check` de la tabla repiten las mismas reglas como última defensa.
+  async function createTournament(
+    _state: CreateTournamentState,
+    formData: FormData
+  ): Promise<CreateTournamentState> {
     'use server'
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) throw new Error('No autorizado')
 
-    const name = formData.get('name') as string
-    const description = formData.get('description') as string
-    const sport_modality = formData.get('sport_modality') as any
-    const zone = formData.get('zone') as string
-    const priceRaw = formData.get('price')
-    const price = priceRaw ? parseFloat(priceRaw as string) : null
-    const price_currency = formData.get('price_currency') as string || 'ARS'
-    const contact_whatsapp = formData.get('contact_whatsapp') as string
-    const contact_instagram = formData.get('contact_instagram') as string
-    const status = 'abierto'
-    const start_date = new Date().toISOString().split('T')[0] // today's date placeholder
+    const values = Object.fromEntries(
+      [...formData.entries()]
+        .filter(([key]) => !key.startsWith('$ACTION'))
+        .map(([key, value]) => [key, String(value)])
+    )
+    const fail = (error: string) => ({ error, values })
+
+    const { inscription_deadline, start_date, end_date } = values
+    if (!inscription_deadline || !start_date || !end_date) {
+      return fail('Completá el cierre de inscripción, el inicio y el fin.')
+    }
+    // Las fechas llegan como AAAA-MM-DD, así que se pueden comparar como texto.
+    if (inscription_deadline > start_date) {
+      return fail('El cierre de inscripción no puede ser después del inicio.')
+    }
+    if (start_date > end_date) {
+      return fail('El fin no puede ser antes del inicio.')
+    }
+
+    const capacity = values.capacity ? Number(values.capacity) : null
+    if (capacity !== null && (!Number.isInteger(capacity) || capacity < 1)) {
+      return fail('El cupo tiene que ser un número entero de al menos 1.')
+    }
 
     const { error } = await supabase.from('tournaments').insert({
-      name,
-      description,
-      sport_modality,
-      zone,
-      price,
-      price_currency,
-      contact_whatsapp,
-      contact_instagram,
-      status,
+      name: values.name,
+      description: values.description,
+      sport_modality: values.sport_modality,
+      zone: values.zone,
+      price: values.price ? parseFloat(values.price) : null,
+      price_currency: values.price_currency || 'ARS',
+      contact_whatsapp: values.contact_whatsapp,
+      contact_instagram: values.contact_instagram,
+      inscription_deadline,
       start_date,
-      user_id: user.id
+      end_date,
+      capacity,
+      user_id: user.id,
     })
 
     if (error) {
       console.error(error)
-      redirect('/crear-torneo?error=' + encodeURIComponent(error.message))
+      return fail('No pudimos publicar el torneo. Probá de nuevo.')
     }
 
+    revalidatePath('/')
+    revalidatePath('/mis-torneos')
     redirect('/mis-torneos')
   }
 
@@ -71,111 +94,7 @@ export default async function CrearTorneoPage() {
           </div>
         </div>
 
-        <form action={handleSubmit} className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <label className="text-sm text-white/70 font-medium">Nombre del torneo</label>
-            <input 
-              name="name" 
-              type="text" 
-              required 
-              placeholder="Ej: Copa Amistad Sabatina"
-              className="px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-emerald-500 text-white transition-colors"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm text-white/70 font-medium">Modalidad</label>
-              <select 
-                name="sport_modality" 
-                required
-                className="px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-emerald-500 text-white transition-colors"
-              >
-                <option value="futbol_5">Fútbol 5</option>
-                <option value="futbol_7">Fútbol 7</option>
-                <option value="futbol_8">Fútbol 8</option>
-                <option value="futbol_11">Fútbol 11</option>
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm text-white/70 font-medium">Zona / Ubicación</label>
-              <input 
-                name="zone" 
-                type="text" 
-                required 
-                placeholder="Ej: Palermo, CABA o Vicente López, GBA"
-                className="px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-emerald-500 text-white transition-colors"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2 flex flex-col gap-2">
-              <label className="text-sm text-white/70 font-medium">Precio de inscripción (opcional)</label>
-              <input 
-                name="price" 
-                type="number" 
-                placeholder="Ej: 45000"
-                className="px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-emerald-500 text-white transition-colors"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm text-white/70 font-medium">Moneda</label>
-              <select 
-                name="price_currency" 
-                className="px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-emerald-500 text-white transition-colors"
-              >
-                <option value="ARS">ARS ($)</option>
-                <option value="USD">USD (US$)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm text-white/70 font-medium">Descripción / Información General</label>
-            <textarea 
-              name="description" 
-              rows={4}
-              placeholder="Detalles sobre premios, horarios, reglas, etc..."
-              className="px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-emerald-500 text-white transition-colors resize-none"
-            />
-          </div>
-
-          <div className="h-px bg-white/10 w-full my-2" />
-
-          <h3 className="text-sm font-bold text-emerald-400">Datos de Contacto</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm text-white/70 font-medium">WhatsApp</label>
-              <input 
-                name="contact_whatsapp" 
-                type="text" 
-                placeholder="Ej: +5491112345678"
-                className="px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-emerald-500 text-white transition-colors"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm text-white/70 font-medium">Usuario Instagram (sin @)</label>
-              <input 
-                name="contact_instagram" 
-                type="text" 
-                placeholder="Ej: torneos.futbol"
-                className="px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-emerald-500 text-white transition-colors"
-              />
-            </div>
-          </div>
-
-          <button 
-            type="submit" 
-            className="mt-4 flex items-center justify-center gap-2 py-3 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold rounded-xl transition-colors shadow-lg shadow-emerald-500/20"
-          >
-            <Save className="w-5 h-5" />
-            Publicar Torneo
-          </button>
-        </form>
+        <CreateTournamentForm action={createTournament} />
       </div>
     </div>
   )

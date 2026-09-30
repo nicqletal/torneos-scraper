@@ -11,8 +11,11 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000a', 'ana@test.local',  '{"display_name": "Ana"}'),
   ('00000000-0000-0000-0000-00000000000b', 'beto@test.local', '{"display_name": "Beto"}');
 
-insert into public.tournaments (id, name, sport_modality, zone, start_date, user_id) values
-  ('11111111-1111-1111-1111-111111111111', 'Copa de Ana', 'futbol_5', 'Palermo', '2026-11-01',
+insert into public.tournaments
+  (id, name, sport_modality, zone, inscription_deadline, start_date, end_date, user_id)
+values
+  ('11111111-1111-1111-1111-111111111111', 'Copa de Ana', 'futbol_5', 'Palermo',
+   '2026-10-25', '2026-11-01', '2026-11-30',
    '00000000-0000-0000-0000-00000000000a');
 
 -- anon: lee los torneos.
@@ -42,8 +45,9 @@ select is_empty(
 );
 
 select throws_ok(
-  $$ insert into public.tournaments (name, sport_modality, zone, start_date, user_id)
-     values ('Copa trucha', 'futbol_5', 'Palermo', '2026-11-01',
+  $$ insert into public.tournaments
+       (name, sport_modality, zone, inscription_deadline, start_date, end_date, user_id)
+     values ('Copa trucha', 'futbol_5', 'Palermo', '2026-10-25', '2026-11-01', '2026-11-30',
              '00000000-0000-0000-0000-00000000000a') $$,
   '42501',
   null,

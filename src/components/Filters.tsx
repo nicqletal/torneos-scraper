@@ -41,7 +41,6 @@ export function Filters() {
     { value: 'abierto', label: 'INSCRIPCIÓN ABIERTA' },
     { value: 'en_curso', label: 'EN CURSO' },
     { value: 'cerrado', label: 'INSCRIPCIÓN CERRADA' },
-    { value: 'finalizado', label: 'FINALIZADOS' },
   ]
 
   return (
