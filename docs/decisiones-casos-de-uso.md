@@ -89,6 +89,7 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 
 - Se llama **baja** (no "eliminar"). Se puede hacer en Abierto, Cerrado o En curso, **nunca en Finalizado**, porque los finalizados son la trayectoria del organizador.
 - El torneo desaparece del catálogo y su ficha devuelve 404.
+- Siempre pide confirmación con el nombre del torneo y cuántos equipos tiene anotados (también con 0): no se puede deshacer.
 - Genera un aviso a cada capitán con una inscripción vinculada.
 - La hace el organizador o el administrador.
 

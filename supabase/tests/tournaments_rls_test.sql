@@ -38,10 +38,13 @@ select is_empty(
   'update de un torneo ajeno afecta 0 filas'
 );
 
-select is_empty(
+-- La baja no es un delete: va por `withdraw_tournament` (ver tournaments_withdraw_test.sql).
+select throws_ok(
   $$ delete from public.tournaments
-     where id = '11111111-1111-1111-1111-111111111111' returning id $$,
-  'delete de un torneo ajeno afecta 0 filas'
+     where id = '11111111-1111-1111-1111-111111111111' $$,
+  '42501',
+  null,
+  'no hay delete directo, ni de un torneo ajeno'
 );
 
 select throws_ok(
@@ -71,10 +74,9 @@ select policies_are(
   array[
     'tournaments: lectura pública',
     'tournaments: el organizador crea los suyos',
-    'tournaments: el organizador edita los suyos',
-    'tournaments: el organizador da de baja los suyos'
+    'tournaments: el organizador edita los suyos'
   ],
-  'tournaments tiene solo lectura pública y escritura del dueño'
+  'tournaments tiene lectura pública, alta y edición del dueño (la baja va por función)'
 );
 
 select * from finish();

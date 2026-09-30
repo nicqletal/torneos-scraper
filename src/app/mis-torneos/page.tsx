@@ -1,11 +1,13 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Eye, Pencil, Plus, Trophy, CheckCircle2, Ban, Users } from 'lucide-react'
+import { ArrowLeft, Eye, Pencil, Plus, Trophy, CheckCircle2, Users } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { sortForPanel, verificationAge } from '@/utils/tournament-verification'
+import { withdrawConfirmation } from '@/utils/tournament-withdraw'
 import { VerificationBadge } from '@/components/VerificationBadge'
 import { verifyTournament } from './actions'
+import { WithdrawButton } from './WithdrawButton'
 
 const actionClass =
   'inline-flex items-center gap-1.5 px-3 py-2 border border-brand-border bg-brand-secondary text-white/80 hover:text-brand-lime hover:border-brand-lime text-xs font-display font-bold uppercase tracking-wider rounded-sm transition-colors'
@@ -130,16 +132,11 @@ export default async function MisTorneosPage() {
                         </button>
                       </form>
 
-                      {/* La baja se conecta en su propio issue (función de Postgres + confirmación). */}
-                      <button
-                        type="button"
-                        disabled
-                        title="Próximamente"
-                        className={`${actionClass} ml-auto opacity-40 cursor-not-allowed hover:text-white/80 hover:border-brand-border`}
-                      >
-                        <Ban className="w-3.5 h-3.5" />
-                        Dar de baja
-                      </button>
+                      <WithdrawButton
+                        id={tournament.id}
+                        confirmMessage={withdrawConfirmation(tournament.name, inscriptions)}
+                        className={actionClass}
+                      />
                     </>
                   )}
                 </div>

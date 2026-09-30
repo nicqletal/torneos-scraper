@@ -29,3 +29,32 @@ export async function verifyTournament(formData: FormData) {
   revalidatePath('/mis-torneos')
   revalidatePath(`/torneos/${id}`)
 }
+
+// Baja. Recibe el id directo (no un FormData) porque la llama `WithdrawButton`
+// después de confirmar, no un form. El id viene del cliente y no es de confiar:
+// que sea del dueño y que el torneo no esté Finalizado lo controla la función
+// `withdraw_tournament` en la base, que es la única que puede borrar torneos.
+export async function withdrawTournament(id: string): Promise<{ error: string } | undefined> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) redirect('/login?next=/mis-torneos')
+
+  const { error } = await supabase.rpc('withdraw_tournament', { tournament_id: id })
+
+  // El panel solo ofrece la baja en torneos propios no Finalizados, pero el
+  // estado puede cambiar entre que se cargó la página y se tocó el botón (por
+  // ejemplo, termina el torneo a medianoche). Ese mensaje sí se muestra.
+  if (error) {
+    console.error(error)
+    return {
+      error: error.code === '22023'
+        ? 'Este torneo ya finalizó: queda en tu trayectoria y no se da de baja.'
+        : 'No pudimos dar de baja el torneo. Probá de nuevo.',
+    }
+  }
+
+  revalidatePath('/')
+  revalidatePath('/mis-torneos')
+  revalidatePath(`/torneos/${id}`)
+}
