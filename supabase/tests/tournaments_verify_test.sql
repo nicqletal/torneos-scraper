@@ -12,13 +12,13 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000b', 'beto@test.local', '{"display_name": "Beto"}');
 
 insert into public.tournaments
-  (contact_instagram, id, name, sport_modality, zone, inscription_deadline, start_date, end_date,
+  (contact_instagram, id, name, sport_modality, zone_id, inscription_deadline, start_date, end_date,
    verified_at, user_id)
 values
-  ('copa.test', '11111111-1111-1111-1111-111111111111', 'Copa de Ana', 'futbol_5', 'Palermo',
+  ('copa.test', '11111111-1111-1111-1111-111111111111', 'Copa de Ana', 'futbol_5', 'palermo',
    '2026-10-25', '2026-11-01', '2026-11-30',
    '2026-07-01 12:00:00-03', '00000000-0000-0000-0000-00000000000a'),
-  ('copa.vieja', '33333333-3333-3333-3333-333333333333', 'Copa vieja de Ana', 'futbol_5', 'Palermo',
+  ('copa.vieja', '33333333-3333-3333-3333-333333333333', 'Copa vieja de Ana', 'futbol_5', 'palermo',
    '2025-10-25', '2025-11-01', '2025-11-30',
    '2025-11-01 12:00:00-03', '00000000-0000-0000-0000-00000000000a');
 
@@ -85,9 +85,9 @@ select throws_ok(
 -- Al crear, `verified_at` lo pone la base: el organizador no lo puede elegir.
 select throws_ok(
   $$ insert into public.tournaments
-       (contact_instagram, name, sport_modality, zone, inscription_deadline, start_date, end_date,
+       (contact_instagram, name, sport_modality, zone_id, inscription_deadline, start_date, end_date,
         verified_at, user_id)
-     values ('copa.test', 'Copa verificada a futuro', 'futbol_5', 'Palermo',
+     values ('copa.test', 'Copa verificada a futuro', 'futbol_5', 'palermo',
              '2026-10-25', '2026-11-01', '2026-11-30',
              '2099-01-01', '00000000-0000-0000-0000-00000000000a') $$,
   '42501', null,
@@ -95,9 +95,9 @@ select throws_ok(
 );
 
 insert into public.tournaments
-  (contact_instagram, name, sport_modality, zone, inscription_deadline, start_date, end_date, user_id)
+  (contact_instagram, name, sport_modality, zone_id, inscription_deadline, start_date, end_date, user_id)
 values
-  ('copa.test', 'Copa nueva', 'futbol_5', 'Palermo',
+  ('copa.test', 'Copa nueva', 'futbol_5', 'palermo',
    '2026-10-25', '2026-11-01', '2026-11-30', '00000000-0000-0000-0000-00000000000a');
 
 select is(
@@ -126,7 +126,7 @@ select is(
   array[
     'capacity', 'contact_instagram', 'contact_whatsapp', 'description', 'end_date',
     'inscription_deadline', 'name', 'price', 'rules', 'sport_modality', 'start_date',
-    'user_id', 'venue_address', 'zone'
+    'user_id', 'venue_address', 'zone_id'
   ],
   'authenticated crea solo con las columnas del formulario y user_id'
 );

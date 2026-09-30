@@ -11,10 +11,10 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000b', 'beto@test.local', '{"display_name": "Beto"}');
 
 insert into public.tournaments
-  (contact_instagram, id, name, sport_modality, zone, inscription_deadline, start_date, end_date,
+  (contact_instagram, id, name, sport_modality, zone_id, inscription_deadline, start_date, end_date,
    verified_at, user_id)
 values
-  ('copa.test', '11111111-1111-1111-1111-111111111111', 'Copa de Ana', 'futbol_5', 'Palermo',
+  ('copa.test', '11111111-1111-1111-1111-111111111111', 'Copa de Ana', 'futbol_5', 'palermo',
    '2026-10-25', '2026-11-01', '2026-11-30',
    '2026-09-01 12:00:00-03', '00000000-0000-0000-0000-00000000000a');
 
@@ -24,7 +24,7 @@ select set_config('request.jwt.claims', '{"sub": "00000000-0000-0000-0000-000000
 
 select isnt_empty(
   $$ update public.tournaments set
-       name = 'Copa de Ana 2026', sport_modality = 'futbol_7', zone = 'Belgrano',
+       name = 'Copa de Ana 2026', sport_modality = 'futbol_7', zone_id = 'belgrano',
        inscription_deadline = '2026-10-20', start_date = '2026-10-31', end_date = '2026-12-15',
        price = 0, capacity = 12, description = 'Con tercer tiempo', rules = 'Sin offside',
        venue_address = 'Av. Santa Fe 3000', contact_whatsapp = '5491112345678',
@@ -88,7 +88,7 @@ select is(
   array[
     'capacity', 'contact_instagram', 'contact_whatsapp', 'description', 'end_date',
     'image_url', 'inscription_deadline', 'name', 'price', 'rules', 'sport_modality', 'start_date',
-    'venue_address', 'zone'
+    'venue_address', 'zone_id'
   ],
   'authenticated edita solo las columnas del formulario y el flyer'
 );

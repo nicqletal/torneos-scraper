@@ -16,15 +16,15 @@ insert into auth.users (id, email, raw_user_meta_data) values
 set local timezone = 'America/Argentina/Buenos_Aires';
 
 insert into public.tournaments
-  (contact_instagram, id, name, sport_modality, zone, inscription_deadline, start_date, end_date, user_id)
+  (contact_instagram, id, name, sport_modality, zone_id, inscription_deadline, start_date, end_date, user_id)
 values
-  ('copa.test', '11111111-1111-1111-1111-111111111111', 'Copa abierta', 'futbol_5', 'Palermo',
+  ('copa.test', '11111111-1111-1111-1111-111111111111', 'Copa abierta', 'futbol_5', 'palermo',
    current_date + 10, current_date + 20, current_date + 50, '00000000-0000-0000-0000-00000000000a'),
-  ('copa.test', '22222222-2222-2222-2222-222222222222', 'Copa cerrada', 'futbol_5', 'Palermo',
+  ('copa.test', '22222222-2222-2222-2222-222222222222', 'Copa cerrada', 'futbol_5', 'palermo',
    current_date - 1, current_date + 5, current_date + 30, '00000000-0000-0000-0000-00000000000a'),
-  ('copa.test', '33333333-3333-3333-3333-333333333333', 'Copa en curso', 'futbol_5', 'Palermo',
+  ('copa.test', '33333333-3333-3333-3333-333333333333', 'Copa en curso', 'futbol_5', 'palermo',
    current_date - 20, current_date - 10, current_date + 10, '00000000-0000-0000-0000-00000000000a'),
-  ('copa.test', '44444444-4444-4444-4444-444444444444', 'Copa finalizada', 'futbol_5', 'Palermo',
+  ('copa.test', '44444444-4444-4444-4444-444444444444', 'Copa finalizada', 'futbol_5', 'palermo',
    current_date - 60, current_date - 50, current_date - 1, '00000000-0000-0000-0000-00000000000a');
 
 -- Las fechas dan los cuatro estados, así los tests de abajo prueban lo que dicen.

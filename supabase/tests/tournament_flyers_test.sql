@@ -13,11 +13,11 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000b', 'beto@test.local', '{"display_name": "Beto"}');
 
 insert into public.tournaments
-  (contact_instagram, id, name, sport_modality, zone, inscription_deadline, start_date, end_date, user_id)
+  (contact_instagram, id, name, sport_modality, zone_id, inscription_deadline, start_date, end_date, user_id)
 values
-  ('copa.test', '11111111-1111-1111-1111-111111111111', 'Copa de Ana', 'futbol_5', 'Palermo',
+  ('copa.test', '11111111-1111-1111-1111-111111111111', 'Copa de Ana', 'futbol_5', 'palermo',
    '2026-10-25', '2026-11-01', '2026-11-30', '00000000-0000-0000-0000-00000000000a'),
-  ('copa.test', '22222222-2222-2222-2222-222222222222', 'Copa de Beto', 'futbol_5', 'Palermo',
+  ('copa.test', '22222222-2222-2222-2222-222222222222', 'Copa de Beto', 'futbol_5', 'palermo',
    '2026-10-25', '2026-11-01', '2026-11-30', '00000000-0000-0000-0000-00000000000b');
 
 -- El bucket: público de lectura, 3 MB, solo JPG/PNG/WebP.

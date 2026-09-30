@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { TournamentForm } from '@/components/TournamentForm'
+import { getZoneGroups } from '@/components/ZoneSelect'
 import {
   TOURNAMENT_FORM_COLUMNS,
   editConfirmation,
@@ -67,6 +68,7 @@ export default async function EditarTorneoPage({ params }: EditarTorneoProps) {
       <div className="bg-brand-surface border border-brand-border rounded-sm p-6 md:p-8">
         <TournamentForm
           action={updateTournament.bind(null, id)}
+          zoneGroups={await getZoneGroups()}
           submitLabel="Guardar cambios"
           pendingLabel="Guardando…"
           initialValues={tournamentToFormValues(formColumns)}

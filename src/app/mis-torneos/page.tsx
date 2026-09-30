@@ -5,6 +5,7 @@ import { ArrowLeft, Eye, Pencil, Plus, Trophy, CheckCircle2, Users } from 'lucid
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { sortForPanel, verificationAge } from '@/utils/tournament-verification'
 import { withdrawConfirmation } from '@/utils/tournament-withdraw'
+import { ZONE_LABEL_EMBED, zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import { VerificationBadge } from '@/components/VerificationBadge'
 import { verifyTournament } from './actions'
 import { WithdrawButton } from './WithdrawButton'
@@ -23,7 +24,7 @@ export default async function MisTorneosPage() {
   // `status` es una columna calculada: hay que pedirla explícitamente.
   const { data, error } = await supabase
     .from('tournaments')
-    .select('id, name, zone, sport_modality, capacity, verified_at, status')
+    .select(`id, name, ${ZONE_LABEL_EMBED}, sport_modality, capacity, verified_at, status`)
     .eq('user_id', user.id)
     .order('start_date', { ascending: true })
 
@@ -40,7 +41,13 @@ export default async function MisTorneosPage() {
 
   const now = new Date()
   const tournaments = sortForPanel(
-    (data ?? []).map((t) => ({ ...t, status: t.status as TournamentStatus })),
+    // Sin tipos generados de la base, supabase-js tipa todo embed como lista;
+    // `zones` es una sola porque el torneo tiene una FK a `zones`.
+    (data ?? []).map((t) => ({
+      ...t,
+      status: t.status as TournamentStatus,
+      zones: t.zones as unknown as ZoneLabelFields,
+    })),
     now
   )
 
@@ -91,7 +98,7 @@ export default async function MisTorneosPage() {
                     {tournament.name}
                   </h2>
                   <p className="text-xs text-white/50 font-mono uppercase">
-                    {tournament.zone} · {tournament.sport_modality.replace('futbol_', 'Fútbol ')}
+                    {zoneLabel(tournament.zones)} · {tournament.sport_modality.replace('futbol_', 'Fútbol ')}
                   </p>
                 </div>
 

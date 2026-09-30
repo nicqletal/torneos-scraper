@@ -8,7 +8,8 @@ const MODALITIES = ['futbol_5', 'futbol_7', 'futbol_8', 'futbol_11'] as const
 export interface TournamentInput {
   name: string
   sport_modality: (typeof MODALITIES)[number]
-  zone: string
+  // Id de una zona de la lista cerrada (`zones.id`); la FK rechaza cualquier otro.
+  zone_id: string
   inscription_deadline: string
   start_date: string
   end_date: string
@@ -25,10 +26,11 @@ export interface TournamentInput {
 // también las únicas que el organizador puede editar (grant de update en
 // supabase/migrations/20260930000004_tournaments_update_form_columns.sql) y,
 // junto con `user_id`, las únicas con las que puede crear (grant de insert en
-// supabase/migrations/20260930000005_tournaments_verify.sql).
+// supabase/migrations/20260930000005_tournaments_verify.sql; `zone_id` se sumó
+// a los dos en 20260930000008_tournaments_zone.sql).
 // Va en un solo literal porque supabase-js lo parsea para tipar el resultado.
 export const TOURNAMENT_FORM_COLUMNS =
-  'name, sport_modality, zone, inscription_deadline, start_date, end_date, price, capacity, description, rules, venue_address, contact_whatsapp, contact_instagram'
+  'name, sport_modality, zone_id, inscription_deadline, start_date, end_date, price, capacity, description, rules, venue_address, contact_whatsapp, contact_instagram'
 
 export type ParseResult = { ok: true; data: TournamentInput } | { ok: false; error: string }
 
@@ -72,8 +74,8 @@ export function parseTournamentForm(formData: FormData): ParseResult {
   const sport_modality = text('sport_modality') as TournamentInput['sport_modality']
   if (!MODALITIES.includes(sport_modality)) return fail('Elegí una modalidad.')
 
-  const zone = text('zone')
-  if (!zone) return fail('Poné la zona del torneo.')
+  const zone_id = text('zone_id')
+  if (!zone_id) return fail('Elegí la zona del torneo.')
 
   const inscription_deadline = text('inscription_deadline')
   const start_date = text('start_date')
@@ -119,7 +121,7 @@ export function parseTournamentForm(formData: FormData): ParseResult {
     data: {
       name,
       sport_modality,
-      zone,
+      zone_id,
       inscription_deadline,
       start_date,
       end_date,

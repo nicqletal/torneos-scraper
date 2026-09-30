@@ -6,6 +6,7 @@ import { es } from 'date-fns/locale'
 import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink, UserRound, ScrollText, CheckCircle2, ImageOff } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { priceLabel } from '@/utils/tournament-price'
+import { ZONE_LABEL_EMBED, zoneLabel } from '@/utils/zones'
 import { verificationAge } from '@/utils/tournament-verification'
 import { VerificationBadge } from '@/components/VerificationBadge'
 import { TournamentFlyer } from '@/components/TournamentFlyer'
@@ -24,7 +25,7 @@ export default async function TournamentDetail({
   
   const { data: tournament, error } = await supabase
     .from('tournaments')
-    .select('*, status')
+    .select(`*, status, ${ZONE_LABEL_EMBED}`)
     .eq('id', id)
     .single()
 
@@ -123,7 +124,7 @@ export default async function TournamentDetail({
             <div className="flex flex-wrap gap-2 text-xs font-mono">
               <span className="flex items-center gap-1.5 px-3 py-1 border border-brand-border bg-brand-secondary/40 text-brand-lime rounded-sm uppercase">
                 <MapPin className="w-3.5 h-3.5" />
-                {tournament.zone}
+                {zoneLabel(tournament.zones)}
               </span>
               <span className="flex items-center gap-1.5 px-3 py-1 border border-brand-border bg-brand-secondary/40 text-brand-lime rounded-sm uppercase">
                 <Users className="w-3.5 h-3.5" />

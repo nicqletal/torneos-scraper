@@ -40,7 +40,7 @@ function form(fields: Record<string, string>) {
   const base: Record<string, string> = {
     name: 'Copa Palermo',
     sport_modality: 'futbol_5',
-    zone: 'Palermo',
+    zone_id: 'palermo',
     inscription_deadline: '2026-11-10',
     start_date: '2026-11-15',
     end_date: '2026-11-30',
@@ -60,7 +60,7 @@ test('un formulario completo se convierte en la fila a insertar', () => {
   assert.deepEqual(result.data, {
     name: 'Copa Palermo',
     sport_modality: 'futbol_5',
-    zone: 'Palermo',
+    zone_id: 'palermo',
     inscription_deadline: '2026-11-10',
     start_date: '2026-11-15',
     end_date: '2026-11-30',
@@ -85,7 +85,7 @@ test('errores con mensaje para el usuario', () => {
   const cases: [Record<string, string>, RegExp][] = [
     [{ name: '  ' }, /nombre/i],
     [{ sport_modality: 'futbol_9' }, /modalidad/i],
-    [{ zone: '' }, /zona/i],
+    [{ zone_id: '' }, /zona/i],
     [{ end_date: '' }, /fechas/i],
     [{ inscription_deadline: '2026-11-16' }, /cierre/i],
     [{ end_date: '2026-11-14' }, /fin/i],
@@ -107,7 +107,7 @@ test('edición: un torneo guardado precarga el formulario y, sin cambios, vuelve
   const saved: TournamentInput = {
     name: 'Copa Palermo',
     sport_modality: 'futbol_7',
-    zone: 'Palermo',
+    zone_id: 'palermo',
     inscription_deadline: '2026-11-10',
     start_date: '2026-11-15',
     end_date: '2026-11-30',
@@ -134,7 +134,7 @@ test('edición: un torneo guardado precarga el formulario y, sin cambios, vuelve
 
 test('edición: vacíos y nulos se precargan como campos vacíos', () => {
   const values = tournamentToFormValues({
-    name: 'Copa', sport_modality: 'futbol_5', zone: 'Palermo',
+    name: 'Copa', sport_modality: 'futbol_5', zone_id: 'palermo',
     inscription_deadline: '2026-11-10', start_date: '2026-11-15', end_date: '2026-11-30',
     price: null, capacity: null, description: null, rules: null, venue_address: null,
     contact_whatsapp: null, contact_instagram: 'copa',

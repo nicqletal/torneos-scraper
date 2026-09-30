@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { TournamentForm } from '@/components/TournamentForm'
+import { getZoneGroups } from '@/components/ZoneSelect'
 import { createTournament } from './actions'
 
 export default async function CrearTorneoPage() {
@@ -33,7 +34,7 @@ export default async function CrearTorneoPage() {
       </div>
 
       <div className="bg-brand-surface border border-brand-border rounded-sm p-6 md:p-8">
-        <TournamentForm action={createTournament} submitLabel="Publicar torneo" pendingLabel="Publicando…" />
+        <TournamentForm action={createTournament} zoneGroups={await getZoneGroups()} submitLabel="Publicar torneo" pendingLabel="Publicando…" />
       </div>
     </div>
   )

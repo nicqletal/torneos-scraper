@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { TournamentCard, Tournament } from './TournamentCard'
 import { Trophy, HelpCircle } from 'lucide-react'
 import { verificationAge } from '@/utils/tournament-verification'
+import { ZONE_LABEL_EMBED } from '@/utils/zones'
 
 interface TournamentListProps {
   searchParams: { [key: string]: string | string[] | undefined }
@@ -15,10 +16,11 @@ export async function TournamentList({
   const awaitedParams = await searchParams
 
   // `status` es una columna calculada (función `public.status` en la base):
-  // no viene con '*', hay que pedirla. Los Finalizados nunca salen en el catálogo.
+  // no viene con '*', hay que pedirla. La zona y su corredor vienen de la lista
+  // cerrada. Los Finalizados nunca salen en el catálogo.
   let query = supabase
     .from('tournaments')
-    .select('*, status')
+    .select(`*, status, ${ZONE_LABEL_EMBED}`)
     .neq('status', 'finalizado')
 
   if (awaitedParams.modality) {

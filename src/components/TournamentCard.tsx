@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { MapPin, Users, ArrowRight, Trophy, ImageOff } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { priceLabel } from '@/utils/tournament-price'
+import { zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import type { VerificationAge } from '@/utils/tournament-verification'
 import { VerificationBadge } from './VerificationBadge'
 import { TournamentFlyer } from './TournamentFlyer'
@@ -14,7 +15,8 @@ export interface Tournament {
   name: string
   description: string | null
   sport_modality: 'futbol_5' | 'futbol_7' | 'futbol_8' | 'futbol_11'
-  zone: string
+  // Embebida con ZONE_LABEL_EMBED (src/utils/zones.ts)
+  zones: ZoneLabelFields
   price: number | null
   price_currency: string
   // Columna calculada: hay que pedirla explícitamente con select('*, status')
@@ -97,7 +99,7 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
             <span className="text-[10px] uppercase text-white/40 tracking-wider font-mono">Zona</span>
             <span className="font-semibold flex items-center gap-1 truncate">
               <MapPin className="w-3.5 h-3.5 text-brand-lime shrink-0" />
-              {tournament.zone}
+              {zoneLabel(tournament.zones)}
             </span>
           </div>
 

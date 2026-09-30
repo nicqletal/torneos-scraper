@@ -3,6 +3,8 @@
 import { useActionState, useState } from 'react'
 import { Save } from 'lucide-react'
 import { FLYER_TYPES, parseFlyer } from '@/utils/tournament-flyer'
+import type { ZoneGroup } from '@/utils/zones'
+import { ZoneSelectField } from './ZoneSelectField'
 
 // Lo que devuelve la Server Action cuando no puede guardar: el mensaje y lo que
 // el usuario había cargado, para volver a llenar el formulario.
@@ -15,6 +17,8 @@ interface TournamentFormProps {
   action: (state: TournamentFormState, formData: FormData) => Promise<TournamentFormState>
   submitLabel: string
   pendingLabel: string
+  // La lista cerrada de zonas, que la página trae con getZoneGroups.
+  zoneGroups: ZoneGroup[]
   // Edición: el torneo guardado, para precargar el formulario.
   initialValues?: Record<string, string>
   // Si viene, se pide confirmar antes de guardar (por ejemplo, con equipos anotados).
@@ -49,7 +53,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
-export function TournamentForm({ action, submitLabel, pendingLabel, initialValues = {}, confirmMessage, hasFlyer = false }: TournamentFormProps) {
+export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, initialValues = {}, confirmMessage, hasFlyer = false }: TournamentFormProps) {
   const [state, formAction, pending] = useActionState(action, { error: null, values: initialValues })
   const [flyerError, setFlyerError] = useState<string | null>(null)
   const v = state.values
@@ -88,7 +92,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, initialValue
           </Field>
 
           <Field label="Zona">
-            <input name="zone" type="text" required defaultValue={v.zone} placeholder="Palermo" className={inputClass} />
+            <ZoneSelectField name="zone_id" groups={zoneGroups} required defaultValue={v.zone_id} className={inputClass} />
           </Field>
         </div>
       </Section>
