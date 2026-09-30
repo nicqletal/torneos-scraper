@@ -7,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { MapPin, Users, Clock, ArrowRight, Trophy, ImageOff } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
+import { priceLabel } from '@/utils/tournament-price'
 
 export interface Tournament {
   id: string
@@ -117,13 +118,9 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
               <Clock className="w-3 h-3 text-brand-lime" />
               Actualizado {formatDistanceToNow(lastUpdated, { addSuffix: true, locale: es })}
             </span>
-            {tournament.price ? (
-              <span className="text-lg font-bold text-white font-mono mt-1">
-                ${tournament.price} <span className="text-xs font-normal text-white/40">{tournament.price_currency}</span>
-              </span>
-            ) : (
-              <span className="text-xs text-white/50 font-semibold mt-1">Precio a consultar</span>
-            )}
+            <span className="text-lg font-bold text-white font-mono mt-1">
+              {priceLabel(tournament.price)}
+            </span>
           </div>
 
           <Link

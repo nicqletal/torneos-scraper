@@ -4,15 +4,18 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink, UserRound } from 'lucide-react'
+import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink, UserRound, ScrollText, CheckCircle2 } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
+import { priceLabel } from '@/utils/tournament-price'
 
 interface TournamentDetailProps {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export default async function TournamentDetail({
   params,
+  searchParams,
 }: TournamentDetailProps) {
   const supabase = await createClient()
   const { id } = await params
@@ -29,6 +32,12 @@ export default async function TournamentDetail({
 
   const status = tournament.status as TournamentStatus
 
+  // Recién publicado desde /crear-torneo: se le muestra al organizador cómo lo
+  // ve la gente. Solo al dueño, por si comparte el link con el ?publicado=1.
+  const { data: { user } } = await supabase.auth.getUser()
+  const justPublished =
+    (await searchParams).publicado === '1' && user?.id === tournament.user_id
+
   const modalityLabels = {
     futbol_5: 'Fútbol 5',
     futbol_7: 'Fútbol 7',
@@ -44,6 +53,13 @@ export default async function TournamentDetail({
   return (
     <div className="max-w-5xl mx-auto flex flex-col gap-8">
       
+      {justPublished && (
+        <div role="status" className="flex items-center gap-3 px-4 py-3 border border-brand-lime bg-brand-lime/5 rounded-sm">
+          <CheckCircle2 className="w-5 h-5 text-brand-lime shrink-0" />
+          <p className="font-display tracking-wider uppercase text-brand-lime">Publicado. Así lo ve la gente</p>
+        </div>
+      )}
+
       {/* Return link */}
       <Link 
         href="/" 
@@ -109,25 +125,15 @@ export default async function TournamentDetail({
           {/* Pricing & Dates Panel */}
           <div className="p-6 bg-brand-surface border border-brand-border rounded-sm flex flex-col gap-5">
             
-            {tournament.price ? (
-              <div>
-                <span className="text-white/40 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1.5 mb-1.5">
-                  <DollarSign className="w-3.5 h-3.5 text-brand-lime" />
-                  PRECIO DE INSCRIPCIÓN
-                </span>
-                <p className="text-4xl font-bold text-white font-mono leading-none">
-                  ${tournament.price} <span className="text-sm font-normal text-white/40">{tournament.price_currency}</span>
-                </p>
-              </div>
-            ) : (
-              <div>
-                <span className="text-white/40 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1.5 mb-1.5">
-                  <DollarSign className="w-3.5 h-3.5 text-brand-lime" />
-                  PRECIO DE INSCRIPCIÓN
-                </span>
-                <p className="text-xl text-white font-display font-bold tracking-wider uppercase">Consultar precio con organizador</p>
-              </div>
-            )}
+            <div>
+              <span className="text-white/40 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1.5 mb-1.5">
+                <DollarSign className="w-3.5 h-3.5 text-brand-lime" />
+                PRECIO DE INSCRIPCIÓN
+              </span>
+              <p className="text-4xl font-bold text-white font-mono leading-none">
+                {priceLabel(tournament.price)}
+              </p>
+            </div>
 
             <div className="h-px bg-brand-border w-full" />
             
@@ -169,6 +175,37 @@ export default async function TournamentDetail({
               <p className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap font-sans pl-3 border-l-2 border-brand-lime/30">
                 {tournament.description}
               </p>
+            </div>
+          )}
+
+          {tournament.rules && (
+            <div className="flex flex-col gap-3">
+              <h3 className="font-display tracking-wider text-sm text-white/90 uppercase flex items-center gap-2 font-bold border-b border-brand-border pb-2">
+                <ScrollText className="w-4 h-4 text-brand-lime" />
+                REGLAMENTO
+              </h3>
+              <p className="text-white/70 text-sm leading-relaxed whitespace-pre-wrap font-sans pl-3 border-l-2 border-brand-lime/30">
+                {tournament.rules}
+              </p>
+            </div>
+          )}
+
+          {/* Sede: si hay dirección se muestra con un link al mapa; si no, alcanza con la zona de arriba */}
+          {tournament.venue_address && (
+            <div className="flex flex-col gap-3">
+              <h3 className="font-display tracking-wider text-sm text-white/90 uppercase flex items-center gap-2 font-bold border-b border-brand-border pb-2">
+                <MapPin className="w-4 h-4 text-brand-lime" />
+                SEDE
+              </h3>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.venue_address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-white/80 hover:text-brand-lime text-sm pl-3 w-fit"
+              >
+                {tournament.venue_address}
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </div>
           )}
 

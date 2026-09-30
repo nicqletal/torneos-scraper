@@ -78,6 +78,8 @@ supabase test db    # corre los tests pgTAP de supabase/tests/
 
 Toda policy de RLS nueva viene con su test en `supabase/tests/`.
 
+La lógica pura de TypeScript (validación y normalización de formularios, en `src/utils/`) se testea con el runner de Node, sin dependencias extra: los tests son `*.test.ts` al lado del archivo y se corren con `pnpm test`.
+
 ### Aplicar a la base compartida
 
 `sport_modality` y `tournaments` ya existían en la base compartida antes de versionar el esquema (backup del 16/09). La primera vez, esas dos migraciones se marcan como aplicadas en vez de correrlas:

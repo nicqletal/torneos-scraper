@@ -46,12 +46,12 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000a', 'ana@test.local', '{"display_name": "Ana"}');
 
 insert into public.tournaments
-  (id, name, sport_modality, zone, inscription_deadline, start_date, end_date, capacity, user_id)
+  (contact_instagram, id, name, sport_modality, zone, inscription_deadline, start_date, end_date, capacity, user_id)
 values
-  ('22222222-2222-2222-2222-222222222222', 'Copa futura', 'futbol_5', 'Palermo',
+  ('copa.test', '22222222-2222-2222-2222-222222222222', 'Copa futura', 'futbol_5', 'Palermo',
    current_date + 30, current_date + 40, current_date + 50, 8,
    '00000000-0000-0000-0000-00000000000a'),
-  ('33333333-3333-3333-3333-333333333333', 'Copa vieja', 'futbol_5', 'Palermo',
+  ('copa.test', '33333333-3333-3333-3333-333333333333', 'Copa vieja', 'futbol_5', 'Palermo',
    current_date - 50, current_date - 40, current_date - 30, null,
    '00000000-0000-0000-0000-00000000000a');
 
@@ -68,30 +68,30 @@ select hasnt_column('public', 'tournaments', 'status', 'ya no se guarda el estad
 -- Restricción de fechas: cierre ≤ inicio ≤ fin.
 select throws_ok(
   $$ insert into public.tournaments
-       (name, sport_modality, zone, inscription_deadline, start_date, end_date, user_id)
-     values ('Cierre tarde', 'futbol_5', 'Palermo', '2026-11-16', '2026-11-15', '2026-11-30',
+       (contact_instagram, name, sport_modality, zone, inscription_deadline, start_date, end_date, user_id)
+     values ('copa.test', 'Cierre tarde', 'futbol_5', 'Palermo', '2026-11-16', '2026-11-15', '2026-11-30',
              '00000000-0000-0000-0000-00000000000a') $$,
   '23514', null, 'el cierre no puede ser después del inicio'
 );
 select throws_ok(
   $$ insert into public.tournaments
-       (name, sport_modality, zone, inscription_deadline, start_date, end_date, user_id)
-     values ('Fin antes', 'futbol_5', 'Palermo', '2026-11-10', '2026-11-15', '2026-11-14',
+       (contact_instagram, name, sport_modality, zone, inscription_deadline, start_date, end_date, user_id)
+     values ('copa.test', 'Fin antes', 'futbol_5', 'Palermo', '2026-11-10', '2026-11-15', '2026-11-14',
              '00000000-0000-0000-0000-00000000000a') $$,
   '23514', null, 'el fin no puede ser antes del inicio'
 );
 select throws_ok(
   $$ insert into public.tournaments
-       (name, sport_modality, zone, start_date, end_date, user_id)
-     values ('Sin cierre', 'futbol_5', 'Palermo', '2026-11-15', '2026-11-30',
+       (contact_instagram, name, sport_modality, zone, start_date, end_date, user_id)
+     values ('copa.test', 'Sin cierre', 'futbol_5', 'Palermo', '2026-11-15', '2026-11-30',
              '00000000-0000-0000-0000-00000000000a') $$,
   '23502', null, 'el cierre de inscripción es obligatorio'
 );
 
 select throws_ok(
   $$ insert into public.tournaments
-       (name, sport_modality, zone, inscription_deadline, start_date, end_date, capacity, user_id)
-     values ('Cupo cero', 'futbol_5', 'Palermo', '2026-11-10', '2026-11-15', '2026-11-30', 0,
+       (contact_instagram, name, sport_modality, zone, inscription_deadline, start_date, end_date, capacity, user_id)
+     values ('copa.test', 'Cupo cero', 'futbol_5', 'Palermo', '2026-11-10', '2026-11-15', '2026-11-30', 0,
              '00000000-0000-0000-0000-00000000000a') $$,
   '23514', null, 'el cupo, si está, es de al menos 1'
 );
@@ -99,21 +99,21 @@ select throws_ok(
 -- Restricción organizador/copiado: exactamente uno de user_id u organizer_name.
 select lives_ok(
   $$ insert into public.tournaments
-       (name, sport_modality, zone, inscription_deadline, start_date, end_date, organizer_name)
-     values ('Copa copiada', 'futbol_5', 'Palermo', '2026-11-10', '2026-11-15', '2026-11-30',
+       (contact_instagram, name, sport_modality, zone, inscription_deadline, start_date, end_date, organizer_name)
+     values ('copa.test', 'Copa copiada', 'futbol_5', 'Palermo', '2026-11-10', '2026-11-15', '2026-11-30',
              'Liga del Sur') $$,
   'un torneo copiado tiene solo el nombre del organizador real'
 );
 select throws_ok(
   $$ insert into public.tournaments
-       (name, sport_modality, zone, inscription_deadline, start_date, end_date)
-     values ('Copa de nadie', 'futbol_5', 'Palermo', '2026-11-10', '2026-11-15', '2026-11-30') $$,
+       (contact_instagram, name, sport_modality, zone, inscription_deadline, start_date, end_date)
+     values ('copa.test', 'Copa de nadie', 'futbol_5', 'Palermo', '2026-11-10', '2026-11-15', '2026-11-30') $$,
   '23514', null, 'un torneo sin organizador ni nombre de organizador no se guarda'
 );
 select throws_ok(
   $$ insert into public.tournaments
-       (name, sport_modality, zone, inscription_deadline, start_date, end_date, user_id, organizer_name)
-     values ('Copa doble', 'futbol_5', 'Palermo', '2026-11-10', '2026-11-15', '2026-11-30',
+       (contact_instagram, name, sport_modality, zone, inscription_deadline, start_date, end_date, user_id, organizer_name)
+     values ('copa.test', 'Copa doble', 'futbol_5', 'Palermo', '2026-11-10', '2026-11-15', '2026-11-30',
              '00000000-0000-0000-0000-00000000000a', 'Liga del Sur') $$,
   '23514', null, 'un torneo no puede tener organizador y ser copiado a la vez'
 );
