@@ -83,7 +83,15 @@ export default async function MisTorneosPage() {
                   >
                     <Trophy className="w-4 h-4" />
                   </Link>
-                  
+
+                  <Link
+                    href={`/mis-torneos/${tournament.id}/editar`}
+                    className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/80 hover:text-white transition-colors"
+                    title="Editar"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Link>
+
                   <form action={handleDelete}>
                     <input type="hidden" name="id" value={tournament.id} />
                     <button

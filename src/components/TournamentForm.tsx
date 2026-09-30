@@ -13,6 +13,11 @@ export interface TournamentFormState {
 interface TournamentFormProps {
   action: (state: TournamentFormState, formData: FormData) => Promise<TournamentFormState>
   submitLabel: string
+  pendingLabel: string
+  // Edición: el torneo guardado, para precargar el formulario.
+  initialValues?: Record<string, string>
+  // Si viene, se pide confirmar antes de guardar (por ejemplo, con equipos anotados).
+  confirmMessage?: string | null
 }
 
 const labelClass = 'font-display tracking-wider text-sm text-white/60 uppercase'
@@ -41,14 +46,22 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
-export function TournamentForm({ action, submitLabel }: TournamentFormProps) {
-  const [state, formAction, pending] = useActionState(action, { error: null, values: {} })
+export function TournamentForm({ action, submitLabel, pendingLabel, initialValues = {}, confirmMessage }: TournamentFormProps) {
+  const [state, formAction, pending] = useActionState(action, { error: null, values: initialValues })
   const v = state.values
 
   return (
     // `key` fuerza a React a volver a montar los campos con los valores devueltos:
     // un `defaultValue` nuevo no pisa lo que ya muestra un input montado.
-    <form key={JSON.stringify(v)} action={formAction} className="flex flex-col gap-8">
+    <form
+      key={JSON.stringify(v)}
+      action={formAction}
+      onSubmit={(e) => {
+        // Cancelar el submit acá evita que se llame a la Server Action.
+        if (confirmMessage && !confirm(confirmMessage)) e.preventDefault()
+      }}
+      className="flex flex-col gap-8"
+    >
       {state.error && (
         <p role="alert" className="px-4 py-3 border border-red-500/30 bg-red-950/20 text-red-400 text-sm rounded-sm">
           {state.error}
@@ -130,7 +143,7 @@ export function TournamentForm({ action, submitLabel }: TournamentFormProps) {
         className="inline-flex items-center justify-center gap-2 py-4 bg-brand-lime hover:bg-white disabled:opacity-60 text-brand-bg font-display font-bold uppercase tracking-wider text-lg rounded-sm transition-colors cursor-pointer"
       >
         <Save className="w-5 h-5" />
-        {pending ? 'Publicando…' : submitLabel}
+        {pending ? pendingLabel : submitLabel}
       </button>
     </form>
   )

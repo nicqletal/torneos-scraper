@@ -2,7 +2,14 @@
 //   pnpm test
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { normalizeWhatsapp, normalizeInstagram, parseTournamentForm } from './tournament-form.ts'
+import {
+  normalizeWhatsapp,
+  normalizeInstagram,
+  parseTournamentForm,
+  tournamentToFormValues,
+  editConfirmation,
+  type TournamentInput,
+} from './tournament-form.ts'
 
 test('WhatsApp: acepta las formas en que la gente lo escribe y lo deja en 549 + 10 dígitos', () => {
   assert.equal(normalizeWhatsapp('+54 9 11 1234-5678'), '5491112345678')
@@ -94,4 +101,51 @@ test('errores con mensaje para el usuario', () => {
     assert.equal(result.ok, false, JSON.stringify(fields))
     if (!result.ok) assert.match(result.error, message, JSON.stringify(fields))
   }
+})
+
+test('edición: un torneo guardado precarga el formulario y, sin cambios, vuelve igual', () => {
+  const saved: TournamentInput = {
+    name: 'Copa Palermo',
+    sport_modality: 'futbol_7',
+    zone: 'Palermo',
+    inscription_deadline: '2026-11-10',
+    start_date: '2026-11-15',
+    end_date: '2026-11-30',
+    price: 0,
+    capacity: 16,
+    description: 'Con tercer tiempo',
+    rules: null,
+    venue_address: null,
+    contact_whatsapp: '5491112345678',
+    contact_instagram: 'copa.palermo',
+  }
+
+  const values = tournamentToFormValues(saved)
+  // El WhatsApp se muestra como lo pide el formulario: código de área, sin el 549.
+  assert.equal(values.contact_whatsapp, '1112345678')
+  // Precio 0 ("Gratis") no se confunde con vacío ("Consultar").
+  assert.equal(values.price, '0')
+  assert.equal(values.rules, '')
+
+  const data = new FormData()
+  for (const [key, value] of Object.entries(values)) data.set(key, value)
+  assert.deepEqual(parseTournamentForm(data), { ok: true, data: saved })
+})
+
+test('edición: vacíos y nulos se precargan como campos vacíos', () => {
+  const values = tournamentToFormValues({
+    name: 'Copa', sport_modality: 'futbol_5', zone: 'Palermo',
+    inscription_deadline: '2026-11-10', start_date: '2026-11-15', end_date: '2026-11-30',
+    price: null, capacity: null, description: null, rules: null, venue_address: null,
+    contact_whatsapp: null, contact_instagram: 'copa',
+  })
+  assert.equal(values.price, '')
+  assert.equal(values.capacity, '')
+  assert.equal(values.contact_whatsapp, '')
+})
+
+test('edición: se pide confirmar solo si hay equipos anotados', () => {
+  assert.equal(editConfirmation(0), null)
+  assert.equal(editConfirmation(1), 'Hay 1 equipo anotado, ¿confirmás el cambio?')
+  assert.equal(editConfirmation(3), 'Hay 3 equipos anotados, ¿confirmás el cambio?')
 })

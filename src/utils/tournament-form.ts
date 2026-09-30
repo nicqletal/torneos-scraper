@@ -21,6 +21,13 @@ export interface TournamentInput {
   contact_instagram: string | null
 }
 
+// Las columnas de `TournamentInput`, para leerlas de la base al editar. Son
+// también las únicas que el organizador puede editar (grant de update en
+// supabase/migrations/20260930000004_tournaments_update_form_columns.sql).
+// Va en un solo literal porque supabase-js lo parsea para tipar el resultado.
+export const TOURNAMENT_FORM_COLUMNS =
+  'name, sport_modality, zone, inscription_deadline, start_date, end_date, price, capacity, description, rules, venue_address, contact_whatsapp, contact_instagram'
+
 export type ParseResult = { ok: true; data: TournamentInput } | { ok: false; error: string }
 
 // Lleva un WhatsApp argentino a 549 + código de área + número (10 dígitos),
@@ -123,4 +130,27 @@ export function parseTournamentForm(formData: FormData): ParseResult {
       contact_instagram,
     },
   }
+}
+
+// Edición: lleva un torneo guardado a los valores del formulario, para
+// precargarlo. Es la vuelta de `parseTournamentForm`: sin cambios, el
+// formulario devuelve el mismo torneo.
+export function tournamentToFormValues(tournament: TournamentInput): Record<string, string> {
+  const values: Record<string, string> = {}
+  for (const [key, value] of Object.entries(tournament)) {
+    // Ojo con el precio: 0 ("Gratis") tiene que quedar "0", no vacío ("Consultar").
+    values[key] = value === null ? '' : String(value)
+  }
+  // Se guarda como 549 + 10 dígitos, pero el formulario pide el número con
+  // código de área y sin el 549, así que se muestra igual que se cargó.
+  if (tournament.contact_whatsapp) values.contact_whatsapp = tournament.contact_whatsapp.slice(3)
+  return values
+}
+
+// Al editar un torneo con equipos anotados, el organizador confirma el cambio
+// porque los afecta. Sin equipos no hace falta preguntar.
+export function editConfirmation(inscriptions: number): string | null {
+  if (inscriptions === 0) return null
+  const teams = inscriptions === 1 ? '1 equipo anotado' : `${inscriptions} equipos anotados`
+  return `Hay ${teams}, ¿confirmás el cambio?`
 }

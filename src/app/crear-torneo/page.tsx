@@ -33,7 +33,7 @@ export default async function CrearTorneoPage() {
       </div>
 
       <div className="bg-brand-surface border border-brand-border rounded-sm p-6 md:p-8">
-        <TournamentForm action={createTournament} submitLabel="Publicar torneo" />
+        <TournamentForm action={createTournament} submitLabel="Publicar torneo" pendingLabel="Publicando…" />
       </div>
     </div>
   )
