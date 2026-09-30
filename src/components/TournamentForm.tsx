@@ -70,12 +70,6 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
       }}
       className="flex flex-col gap-8"
     >
-      {state.error && (
-        <p role="alert" className="px-4 py-3 border border-red-500/30 bg-red-950/20 text-red-400 text-sm rounded-sm">
-          {state.error}
-        </p>
-      )}
-
       <Section title="El torneo">
         <Field label="Nombre">
           <input name="name" type="text" required defaultValue={v.name} placeholder="Copa Amistad Sabatina" className={inputClass} />
@@ -153,7 +147,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
           />
         </Field>
         {flyerError && (
-          <p role="alert" className="text-sm text-brand-red">{flyerError}</p>
+          <p role="alert" className="animate-enter text-sm text-brand-red">{flyerError}</p>
         )}
       </Section>
 
@@ -169,10 +163,18 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
         </Field>
       </Section>
 
+      {/* El error va pegado al botón: el formulario es largo y quien acaba de
+          apretar "Publicar" está mirando acá abajo, no arriba de todo. */}
+      {state.error && (
+        <p role="alert" className="animate-enter px-4 py-3 border border-brand-red/40 bg-brand-red/5 text-brand-red text-sm rounded-sm">
+          {state.error}
+        </p>
+      )}
+
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex items-center justify-center gap-2 py-4 bg-brand-lime hover:bg-white disabled:opacity-60 text-brand-bg font-display font-bold uppercase tracking-wider text-lg rounded-sm transition-colors cursor-pointer"
+        className="press inline-flex items-center justify-center gap-2 py-4 bg-brand-lime hover:bg-white disabled:opacity-60 disabled:cursor-wait text-brand-bg font-display font-bold uppercase tracking-wider text-lg rounded-sm cursor-pointer"
       >
         <Save className="w-5 h-5" />
         {pending ? pendingLabel : submitLabel}

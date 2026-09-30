@@ -12,7 +12,7 @@ export const statusLabels: Record<TournamentStatus, string> = {
 
 export const statusStyles: Record<TournamentStatus, string> = {
   abierto: 'text-brand-lime border-brand-lime bg-brand-lime/5',
-  cerrado: 'text-red-400 border-red-500/30 bg-red-950/20',
-  en_curso: 'text-sky-400 border-sky-500/30 bg-sky-950/20',
-  finalizado: 'text-zinc-500 border-zinc-700 bg-zinc-800/20',
+  cerrado: 'text-brand-red border-brand-red/40 bg-brand-red/5',
+  en_curso: 'text-brand-sky border-brand-sky/40 bg-brand-sky/5',
+  finalizado: 'text-white/40 border-brand-border bg-white/5',
 }

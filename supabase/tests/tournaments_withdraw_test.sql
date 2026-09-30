@@ -29,7 +29,7 @@ values
 
 -- Las fechas dan los cuatro estados, así los tests de abajo prueban lo que dicen.
 select results_eq(
-  $$ select t.status from public.tournaments t order by t.name $$,
+  $$ select t.status from public.tournaments t where t.user_id = '00000000-0000-0000-0000-00000000000a' order by t.name $$,
   $$ values ('abierto'), ('cerrado'), ('en_curso'), ('finalizado') $$,
   'los torneos de prueba cubren los cuatro estados'
 );
@@ -83,7 +83,7 @@ select lives_ok(
 
 -- Solo queda el Finalizado: los dados de baja ya no existen.
 select results_eq(
-  $$ select name from public.tournaments $$,
+  $$ select name from public.tournaments where user_id = '00000000-0000-0000-0000-00000000000a' $$,
   $$ values ('Copa finalizada') $$,
   'los dados de baja desaparecen y el Finalizado queda'
 );

@@ -9,11 +9,14 @@ interface TournamentFlyerProps {
   priority?: boolean
   // Clases de la imagen (opacidad, grises si está Cerrado, hover).
   className?: string
+  // `cover` recorta para llenar (cards del catálogo); `contain` muestra el
+  // flyer entero (ficha), porque suele tener fechas y premios escritos.
+  fit?: 'cover' | 'contain'
 }
 
 // El flyer del torneo, o un placeholder de marca si no tiene. Llena el
 // contenedor, que tiene que ser `relative` y tener alto.
-export function TournamentFlyer({ imageUrl, name, sizes, priority, className }: TournamentFlyerProps) {
+export function TournamentFlyer({ imageUrl, name, sizes, priority, className, fit = 'cover' }: TournamentFlyerProps) {
   const src = flyerSrc(imageUrl, process.env.NEXT_PUBLIC_SUPABASE_URL!)
 
   if (!src) {
@@ -36,7 +39,7 @@ export function TournamentFlyer({ imageUrl, name, sizes, priority, className }: 
       fill
       sizes={sizes}
       priority={priority}
-      className={`object-cover ${className ?? ''}`}
+      className={`${fit === 'contain' ? 'object-contain' : 'object-cover'} ${className ?? ''}`}
     />
   )
 }

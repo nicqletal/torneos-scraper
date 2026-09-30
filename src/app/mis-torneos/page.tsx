@@ -9,9 +9,13 @@ import { ZONE_LABEL_EMBED, zoneLabel, type ZoneLabelFields } from '@/utils/zones
 import { VerificationBadge } from '@/components/VerificationBadge'
 import { verifyTournament } from './actions'
 import { WithdrawButton } from './WithdrawButton'
+import { SubmitButton } from '@/components/SubmitButton'
 
-const actionClass =
-  'inline-flex items-center gap-1.5 px-3 py-2 border border-brand-border bg-brand-secondary text-white/80 hover:text-brand-lime hover:border-brand-lime text-xs font-display font-bold uppercase tracking-wider rounded-sm transition-colors'
+// Base de las acciones secundarias, sin color de hover: "Dar de baja" pone el
+// suyo (rojo) y no tiene que competir con el lima de las demás.
+const actionBaseClass =
+  'press inline-flex items-center gap-1.5 px-3 py-2 border border-brand-border bg-brand-secondary text-white/80 text-xs font-display font-bold uppercase tracking-wider rounded-sm'
+const actionClass = `${actionBaseClass} hover:text-brand-lime hover:border-brand-lime`
 
 export default async function MisTorneosPage() {
   const supabase = await createClient()
@@ -76,7 +80,7 @@ export default async function MisTorneosPage() {
 
         <Link
           href="/crear-torneo"
-          className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm transition-colors"
+          className="press inline-flex items-center justify-center gap-2 px-4 py-3 bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm"
         >
           <Plus className="w-4 h-4" />
           Cargar torneo
@@ -130,19 +134,19 @@ export default async function MisTorneosPage() {
                     <>
                       <form action={verifyTournament}>
                         <input type="hidden" name="id" value={tournament.id} />
-                        <button
-                          type="submit"
-                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-brand-lime hover:bg-white text-brand-bg text-xs font-display font-bold uppercase tracking-wider rounded-sm transition-colors cursor-pointer"
+                        <SubmitButton
+                          pendingLabel={<><CheckCircle2 className="w-3.5 h-3.5" />Confirmando…</>}
+                          className="press inline-flex items-center gap-1.5 px-3 py-2 bg-brand-lime hover:bg-white text-brand-bg text-xs font-display font-bold uppercase tracking-wider rounded-sm cursor-pointer"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Sigue vigente
-                        </button>
+                        </SubmitButton>
                       </form>
 
                       <WithdrawButton
                         id={tournament.id}
                         confirmMessage={withdrawConfirmation(tournament.name, inscriptions)}
-                        className={actionClass}
+                        className={actionBaseClass}
                       />
                     </>
                   )}
@@ -162,7 +166,7 @@ export default async function MisTorneosPage() {
           </p>
           <Link
             href="/crear-torneo"
-            className="px-6 py-3 bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm transition-colors"
+            className="press px-6 py-3 bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm"
           >
             Cargar mi primer torneo
           </Link>

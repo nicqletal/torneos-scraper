@@ -67,14 +67,14 @@ export default async function TournamentDetail({
     <div className="max-w-5xl mx-auto flex flex-col gap-8">
       
       {justPublished && (
-        <div role="status" className="flex items-center gap-3 px-4 py-3 border border-brand-lime bg-brand-lime/5 rounded-sm">
+        <div role="status" className="animate-enter flex items-center gap-3 px-4 py-3 border border-brand-lime bg-brand-lime/5 rounded-sm">
           <CheckCircle2 className="w-5 h-5 text-brand-lime shrink-0" />
           <p className="font-display tracking-wider uppercase text-brand-lime">Publicado. Así lo ve la gente</p>
         </div>
       )}
 
       {flyerFailed && (
-        <div role="alert" className="flex items-center gap-3 px-4 py-3 border border-brand-amber bg-brand-amber/5 rounded-sm">
+        <div role="alert" className="animate-enter flex items-center gap-3 px-4 py-3 border border-brand-amber bg-brand-amber/5 rounded-sm">
           <ImageOff className="w-5 h-5 text-brand-amber shrink-0" />
           <p className="text-sm text-brand-amber">
             No pudimos subir el flyer.{' '}
@@ -98,24 +98,22 @@ export default async function TournamentDetail({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Flyer (Left Column) */}
-        <div className="lg:col-span-5 h-[500px] relative bg-brand-surface border border-brand-border rounded-sm overflow-hidden">
+        {/* 4:5 es la proporción de un posteo de Instagram, de donde salen los flyers.
+            Se muestra entero (contain): recortarlo tapa fechas y premios. */}
+        <div className="lg:col-span-5 lg:self-start aspect-[4/5] relative bg-brand-surface border border-brand-border rounded-sm overflow-hidden">
           <TournamentFlyer
             imageUrl={tournament.image_url}
             name={tournament.name}
             priority
-            sizes="(max-width: 768px) 100vw, 400px"
-            className={status === 'cerrado' ? 'grayscale opacity-60' : 'opacity-90'}
+            fit="contain"
+            sizes="(max-width: 1024px) 100vw, 400px"
+            className={status === 'cerrado' ? 'grayscale opacity-60' : undefined}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/85 via-transparent to-transparent" />
-          
+
           <div className="absolute top-4 left-4">
             <span className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider border font-display rounded-sm ${statusStyles[status]}`}>
               {statusLabels[status]}
             </span>
-          </div>
-
-          <div className="absolute bottom-4 left-4 right-4 text-[10px] text-white/40 font-mono">
-            ID: {tournament.id}
           </div>
         </div>
 
@@ -147,10 +145,10 @@ export default async function TournamentDetail({
               {organizer && (
                 <Link
                   href={`/organizadores/${tournament.user_id}`}
-                  className="flex items-center gap-1.5 px-3 py-1 border border-brand-border bg-brand-secondary/40 text-white/80 hover:text-brand-lime hover:border-brand-lime rounded-sm uppercase transition-colors"
+                  className="press flex items-center gap-1.5 px-3 py-1 border border-brand-border bg-brand-secondary/40 text-white/80 hover:text-brand-lime hover:border-brand-lime rounded-sm uppercase"
                 >
                   <UserRound className="w-3.5 h-3.5 text-brand-lime" />
-                  Organiza: {organizer.display_name}
+                  Organiza {organizer.display_name}
                 </Link>
               )}
               {verification && <VerificationBadge age={verification} className="px-3 py-1" />}
@@ -200,6 +198,40 @@ export default async function TournamentDetail({
             </div>
           </div>
 
+          {/* Contacto: es donde termina el flujo (la app no inscribe), así que va
+              justo después de precio y fechas, sin tener que leer el reglamento. */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            {tournament.contact_whatsapp && (
+              <a
+                href={`https://wa.me/${tournament.contact_whatsapp.replace(/[^0-9]/g, '')}?text=${defaultWhatsappMessage}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 inline-flex items-center justify-center gap-2 py-4 px-6 press bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider text-sm rounded-sm shadow-md cursor-pointer"
+              >
+                <MessageCircle className="w-4.5 h-4.5 fill-current" />
+                Contactar por WhatsApp
+              </a>
+            )}
+            
+            {tournament.contact_instagram && (
+              <a
+                href={`https://instagram.com/${tournament.contact_instagram.replace('@', '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 inline-flex items-center justify-center gap-2 py-4 px-6 press bg-brand-surface border border-brand-border hover:bg-brand-secondary hover:border-brand-lime text-white hover:text-brand-lime font-display font-bold uppercase tracking-wider text-sm rounded-sm shadow-md cursor-pointer"
+              >
+                <ExternalLink className="w-4.5 h-4.5" />
+                Ver Instagram
+              </a>
+            )}
+
+            {!tournament.contact_whatsapp && !tournament.contact_instagram && (
+              <div className="w-full py-4 px-6 bg-brand-surface border border-brand-border text-center rounded-sm text-white/30 text-xs font-mono uppercase">
+                El organizador no suministró datos de contacto directo.
+              </div>
+            )}
+          </div>
+
           {/* Description Section */}
           {tournament.description && (
             <div className="flex flex-col gap-3">
@@ -236,46 +268,13 @@ export default async function TournamentDetail({
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(tournament.venue_address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-white/80 hover:text-brand-lime text-sm pl-3 w-fit"
+                className="inline-flex items-center gap-2 text-white/80 hover:text-brand-lime text-sm pl-3 w-fit transition-colors"
               >
                 {tournament.venue_address}
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
           )}
-
-          {/* Action CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            {tournament.contact_whatsapp && (
-              <a
-                href={`https://wa.me/${tournament.contact_whatsapp.replace(/[^0-9]/g, '')}?text=${defaultWhatsappMessage}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 inline-flex items-center justify-center gap-2 py-4 px-6 bg-brand-lime hover:bg-white text-brand-bg hover:text-brand-bg transition-all duration-200 font-display font-bold uppercase tracking-wider text-sm rounded-sm shadow-md cursor-pointer group"
-              >
-                <MessageCircle className="w-4.5 h-4.5 fill-current" />
-                Contactar por WhatsApp
-              </a>
-            )}
-            
-            {tournament.contact_instagram && (
-              <a
-                href={`https://instagram.com/${tournament.contact_instagram.replace('@', '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 inline-flex items-center justify-center gap-2 py-4 px-6 bg-brand-surface border border-brand-border hover:bg-brand-secondary text-white hover:text-brand-lime transition-all duration-200 font-display font-bold uppercase tracking-wider text-sm rounded-sm shadow-md cursor-pointer"
-              >
-                <ExternalLink className="w-4.5 h-4.5" />
-                Ver Instagram
-              </a>
-            )}
-
-            {!tournament.contact_whatsapp && !tournament.contact_instagram && (
-              <div className="w-full py-4 px-6 bg-brand-surface border border-brand-border text-center rounded-sm text-white/30 text-xs font-mono uppercase">
-                El organizador no suministró datos de contacto directo.
-              </div>
-            )}
-          </div>
 
         </div>
       </div>

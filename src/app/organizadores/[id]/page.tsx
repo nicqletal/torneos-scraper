@@ -89,7 +89,7 @@ export default async function OrganizerPage({ params }: OrganizerPageProps) {
             // Todavía no hay bucket de fotos de perfil: cuando exista, pasar a
             // next/image y sumar su ruta a `remotePatterns` en next.config.ts.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={profile.avatar_url} alt={profile.display_name} className="w-full h-full object-cover" />
+            <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
           ) : (
             <span className="font-display text-4xl font-bold text-brand-lime uppercase">
               {profile.display_name.charAt(0)}
@@ -137,7 +137,7 @@ export default async function OrganizerPage({ params }: OrganizerPageProps) {
             <TournamentSection title="Torneos vigentes" tournaments={current} />
           )}
           {finished.length > 0 && (
-            <TournamentSection title="Trayectoria" tournaments={finished} />
+            <TournamentSection title="Trayectoria" tournaments={finished} muted />
           )}
         </>
       )}
@@ -145,7 +145,8 @@ export default async function OrganizerPage({ params }: OrganizerPageProps) {
   )
 }
 
-function TournamentSection({ title, tournaments }: { title: string; tournaments: OrganizerTournament[] }) {
+// `muted`: los finalizados se ven más apagados, para que lo vigente mande.
+function TournamentSection({ title, tournaments, muted = false }: { title: string; tournaments: OrganizerTournament[]; muted?: boolean }) {
   return (
     <section className="flex flex-col gap-3">
       <h2 className="font-display tracking-wider text-sm text-white/90 uppercase font-bold border-b border-brand-border pb-2">
@@ -156,7 +157,9 @@ function TournamentSection({ title, tournaments }: { title: string; tournaments:
           <li key={t.id}>
             <Link
               href={`/torneos/${t.id}`}
-              className="p-4 bg-brand-surface border border-brand-border hover:border-brand-lime rounded-sm flex flex-col sm:flex-row sm:items-center gap-3 transition-colors group"
+              className={`press p-4 border border-brand-border hover:border-brand-lime rounded-sm flex flex-col sm:flex-row sm:items-center gap-3 group ${
+                muted ? 'bg-brand-secondary opacity-70 hover:opacity-100' : 'bg-brand-surface'
+              }`}
             >
               <div className="flex-1 min-w-0 flex flex-col gap-2">
                 <div className="flex flex-wrap items-center gap-2">
@@ -182,9 +185,9 @@ function TournamentSection({ title, tournaments }: { title: string; tournaments:
                   </span>
                 </div>
               </div>
-              <span className="inline-flex items-center gap-1 text-xs font-display font-bold uppercase tracking-wider text-white/60 group-hover:text-brand-lime">
+              <span className="inline-flex items-center gap-1 text-xs font-display font-bold uppercase tracking-wider text-white/60 group-hover:text-brand-lime transition-colors">
                 Ficha
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
               </span>
             </Link>
           </li>

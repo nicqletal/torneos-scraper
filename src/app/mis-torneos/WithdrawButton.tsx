@@ -38,7 +38,7 @@ export function WithdrawButton({
         <Ban className="w-3.5 h-3.5" />
         {isPending ? 'Dando de baja…' : 'Dar de baja'}
       </button>
-      {error && <p role="alert" className="text-[11px] font-mono uppercase text-brand-red">{error}</p>}
+      {error && <p role="alert" className="animate-enter text-[11px] font-mono uppercase text-brand-red">{error}</p>}
     </div>
   )
 }

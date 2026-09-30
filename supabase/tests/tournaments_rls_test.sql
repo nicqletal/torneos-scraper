@@ -22,7 +22,7 @@ values
 set local role anon;
 
 select results_eq(
-  $$ select name from public.tournaments $$,
+  $$ select name from public.tournaments where user_id = '00000000-0000-0000-0000-00000000000a' $$,
   $$ values ('Copa de Ana') $$,
   'anon ve los torneos'
 );
