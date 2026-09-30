@@ -102,7 +102,8 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 
 - **Crear:** nombre, zona, modalidad habitual y nivel (recreativo, intermedio o competitivo). El escudo es opcional (JPG/PNG/WebP, máx. 2 MB). Los nombres se pueden repetir: públicamente se distinguen por la zona. Hace falta tener WhatsApp en el perfil.
 - **Máximo 3 equipos como capitán:** cuentan las capitanías actuales, sin importar si el equipo lo creó o recibió la capitanía. Los equipos disueltos no cuentan. No se puede pasar la capitanía a alguien que ya capitanea 3.
-- **Plantel:** sin tope de jugadores por ahora.
+- **Plantel:** sin tope de jugadores por ahora. Cualquier usuario con sesión lo ve (nombre, foto y capitán); sin sesión solo se ve la cantidad. Los contactos nunca se muestran.
+- **Buscador de equipos:** `/equipos` lista los equipos activos y se filtra por zona. Los equipos disueltos no aparecen.
 - **Invitar:** link con validez de 7 días. Regenerarlo invalida el anterior. Quien lo abre entra directo al plantel.
   - Si el equipo está disuelto, el link deja de valer y muestra el mismo mensaje que un link vencido.
   - Si quien lo abre ya está en el plantel, no hay error: lo lleva a la página del equipo.
@@ -192,7 +193,7 @@ Esta tabla es la base de las reglas de acceso (RLS) de la base de datos.
 | Página del organizador (nombre, foto, zona, "Organiza desde…", torneos) | ✅ | ✅ |
 | Página del equipo (escudo, nombre, zona, modalidad, nivel, cantidad de jugadores, faltas y conflictos, estrellas, últimos 5 partidos) | ✅ | ✅ |
 | Las dos versiones de un partido en conflicto | ✅ | ✅ |
-| Nombres del plantel | ❌ | Solo los integrantes del equipo |
+| Nombres del plantel (nombre, foto y quién es capitán; nunca contactos) | ❌ | ✅ |
 | WhatsApp de un capitán | ❌ | Solo el capitán rival, con un partido acordado |
 | Búsquedas de rival y rivales compatibles | ❌ | Solo capitanes con una búsqueda activa |
 | Propuestas y detalle del partido (cancha, hora) | ❌ | Solo los dos equipos |

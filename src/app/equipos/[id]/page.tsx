@@ -50,8 +50,8 @@ export default async function EquipoPage({
   if (!data) notFound()
   const team = data as unknown as PublicTeam
 
-  // The squad is private: RLS returns rows only when the visitor is in it, so
-  // an empty result means "not a member" (or not logged in).
+  // The squad is visible to any logged-in user (RLS returns nothing without a
+  // session). Only names and the captain mark: contacts live in profile_contacts.
   const { data: { user } } = await supabase.auth.getUser()
   const { data: rosterData } = user
     ? await supabase
@@ -122,7 +122,16 @@ export default async function EquipoPage({
         </p>
       )}
 
-      {isMember && (
+      {!user && (
+        <p className="text-xs text-white/50">
+          <Link href={`/login?next=/equipos/${team.id}`} className="text-brand-lime hover:text-white transition-colors">
+            Iniciá sesión
+          </Link>{' '}
+          para ver los integrantes.
+        </p>
+      )}
+
+      {user && (
         <section className="border border-brand-border bg-brand-surface rounded-sm p-5 flex flex-col gap-3">
           <h2 className="text-xl font-display tracking-wider text-white uppercase">Plantel</h2>
           <ul className="flex flex-col divide-y divide-brand-border">

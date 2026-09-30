@@ -2,7 +2,7 @@
 
 Qué tocó esta rama fuera de su tarea (perfil, equipos y plantel) y qué tienen que tener en cuenta los otros módulos antes de unir todo.
 
-Rama: `franco-equipos` (5 commits sobre `feat/ui-design`). Migraciones: `supabase/migrations/2026092800000{1-4}` y `2026092900000{1-3}`.
+Rama: `franco-equipos` (5 commits sobre `feat/ui-design`). Migraciones: `supabase/migrations/2026092800000{1-4}`, `2026092900000{1-3}` y `20260930000001`.
 
 ---
 
@@ -61,7 +61,8 @@ Están escritas en `docs/decisiones-casos-de-uso.md` (fuente de verdad) y en `CO
 ### Equipos
 - **Crear:** nombre, zona, modalidad habitual y nivel (recreativo, intermedio, competitivo). Escudo opcional (JPG/PNG/WebP, máx. 2 MB). **Los nombres se pueden repetir**: públicamente se distinguen por la zona (mostrar siempre la zona junto al nombre).
 - **Máximo 3 equipos como capitán:** cuentan las capitanías actuales (creadas o recibidas). Los equipos disueltos no cuentan. No se puede pasar la capitanía a quien ya capitanea 3.
-- **Plantel:** sin tope de jugadores por ahora. Solo lo ven sus integrantes; la página pública muestra solo la cantidad.
+- **Plantel:** sin tope de jugadores por ahora. Lo ve cualquier usuario con sesión (nombre, foto y capitán, nunca contactos); sin sesión solo se ve la cantidad. **Esto cambió respecto de la regla original** (antes solo los integrantes): migración `20260930000001`.
+- **Buscador de equipos:** `/equipos`, lista equipos activos y filtra por zona (`?zona=`).
 - **Invitar:** link de 7 días, uno vigente por equipo (regenerarlo invalida el anterior). Quien lo abre entra directo al plantel. Si el equipo está disuelto, el link se comporta como vencido. Si ya está en el plantel, lo lleva al equipo sin error.
 - **Editar:** solo el capitán (nombre, escudo, zona, modalidad, nivel).
 - **Salir:** cualquier jugador; el capitán primero pasa la capitanía. **Sacar jugadores:** solo el capitán, y no a sí mismo.
@@ -69,7 +70,7 @@ Están escritas en `docs/decisiones-casos-de-uso.md` (fuente de verdad) y en `CO
 - **Disolver:** el equipo no se borra, queda "disuelto" con su página pública y su historia. No puede buscar rival ni recibir inscripciones; no se puede disolver con un partido acordado pendiente; las propuestas pendientes se cancelan; no se reactiva. **Decidido pero no implementado.**
 
 ### Visibilidad (base de las policies de RLS)
-Ya implementado para esta rama: zonas, perfiles y equipos públicos; plantel solo para integrantes; WhatsApp solo el propio. **Falta para los otros módulos** (según la tabla del doc de decisiones): WhatsApp del capitán rival visible solo con un partido acordado, búsquedas de rival solo para capitanes con búsqueda activa, propuestas y detalle del partido solo para los dos equipos, comentarios de calificación y reportes solo admin.
+Ya implementado para esta rama: zonas, perfiles y equipos públicos; plantel para cualquier usuario con sesión; WhatsApp solo el propio. **Falta para los otros módulos** (según la tabla del doc de decisiones): WhatsApp del capitán rival visible solo con un partido acordado, búsquedas de rival solo para capitanes con búsqueda activa, propuestas y detalle del partido solo para los dos equipos, comentarios de calificación y reportes solo admin.
 
 ### Términos (`CONTEXT.md`)
 Usar exactamente el glosario: un partido "se cae" (nunca "se suspende"), se dice "baja" (no "eliminar"), "disolver" un equipo, "capitán", "plantel", "corredor".
@@ -104,8 +105,10 @@ Helpers para policies: `is_team_member(team_id)` e `is_team_captain(team_id)`. C
 - Helper `src/utils/whatsapp.ts`: `normalizeWhatsapp`, `whatsappLink(stored, mensaje?)`, `toNationalNumber`. El formato guardado es `549` + característica + número (13 dígitos), el que pide `wa.me`. **Usar estos helpers y no reimplementar el formato.**
 
 ### 3.2 Búsqueda de rival / partidos (siguientes etapas)
+- **Alcance de esta rama:** crear equipo, invitar por link, plantel, salir/sacar/pasar capitanía, ficha pública del equipo (`/equipos/[id]`) y `/mis-equipos`. Incluye el buscador de equipos (`/equipos`). **No incluye** búsquedas de rival, propuestas, partidos, resultados, presentismo, calificaciones ni la función de disolver equipo.
+- Las reglas de compatibilidad (misma modalidad, al menos 1 h en común, niveles a dos escalones no se cruzan, orden por cercanía > nivel > presentismo) están en `docs/decisiones-casos-de-uso.md`, sección "Búsqueda de rival".
 - Los partidos y propuestas van por **funciones de Postgres**, siguiendo el patrón de `supabase/migrations/20260929000002/3`: `security definer`, `set search_path = ''`, chequeo de `auth.uid()` adentro, `revoke ... from public, anon` y `grant ... to authenticated`.
-- **El plantel es privado** (solo lo ven sus integrantes, policy `team_members: solo los integrantes ven el plantel`). Si partidos necesita saber quién es capitán del equipo rival, que sea vía función o vista, no ampliando esa policy.
+- **El plantel lo ve cualquier usuario con sesión** (policy `team_members: lectura con sesión`), pero **no los contactos**: el WhatsApp del capitán rival sigue oculto hasta tener un partido acordado y tiene que exponerse vía función o vista, no ampliando `profile_contacts`.
 - Usar `is_team_captain()` / `is_team_member()` en las policies y funciones nuevas. No consultar `team_members` desde una policy de `team_members` (recursión infinita: por eso los helpers son `security definer`).
 - `team_level` es enum ordenado: `level` se compara con `<`/`>` para la regla de "no cruzar dos escalones".
 - Un equipo disuelto tiene `dissolved_at` no nulo. **Todavía no existe la función para disolver** (queda pendiente, y `dissolved_at` no es editable por el cliente). Las funciones de plantel ya rechazan equipos disueltos; las de partidos también deberían.

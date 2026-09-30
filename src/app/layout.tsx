@@ -56,6 +56,13 @@ export default async function RootLayout({
             </Link>
             
             <div className="flex items-center gap-4">
+              <Link
+                href="/equipos"
+                className="text-xs font-semibold uppercase tracking-wider text-white/70 hover:text-brand-lime transition-colors font-display"
+              >
+                Equipos
+              </Link>
+
               {!user && (
                 <Link 
                   href="/login" 
