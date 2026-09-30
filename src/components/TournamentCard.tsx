@@ -6,12 +6,13 @@ import { zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import type { VerificationAge } from '@/utils/tournament-verification'
 import { VerificationBadge } from './VerificationBadge'
 import { TournamentFlyer } from './TournamentFlyer'
+import { modalityLabel, type SportModality } from '@/utils/modality'
 
 export interface Tournament {
   id: string
   name: string
   description: string | null
-  sport_modality: 'futbol_5' | 'futbol_7' | 'futbol_8' | 'futbol_11'
+  sport_modality: SportModality
   // Embebida con ZONE_LABEL_EMBED (src/utils/zones.ts)
   zones: ZoneLabelFields
   price: number | null
@@ -33,13 +34,6 @@ export interface TournamentCardProps {
 }
 
 export function TournamentCard({ tournament, index, verification }: TournamentCardProps) {
-  const modalityLabels = {
-    futbol_5: 'Fútbol 5',
-    futbol_7: 'Fútbol 7',
-    futbol_8: 'Fútbol 8',
-    futbol_11: 'Fútbol 11',
-  }
-
   // Format index as scoreboard double-digit (e.g. "01", "02")
   const scoreboardIndex = String(index + 1).padStart(2, '0')
 
@@ -107,7 +101,7 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
             <span className="text-[10px] uppercase text-white/40 tracking-wider font-mono">Modalidad</span>
             <span className="font-semibold flex items-center gap-1 truncate">
               <Users className="w-3.5 h-3.5 text-brand-lime shrink-0" />
-              {modalityLabels[tournament.sport_modality]}
+              {modalityLabel(tournament.sport_modality)}
             </span>
           </div>
         </div>

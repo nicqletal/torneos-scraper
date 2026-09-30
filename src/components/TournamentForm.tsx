@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { Save } from 'lucide-react'
 import { FLYER_TYPES, parseFlyer } from '@/utils/tournament-flyer'
+import { SPORT_MODALITIES } from '@/utils/modality'
 import type { ZoneGroup } from '@/utils/zones'
 import { ZoneSelectField } from './ZoneSelectField'
 
@@ -78,10 +79,9 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="Modalidad">
             <select name="sport_modality" required defaultValue={v.sport_modality} className={inputClass}>
-              <option value="futbol_5">Fútbol 5</option>
-              <option value="futbol_7">Fútbol 7</option>
-              <option value="futbol_8">Fútbol 8</option>
-              <option value="futbol_11">Fútbol 11</option>
+              {SPORT_MODALITIES.map((m) => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
             </select>
           </Field>
 

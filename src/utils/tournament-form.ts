@@ -3,11 +3,12 @@
 // Las mismas reglas están repetidas como `check` en la tabla: esto da el mensaje
 // para el usuario; la base es la última defensa.
 
-const MODALITIES = ['futbol_5', 'futbol_7', 'futbol_8', 'futbol_11'] as const
+import { isSportModality, type SportModality } from './modality.ts'
+import { normalizeWhatsapp } from './whatsapp.ts'
 
 export interface TournamentInput {
   name: string
-  sport_modality: (typeof MODALITIES)[number]
+  sport_modality: SportModality
   // Id de una zona de la lista cerrada (`zones.id`); la FK rechaza cualquier otro.
   zone_id: string
   inscription_deadline: string
@@ -34,24 +35,6 @@ export const TOURNAMENT_FORM_COLUMNS =
 
 export type ParseResult = { ok: true; data: TournamentInput } | { ok: false; error: string }
 
-// Lleva un WhatsApp argentino a 549 + código de área + número (10 dígitos),
-// que es lo que espera wa.me. Devuelve null si no se puede.
-// El "15" de celular se rechaza: después del código de área (11 15 1234 5678)
-// no se sabe dónde termina el código, y sin código de área (15 1234 5678) falta
-// el código. Ningún código de área argentino empieza con 15.
-export function normalizeWhatsapp(raw: string): string | null {
-  const digits = raw.replace(/\D/g, '')
-
-  let local: string | null = null
-  if (digits.length === 13 && digits.startsWith('549')) local = digits.slice(3)
-  else if (digits.length === 12 && digits.startsWith('54')) local = digits.slice(2)
-  else if (digits.length === 11 && digits.startsWith('0')) local = digits.slice(1)
-  else if (digits.length === 10) local = digits
-
-  if (!local || local.startsWith('15')) return null
-  return '549' + local
-}
-
 // Deja solo el usuario: sin @, sin espacios alrededor y sin la URL del perfil.
 export function normalizeInstagram(raw: string): string | null {
   const handle = raw
@@ -71,8 +54,8 @@ export function parseTournamentForm(formData: FormData): ParseResult {
   const name = text('name')
   if (!name) return fail('Poné el nombre del torneo.')
 
-  const sport_modality = text('sport_modality') as TournamentInput['sport_modality']
-  if (!MODALITIES.includes(sport_modality)) return fail('Elegí una modalidad.')
+  const sport_modality = text('sport_modality')
+  if (!isSportModality(sport_modality)) return fail('Elegí una modalidad.')
 
   const zone_id = text('zone_id')
   if (!zone_id) return fail('Elegí la zona del torneo.')

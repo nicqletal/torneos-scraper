@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback } from 'react'
 import { Filter, Trophy, Activity, ChevronRight } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { SPORT_MODALITIES } from '@/utils/modality'
 
 export function Filters() {
   const router = useRouter()
@@ -30,10 +31,7 @@ export function Filters() {
 
   const modalities = [
     { value: '', label: 'TODAS LAS MODALIDADES' },
-    { value: 'futbol_5', label: 'FÚTBOL 5' },
-    { value: 'futbol_7', label: 'FÚTBOL 7' },
-    { value: 'futbol_8', label: 'FÚTBOL 8' },
-    { value: 'futbol_11', label: 'FÚTBOL 11' },
+    ...SPORT_MODALITIES.map((m) => ({ value: m.value, label: m.label.toUpperCase() })),
   ]
 
   const statuses = [

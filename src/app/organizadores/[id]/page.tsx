@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Calendar, MapPin, Trophy, Users } from 'lucide-r
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { ZONE_LABEL_EMBED, zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import { organizesSince, splitTournaments } from '@/utils/organizer-page'
+import { modalityLabel, type SportModality } from '@/utils/modality'
 
 // Página pública: la ve cualquiera, con o sin sesión. Por eso se piden solo
 // las columnas que se muestran: ni el WhatsApp del perfil (vive aparte, en
@@ -19,18 +20,11 @@ interface OrganizerPageProps {
 interface OrganizerTournament {
   id: string
   name: string
-  sport_modality: keyof typeof modalityLabels
+  sport_modality: SportModality
   zones: ZoneLabelFields
   start_date: string
   end_date: string
   status: TournamentStatus
-}
-
-const modalityLabels = {
-  futbol_5: 'Fútbol 5',
-  futbol_7: 'Fútbol 7',
-  futbol_8: 'Fútbol 8',
-  futbol_11: 'Fútbol 11',
 }
 
 const formatDate = (date: string) =>
@@ -177,7 +171,7 @@ function TournamentSection({ title, tournaments, muted = false }: { title: strin
                   </span>
                   <span className="flex items-center gap-1">
                     <Users className="w-3.5 h-3.5 text-brand-lime" />
-                    {modalityLabels[t.sport_modality]}
+                    {modalityLabel(t.sport_modality)}
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5 text-brand-lime" />

@@ -31,10 +31,9 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect /admin, /crear-torneo, /mis-torneos
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/admin') || 
-                           request.nextUrl.pathname.startsWith('/crear-torneo') || 
-                           request.nextUrl.pathname.startsWith('/mis-torneos')
+  // Optimistic check only: each page and Server Action verifies the session again
+  const protectedPrefixes = ['/admin', '/crear-torneo', '/mis-torneos', '/perfil', '/crear-equipo', '/mis-equipos']
+  const isProtectedRoute = protectedPrefixes.some((prefix) => request.nextUrl.pathname.startsWith(prefix))
 
   if (!user && isProtectedRoute) {
     // Redirect to login page and preserve the original URL in the `next` query parameter

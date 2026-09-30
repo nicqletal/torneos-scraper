@@ -10,6 +10,8 @@ import { ZONE_LABEL_EMBED, zoneLabel } from '@/utils/zones'
 import { verificationAge } from '@/utils/tournament-verification'
 import { VerificationBadge } from '@/components/VerificationBadge'
 import { TournamentFlyer } from '@/components/TournamentFlyer'
+import { modalityLabel } from '@/utils/modality'
+import { whatsappLink } from '@/utils/whatsapp'
 
 interface TournamentDetailProps {
   params: Promise<{ id: string }>
@@ -51,17 +53,10 @@ export default async function TournamentDetail({
   // El alta salió pero la subida del flyer no (ver crear-torneo/actions.ts).
   const flyerFailed = justPublished && query.flyer === 'fallo'
 
-  const modalityLabels = {
-    futbol_5: 'Fútbol 5',
-    futbol_7: 'Fútbol 7',
-    futbol_8: 'Fútbol 8',
-    futbol_11: 'Fútbol 11',
-  }
-
   const formatDate = (date: string) =>
     format(new Date(date + 'T00:00:00'), "d 'de' MMMM, yyyy", { locale: es })
 
-  const defaultWhatsappMessage = encodeURIComponent(`Hola, vengo de Torneos Scraper. Me interesa el torneo "${tournament.name}"!`)
+  const defaultWhatsappMessage = `Hola, vengo de Torneos Scraper. Me interesa el torneo "${tournament.name}"!`
 
   return (
     <div className="max-w-5xl mx-auto flex flex-col gap-8">
@@ -133,7 +128,7 @@ export default async function TournamentDetail({
               </span>
               <span className="flex items-center gap-1.5 px-3 py-1 border border-brand-border bg-brand-secondary/40 text-brand-lime rounded-sm uppercase">
                 <Users className="w-3.5 h-3.5" />
-                {modalityLabels[tournament.sport_modality as keyof typeof modalityLabels]}
+                {modalityLabel(tournament.sport_modality)}
               </span>
               {/* Torneo copiado: no tiene organizador en la app, solo el nombre del real */}
               {tournament.organizer_name && (
@@ -203,7 +198,7 @@ export default async function TournamentDetail({
           <div className="flex flex-col sm:flex-row gap-4">
             {tournament.contact_whatsapp && (
               <a
-                href={`https://wa.me/${tournament.contact_whatsapp.replace(/[^0-9]/g, '')}?text=${defaultWhatsappMessage}`}
+                href={whatsappLink(tournament.contact_whatsapp, defaultWhatsappMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 inline-flex items-center justify-center gap-2 py-4 px-6 press bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider text-sm rounded-sm shadow-md cursor-pointer"
