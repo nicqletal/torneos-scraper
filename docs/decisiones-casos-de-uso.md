@@ -217,5 +217,5 @@ Esta tabla es la base de las reglas de acceso (RLS) de la base de datos.
 - **Bugs del prototipo:**
   - `login/actions.ts` no valida `next` y manda a `/admin` por defecto
   - `signOut()` cierra todas las sesiones: hay que pasarle `{ scope: 'local' }`
-- **Orden de subida del flyer:** el id del torneo no existe antes de insertarlo, y no tienen que quedar archivos huérfanos si el insert falla.
+- **Orden de subida del flyer:** el id del torneo no existe antes de insertarlo, y no tienen que quedar archivos huérfanos si el insert falla. Resuelto: el flyer se sube después del insert, como `flyers/<id del torneo>`. En la baja lo borra la Server Action por la API de Storage, después de la función de baja, porque Postgres no puede borrar archivos de Storage.
 - **Parámetros de URL del catálogo en español** (`modalidad`, `zona`, `precio_max`). El prototipo usa `modality` y `status`.

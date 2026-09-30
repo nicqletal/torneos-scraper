@@ -78,7 +78,8 @@ select ok(
   'anon no puede editar torneos'
 );
 
--- authenticated puede editar exactamente las columnas del formulario.
+-- authenticated puede editar exactamente las columnas del formulario, más
+-- `image_url`, que la escribe la Server Action después de subir el flyer.
 select is(
   (select array_agg(column_name::text order by column_name::text)
      from information_schema.column_privileges
@@ -86,10 +87,10 @@ select is(
       and grantee = 'authenticated' and privilege_type = 'UPDATE'),
   array[
     'capacity', 'contact_instagram', 'contact_whatsapp', 'description', 'end_date',
-    'inscription_deadline', 'name', 'price', 'rules', 'sport_modality', 'start_date',
+    'image_url', 'inscription_deadline', 'name', 'price', 'rules', 'sport_modality', 'start_date',
     'venue_address', 'zone'
   ],
-  'authenticated edita solo las columnas del formulario'
+  'authenticated edita solo las columnas del formulario y el flyer'
 );
 
 select * from finish();

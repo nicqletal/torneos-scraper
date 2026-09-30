@@ -1,7 +1,8 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { Save } from 'lucide-react'
+import { FLYER_TYPES, parseFlyer } from '@/utils/tournament-flyer'
 
 // Lo que devuelve la Server Action cuando no puede guardar: el mensaje y lo que
 // el usuario había cargado, para volver a llenar el formulario.
@@ -18,6 +19,8 @@ interface TournamentFormProps {
   initialValues?: Record<string, string>
   // Si viene, se pide confirmar antes de guardar (por ejemplo, con equipos anotados).
   confirmMessage?: string | null
+  // Edición de un torneo que ya tiene flyer: dejar el campo vacío lo conserva.
+  hasFlyer?: boolean
 }
 
 const labelClass = 'font-display tracking-wider text-sm text-white/60 uppercase'
@@ -46,8 +49,9 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
-export function TournamentForm({ action, submitLabel, pendingLabel, initialValues = {}, confirmMessage }: TournamentFormProps) {
+export function TournamentForm({ action, submitLabel, pendingLabel, initialValues = {}, confirmMessage, hasFlyer = false }: TournamentFormProps) {
   const [state, formAction, pending] = useActionState(action, { error: null, values: initialValues })
+  const [flyerError, setFlyerError] = useState<string | null>(null)
   const v = state.values
 
   return (
@@ -123,6 +127,30 @@ export function TournamentForm({ action, submitLabel, pendingLabel, initialValue
             <input name="contact_instagram" type="text" defaultValue={v.contact_instagram} placeholder="copa.palermo" className={inputClass} />
           </Field>
         </div>
+      </Section>
+
+      <Section title="Flyer (opcional)">
+        <Field
+          label="Imagen"
+          hint={`JPG, PNG o WebP, hasta 3 MB.${hasFlyer ? ' Si no elegís otro, queda el que ya subiste.' : ''}`}
+        >
+          <input
+            name="flyer"
+            type="file"
+            accept={FLYER_TYPES.join(',')}
+            onChange={(e) => {
+              // Mismo chequeo que la Server Action, para avisar antes de subir
+              // 3 MB al servidor. Si no sirve, se vacía el campo.
+              const flyer = parseFlyer(e.target.files?.[0] ?? null)
+              setFlyerError(flyer.ok ? null : flyer.error)
+              if (!flyer.ok) e.target.value = ''
+            }}
+            className={`${inputClass} file:mr-3 file:px-3 file:py-1 file:border-0 file:rounded-sm file:bg-brand-lime file:text-brand-bg file:font-display file:uppercase file:tracking-wider file:cursor-pointer`}
+          />
+        </Field>
+        {flyerError && (
+          <p role="alert" className="text-sm text-brand-red">{flyerError}</p>
+        )}
       </Section>
 
       <Section title="Más información (opcional)">

@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { MapPin, Users, ArrowRight, Trophy, ImageOff } from 'lucide-react'
@@ -8,6 +7,7 @@ import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament
 import { priceLabel } from '@/utils/tournament-price'
 import type { VerificationAge } from '@/utils/tournament-verification'
 import { VerificationBadge } from './VerificationBadge'
+import { TournamentFlyer } from './TournamentFlyer'
 
 export interface Tournament {
   id: string
@@ -54,13 +54,12 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
     >
       {/* Flyer Header */}
       <div className="relative h-44 w-full bg-brand-bg overflow-hidden group">
-        <Image
-          src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=600&auto=format&fit=crop"
-          alt={`Flyer de ${tournament.name}`}
-          fill
+        <TournamentFlyer
+          imageUrl={tournament.image_url}
+          name={tournament.name}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={index < 3}
-          className={`object-cover transition-transform duration-500 group-hover:scale-105 ${
+          className={`transition-transform duration-500 group-hover:scale-105 ${
             tournament.status === 'cerrado' ? 'grayscale opacity-60' : 'opacity-85 group-hover:opacity-100'
           }`}
         />

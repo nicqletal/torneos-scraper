@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { removeFlyer } from '@/utils/supabase/flyer'
 
 // "Sigue vigente". El form del panel manda el id en un campo oculto, así que
 // funciona sin JavaScript. El id viene del cliente y no es de confiar: que sea
@@ -53,6 +54,12 @@ export async function withdrawTournament(id: string): Promise<{ error: string } 
         : 'No pudimos dar de baja el torneo. Probá de nuevo.',
     }
   }
+
+  // El flyer se borra por la API de Storage, porque Postgres no puede borrar
+  // archivos (ver supabase/migrations/20260930000007_tournament_flyers.sql).
+  // Va después de la baja, así un torneo que no se pudo dar de baja no se
+  // queda sin flyer; la policy de delete deja borrar el huérfano que subiste vos.
+  await removeFlyer(supabase, id)
 
   revalidatePath('/')
   revalidatePath('/mis-torneos')

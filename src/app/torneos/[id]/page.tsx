@@ -1,14 +1,14 @@
 import { createClient } from '@/utils/supabase/server'
-import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink, UserRound, ScrollText, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink, UserRound, ScrollText, CheckCircle2, ImageOff } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { priceLabel } from '@/utils/tournament-price'
 import { verificationAge } from '@/utils/tournament-verification'
 import { VerificationBadge } from '@/components/VerificationBadge'
+import { TournamentFlyer } from '@/components/TournamentFlyer'
 
 interface TournamentDetailProps {
   params: Promise<{ id: string }>
@@ -38,8 +38,10 @@ export default async function TournamentDetail({
   // Recién publicado desde /crear-torneo: se le muestra al organizador cómo lo
   // ve la gente. Solo al dueño, por si comparte el link con el ?publicado=1.
   const { data: { user } } = await supabase.auth.getUser()
-  const justPublished =
-    (await searchParams).publicado === '1' && user?.id === tournament.user_id
+  const query = await searchParams
+  const justPublished = query.publicado === '1' && user?.id === tournament.user_id
+  // El alta salió pero la subida del flyer no (ver crear-torneo/actions.ts).
+  const flyerFailed = justPublished && query.flyer === 'fallo'
 
   const modalityLabels = {
     futbol_5: 'Fútbol 5',
@@ -63,6 +65,19 @@ export default async function TournamentDetail({
         </div>
       )}
 
+      {flyerFailed && (
+        <div role="alert" className="flex items-center gap-3 px-4 py-3 border border-brand-amber bg-brand-amber/5 rounded-sm">
+          <ImageOff className="w-5 h-5 text-brand-amber shrink-0" />
+          <p className="text-sm text-brand-amber">
+            No pudimos subir el flyer.{' '}
+            <Link href={`/mis-torneos/${tournament.id}/editar`} className="underline hover:text-white">
+              Probá de nuevo desde Editar
+            </Link>
+            .
+          </p>
+        </div>
+      )}
+
       {/* Return link */}
       <Link 
         href="/" 
@@ -76,13 +91,12 @@ export default async function TournamentDetail({
         
         {/* Flyer (Left Column) */}
         <div className="lg:col-span-5 h-[500px] relative bg-brand-surface border border-brand-border rounded-sm overflow-hidden">
-          <Image
-            src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=600&auto=format&fit=crop"
-            alt={`Flyer de ${tournament.name}`}
-            fill
+          <TournamentFlyer
+            imageUrl={tournament.image_url}
+            name={tournament.name}
             priority
             sizes="(max-width: 768px) 100vw, 400px"
-            className={`object-cover ${status === 'cerrado' ? 'grayscale opacity-60' : 'opacity-90'}`}
+            className={status === 'cerrado' ? 'grayscale opacity-60' : 'opacity-90'}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/85 via-transparent to-transparent" />
           
