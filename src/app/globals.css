@@ -3,9 +3,12 @@
 :root {
   --background: #0c0f0d;
   --foreground: #f4f6f5;
-  
-  --font-bebas-neue: var(--font-bebas-neue);
-  --font-plus-jakarta: var(--font-plus-jakarta);
+  /* Controles nativos (calendario del date, desplegable del select, file) en
+     versión oscura: si no, el ícono del calendario queda negro sobre negro. */
+  color-scheme: dark;
+  /* Las variables de fuente (--font-bebas-neue, --font-plus-jakarta) las
+     define next/font con una clase en <html>. No redeclararlas acá: una
+     variable que se referencia a sí misma queda vacía y se pierde la fuente. */
 }
 
 @theme {
@@ -15,6 +18,33 @@
   --color-brand-surface: #1e2922;
   --color-brand-border: #262626;
   --color-brand-lime: #CCFF00;
+  /* Antigüedad de verificación: ámbar a los 30 días, rojo "sin confirmar" a los 60 */
+  --color-brand-amber: #FFB020;
+  --color-brand-red: #FF4D4D;
+  /* Estado "En juego" */
+  --color-brand-sky: #38BDF8;
+
+  /* Curva de salida fuerte: arranca rápido, así la respuesta se siente inmediata */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+
+  /* Entrada de las cards del catálogo: se ve en cada visita, así que es corta
+     y casi imperceptible (8px). El escalonado lo pone cada card con --i. */
+  --animate-card-in: card-in 250ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  /* Aparición de avisos puntuales (por ejemplo, "Publicado") */
+  --animate-enter: enter 280ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
   
   /* Tailwind standard mappings */
   --color-background: #0c0f0d;
@@ -24,6 +54,39 @@
   /* Font Family Mappings */
   --font-display: var(--font-bebas-neue), sans-serif;
   --font-sans: var(--font-plus-jakarta), sans-serif;
+}
+
+/* Con movimiento reducido, avisos y cards aparecen solo con opacidad */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes enter {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes card-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+/* Feedback al apretar: botones y links que se tocan se hunden apenas.
+   Trae su propia transición (colores del hover + scale), así que no se
+   combina con transition-colors ni transition-all. */
+@utility press {
+  transition-property: color, background-color, border-color, opacity, scale;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-out-strong);
+
+  &:active {
+    scale: 0.97;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:active {
+      scale: 1;
+    }
+  }
 }
 
 body {

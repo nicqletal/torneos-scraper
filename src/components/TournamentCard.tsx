@@ -1,78 +1,60 @@
-'use client'
-
-import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { formatDistanceToNow } from 'date-fns'
-import { es } from 'date-fns/locale'
-import { MapPin, Users, Clock, ArrowRight, Trophy, ImageOff } from 'lucide-react'
+import { MapPin, Users, ArrowRight } from 'lucide-react'
+import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
+import { priceLabel } from '@/utils/tournament-price'
+import { zoneLabel, type ZoneLabelFields } from '@/utils/zones'
+import type { VerificationAge } from '@/utils/tournament-verification'
+import { VerificationBadge } from './VerificationBadge'
+import { TournamentFlyer } from './TournamentFlyer'
+import { modalityLabel, type SportModality } from '@/utils/modality'
 
 export interface Tournament {
   id: string
   name: string
   description: string | null
-  sport_modality: 'futbol_5' | 'futbol_7' | 'futbol_8' | 'futbol_11'
-  zone: string
+  sport_modality: SportModality
+  // Embebida con ZONE_LABEL_EMBED (src/utils/zones.ts)
+  zones: ZoneLabelFields
   price: number | null
   price_currency: string
-  status: 'abierto' | 'cerrado' | 'en_curso' | 'finalizado'
+  // Columna calculada: hay que pedirla explícitamente con select('*, status')
+  status: TournamentStatus
   contact_whatsapp: string | null
   contact_instagram: string | null
   image_url: string | null
-  verified_at: string | null
+  verified_at: string
   updated_at: string
 }
 
 export interface TournamentCardProps {
   tournament: Tournament
   index: number
+  // Antigüedad de verificación; null si no aplica (Finalizado).
+  verification: VerificationAge | null
 }
 
-export function TournamentCard({ tournament, index }: TournamentCardProps) {
-  const lastUpdated = new Date(tournament.verified_at || tournament.updated_at)
-
-  // Status mapping to brand-lime styling or sport indicators
-  const statusLabels = {
-    abierto: 'Inscripción Abierta',
-    cerrado: 'Inscripción Cerrada',
-    en_curso: 'En Juego',
-    finalizado: 'Torneo Finalizado',
-  }
-
-  const statusStyles = {
-    abierto: 'text-brand-lime border-brand-lime bg-brand-lime/5',
-    cerrado: 'text-red-400 border-red-500/30 bg-red-950/20',
-    en_curso: 'text-sky-400 border-sky-500/30 bg-sky-950/20',
-    finalizado: 'text-zinc-500 border-zinc-700 bg-zinc-800/20',
-  }
-
-  const modalityLabels = {
-    futbol_5: 'Fútbol 5',
-    futbol_7: 'Fútbol 7',
-    futbol_8: 'Fútbol 8',
-    futbol_11: 'Fútbol 11',
-  }
-
+export function TournamentCard({ tournament, index, verification }: TournamentCardProps) {
   // Format index as scoreboard double-digit (e.g. "01", "02")
   const scoreboardIndex = String(index + 1).padStart(2, '0')
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
-      whileHover={{ y: -4, borderColor: '#CCFF00' }}
-      className="flex flex-col bg-brand-surface border border-brand-border h-full transition-colors duration-200"
+    // Toda la card es el link: el blanco para tocar es la card entera, no solo
+    // el botón "Ficha". La entrada es una animación CSS (corre fuera del hilo
+    // principal mientras la página carga) escalonada 40ms por card, con tope en
+    // la sexta para que ninguna espere más de 200ms.
+    <Link
+      href={`/torneos/${tournament.id}`}
+      style={{ '--i': Math.min(index, 5) } as React.CSSProperties}
+      className="group flex flex-col bg-brand-surface border border-brand-border hover:border-brand-lime h-full transition-colors animate-card-in [animation-delay:calc(var(--i)*40ms)] focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2"
     >
       {/* Flyer Header */}
-      <div className="relative h-44 w-full bg-brand-bg overflow-hidden group">
-        <Image
-          src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=600&auto=format&fit=crop"
-          alt={`Flyer de ${tournament.name}`}
-          fill
+      <div className="relative h-44 w-full bg-brand-bg overflow-hidden">
+        <TournamentFlyer
+          imageUrl={tournament.image_url}
+          name={tournament.name}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={index < 3}
-          className={`object-cover transition-transform duration-500 group-hover:scale-105 ${
+          className={`transition-[scale,opacity] duration-300 ease-out-strong group-hover:scale-[1.03] ${
             tournament.status === 'cerrado' ? 'grayscale opacity-60' : 'opacity-85 group-hover:opacity-100'
           }`}
         />
@@ -99,7 +81,7 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
           <span className="font-display text-4xl text-brand-lime/30 tracking-wider select-none leading-none mr-3 border-r border-brand-border/40 pr-3 font-bold">
             {scoreboardIndex}
           </span>
-          <h3 className="text-xl font-bold tracking-tight text-white line-clamp-2 uppercase font-display leading-tight flex-1">
+          <h3 className="text-3xl tracking-wide text-white line-clamp-2 uppercase font-display leading-none flex-1">
             {tournament.name}
           </h3>
         </div>
@@ -108,9 +90,10 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
         <div className="grid grid-cols-2 gap-px bg-brand-border/60 border border-brand-border/60 mb-5 text-xs text-white/80">
           <div className="bg-brand-surface p-2.5 flex flex-col gap-1">
             <span className="text-[10px] uppercase text-white/40 tracking-wider font-mono">Zona</span>
-            <span className="font-semibold flex items-center gap-1 truncate">
-              <MapPin className="w-3.5 h-3.5 text-brand-lime shrink-0" />
-              {tournament.zone}
+            {/* "Zona · Corredor" puede ser largo: que baje de línea en vez de cortarse */}
+            <span className="font-semibold flex items-start gap-1 leading-snug">
+              <MapPin className="w-3.5 h-3.5 mt-px text-brand-lime shrink-0" />
+              {zoneLabel(tournament.zones)}
             </span>
           </div>
 
@@ -118,37 +101,30 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
             <span className="text-[10px] uppercase text-white/40 tracking-wider font-mono">Modalidad</span>
             <span className="font-semibold flex items-center gap-1 truncate">
               <Users className="w-3.5 h-3.5 text-brand-lime shrink-0" />
-              {modalityLabels[tournament.sport_modality]}
+              {modalityLabel(tournament.sport_modality)}
             </span>
           </div>
         </div>
 
         {/* Footer Row (Price & CTA Button) */}
         <div className="mt-auto pt-4 border-t border-brand-border flex items-center justify-between gap-2">
-          <div className="flex flex-col">
-            <span className="text-[9px] uppercase tracking-wider text-white/40 font-mono flex items-center gap-1">
-              <Clock className="w-3 h-3 text-brand-lime" />
-              Actualizado {formatDistanceToNow(lastUpdated, { addSuffix: true, locale: es })}
-            </span>
-            {tournament.price ? (
-              <span className="text-lg font-bold text-white font-mono mt-1">
-                ${tournament.price} <span className="text-xs font-normal text-white/40">{tournament.price_currency}</span>
-              </span>
-            ) : (
-              <span className="text-xs text-white/50 font-semibold mt-1">Precio a consultar</span>
+          <div className="flex flex-col items-start">
+            {verification && (
+              <VerificationBadge age={verification} className="text-[9px] tracking-wider px-1.5 py-0.5" />
             )}
+            <span className="text-lg font-bold text-white font-mono mt-1">
+              {priceLabel(tournament.price)}
+            </span>
           </div>
 
-          <Link
-            href={`/torneos/${tournament.id}`}
-            className="inline-flex items-center gap-1 px-3 py-2 bg-brand-border hover:bg-brand-lime hover:text-brand-bg text-white text-xs font-bold uppercase tracking-wider rounded-sm transition-all duration-200 font-display group-hover:bg-brand-lime group-hover:text-brand-bg shadow-sm"
-          >
+          {/* Ya no es un link aparte (no se anidan links): se ilumina con el hover de la card */}
+          <span className="inline-flex items-center gap-1 px-3 py-2 bg-brand-border text-white text-xs font-bold uppercase tracking-wider rounded-sm transition-colors font-display group-hover:bg-brand-lime group-hover:text-brand-bg shadow-sm">
             Ficha
             <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-          </Link>
+          </span>
         </div>
 
       </div>
-    </motion.div>
+    </Link>
   )
 }

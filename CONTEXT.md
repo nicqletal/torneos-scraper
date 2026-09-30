@@ -62,6 +62,10 @@ _Avoid_: estado "Últimos cupos", estado "sin confirmar"
 **Cupo**:
 Cantidad máxima de inscripciones que admite un torneo; es opcional.
 
+**Flyer**:
+Imagen opcional de un torneo (JPG, PNG o WebP, hasta 3 MB) que se ve en su card y su ficha; cada torneo tiene como mucho uno, y subir otro reemplaza al anterior.
+_Avoid_: foto, portada, banner
+
 **Últimos cupos**:
 Etiqueta que se muestra sobre un torneo **Abierto** cuando le quedan 2 lugares o menos; no es un estado.
 
