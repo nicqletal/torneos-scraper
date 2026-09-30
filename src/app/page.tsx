@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
-import { Filters } from '@/components/Filters'
-import { TournamentList } from '@/components/TournamentList'
+import { Filters } from '@/components/catalog/Filters'
+import { TournamentList } from '@/components/catalog/TournamentList'
 
 interface HomeProps {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>

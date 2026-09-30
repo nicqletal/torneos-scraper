@@ -2,17 +2,31 @@ import { createClient } from '@/utils/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Metadata } from 'next' // <-- Agregado para Metadatos
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink, AlertTriangle } from 'lucide-react'
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const supabase = await createClient()
+  const { id } = await params
+  const { data: tournament } = await supabase.from('tournaments').select('name, zone').eq('id', id).single()
+  
+  if (!tournament) return {}
+
+  return {
+    title: `${tournament.name} | Torneos BA`,
+    description: `Torneo de fútbol en ${tournament.zone}`,
+    //Faltan los flyers
+    openGraph: { images: ['https://images.unsplash.com/photo-1579952363873-27f3bade9f55'] }, 
+  }
+}
 
 interface TournamentDetailProps {
   params: Promise<{ id: string }>
 }
 
-export default async function TournamentDetail({
-  params,
-}: TournamentDetailProps) {
+export default async function TournamentDetail({ params }: TournamentDetailProps) {
   const supabase = await createClient()
   const { id } = await params
   
@@ -47,7 +61,9 @@ export default async function TournamentDetail({
     futbol_11: 'Fútbol 11',
   }
 
-  const defaultWhatsappMessage = encodeURIComponent(`Hola, vengo de Torneos Scraper. Me interesa el torneo "${tournament.name}"!`)
+  const isFinalizado = tournament.status === 'finalizado'; // <-- Validación agregada[cite: 2]
+  const rawWhatsappMessage = `Hola, vengo de Torneos Scraper. Me interesa el torneo "${tournament.name}"!`;
+  const defaultWhatsappMessage = encodeURIComponent(rawWhatsappMessage);
 
   return (
     <div className="max-w-5xl mx-auto flex flex-col gap-8">
@@ -71,7 +87,7 @@ export default async function TournamentDetail({
             fill
             priority
             sizes="(max-width: 768px) 100vw, 400px"
-            className={`object-cover ${tournament.status === 'cerrado' ? 'grayscale opacity-60' : 'opacity-90'}`}
+            className={`object-cover ${tournament.status === 'cerrado' || isFinalizado ? 'grayscale opacity-60' : 'opacity-90'}`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/85 via-transparent to-transparent" />
           
@@ -81,8 +97,12 @@ export default async function TournamentDetail({
             </span>
           </div>
 
-          <div className="absolute bottom-4 left-4 right-4 text-[10px] text-white/40 font-mono">
-            ID: {tournament.id}
+          <div className="absolute bottom-4 left-4 right-4 text-[10px] text-white/40 font-mono flex justify-between items-center">
+            <span>ID: {tournament.id}</span>
+            {/* 2. BOTÓN REPORTAR (P2) */}
+            <button className="flex items-center gap-1 text-red-400 hover:text-red-300 transition-colors uppercase tracking-wider">
+              <AlertTriangle className="w-3 h-3" /> Reportar
+            </button>
           </div>
         </div>
 
@@ -109,7 +129,6 @@ export default async function TournamentDetail({
 
           {/* Pricing & Dates Panel */}
           <div className="p-6 bg-brand-surface border border-brand-border rounded-sm flex flex-col gap-5">
-            
             {tournament.price ? (
               <div>
                 <span className="text-white/40 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1.5 mb-1.5">
@@ -126,13 +145,12 @@ export default async function TournamentDetail({
                   <DollarSign className="w-3.5 h-3.5 text-brand-lime" />
                   PRECIO DE INSCRIPCIÓN
                 </span>
-                <p className="text-xl text-white font-display font-bold tracking-wider uppercase">Consultar precio con organizador</p>
+                <p className="text-xl text-white font-display font-bold tracking-wider uppercase">Consultar precio</p>
               </div>
             )}
 
             <div className="h-px bg-brand-border w-full" />
             
-            {/* Start and End Dates */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <span className="text-white/40 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1.5 mb-1.5">
@@ -171,42 +189,58 @@ export default async function TournamentDetail({
             </div>
           )}
 
-          {/* Action CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            {tournament.contact_whatsapp && (
-              <a
-                href={`https://wa.me/${tournament.contact_whatsapp.replace(/[^0-9]/g, '')}?text=${defaultWhatsappMessage}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 inline-flex items-center justify-center gap-2 py-4 px-6 bg-brand-lime hover:bg-white text-brand-bg hover:text-brand-bg transition-all duration-200 font-display font-bold uppercase tracking-wider text-sm rounded-sm shadow-md cursor-pointer group"
-              >
-                <MessageCircle className="w-4.5 h-4.5 fill-current" />
-                Contactar por WhatsApp
-              </a>
-            )}
-            
-            {tournament.contact_instagram && (
-              <a
-                href={`https://instagram.com/${tournament.contact_instagram.replace('@', '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 inline-flex items-center justify-center gap-2 py-4 px-6 bg-brand-surface border border-brand-border hover:bg-brand-secondary text-white hover:text-brand-lime transition-all duration-200 font-display font-bold uppercase tracking-wider text-sm rounded-sm shadow-md cursor-pointer"
-              >
-                <ExternalLink className="w-4.5 h-4.5" />
-                Ver Instagram
-              </a>
-            )}
-
-            {!tournament.contact_whatsapp && !tournament.contact_instagram && (
-              <div className="w-full py-4 px-6 bg-brand-surface border border-brand-border text-center rounded-sm text-white/30 text-xs font-mono uppercase">
-                El organizador no suministró datos de contacto directo.
+          {/* Action CTAs - 3. LÓGICA DE TORNEO FINALIZADO Y CONTACTO (UC-11 y UC-12) */}
+          {isFinalizado ? (
+            <div className="w-full py-4 px-6 bg-brand-surface border border-brand-border text-center rounded-sm text-white/40 text-sm font-display uppercase tracking-wider font-bold mt-4">
+              Este torneo ya terminó
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4 mt-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                {tournament.contact_whatsapp && (
+                  <a
+                    href={`https://wa.me/${tournament.contact_whatsapp.replace(/[^0-9]/g, '')}?text=${defaultWhatsappMessage}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center gap-2 py-4 px-6 bg-brand-lime hover:bg-white text-brand-bg hover:text-brand-bg transition-all duration-200 font-display font-bold uppercase tracking-wider text-sm rounded-sm shadow-md cursor-pointer group"
+                  >
+                    <MessageCircle className="w-4.5 h-4.5 fill-current" />
+                    Contactar por WhatsApp
+                  </a>
+                )}
+                
+                {tournament.contact_instagram && (
+                  <a
+                    href={`https://instagram.com/${tournament.contact_instagram.replace('@', '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center gap-2 py-4 px-6 bg-brand-surface border border-brand-border hover:bg-brand-secondary text-white hover:text-brand-lime transition-all duration-200 font-display font-bold uppercase tracking-wider text-sm rounded-sm shadow-md cursor-pointer"
+                  >
+                    <ExternalLink className="w-4.5 h-4.5" />
+                    Ver Perfil en Instagram
+                  </a>
+                )}
               </div>
-            )}
-          </div>
+
+              {/* 4. FLUJO DE INSTAGRAM SUGERIDO (UC-12)[cite: 2] */}
+              {tournament.contact_instagram && (
+                <div className="p-4 border border-brand-border/50 bg-brand-secondary/20 rounded-sm">
+                  <p className="text-[10px] text-brand-lime uppercase tracking-wider font-mono mb-2">Mensaje sugerido para Instagram:</p>
+                  <p className="text-sm text-white/80 italic font-serif">"{rawWhatsappMessage}"</p>
+                  <p className="text-[10px] text-white/40 mt-2 font-mono">↑ Cópialo y pégalo en los mensajes directos del organizador.</p>
+                </div>
+              )}
+
+              {!tournament.contact_whatsapp && !tournament.contact_instagram && (
+                <div className="w-full py-4 px-6 bg-brand-surface border border-brand-border text-center rounded-sm text-white/30 text-xs font-mono uppercase">
+                  El organizador no suministró datos de contacto directo.
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
       </div>
-
     </div>
   )
 }

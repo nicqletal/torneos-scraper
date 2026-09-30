@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, differenceInDays } from 'date-fns' // <-- differenceInDays agregado
 import { es } from 'date-fns/locale'
 import { MapPin, Users, Clock, ArrowRight, Trophy, ImageOff } from 'lucide-react'
 
@@ -30,6 +30,7 @@ export interface TournamentCardProps {
 
 export function TournamentCard({ tournament, index }: TournamentCardProps) {
   const lastUpdated = new Date(tournament.verified_at || tournament.updated_at)
+  const daysSinceUpdate = differenceInDays(new Date(), lastUpdated) // <-- Calculamos los días acá
 
   // Status mapping to brand-lime styling or sport indicators
   const statusLabels = {
@@ -86,6 +87,19 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
           </span>
         </div>
 
+        {/* Indicador de antigüedad (>30 o >60 días) */}
+        {daysSinceUpdate > 30 && (
+          <div className="absolute top-3 right-3">
+            <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest border font-display rounded-sm shadow-md ${
+              daysSinceUpdate > 60 
+                ? 'bg-red-500 text-white border-red-400' 
+                : 'bg-amber-400 text-black border-amber-300'
+            }`}>
+              {daysSinceUpdate > 60 ? 'sin confirmar' : 'actualizar'}
+            </span>
+          </div>
+        )}
+
         <div className="absolute bottom-3 right-3 text-[10px] text-white/50 bg-brand-bg/80 px-2 py-0.5 border border-brand-border rounded-sm backdrop-blur-xs font-mono">
           REF: #{tournament.id.slice(0, 5).toUpperCase()}
         </div>
@@ -130,12 +144,16 @@ export function TournamentCard({ tournament, index }: TournamentCardProps) {
               <Clock className="w-3 h-3 text-brand-lime" />
               Actualizado {formatDistanceToNow(lastUpdated, { addSuffix: true, locale: es })}
             </span>
-            {tournament.price ? (
+            
+            {/* Lógica estricta de precios */}
+            {tournament.price === 0 ? (
+              <span className="text-lg font-bold text-brand-lime font-mono mt-1">Gratis</span>
+            ) : tournament.price ? (
               <span className="text-lg font-bold text-white font-mono mt-1">
                 ${tournament.price} <span className="text-xs font-normal text-white/40">{tournament.price_currency}</span>
               </span>
             ) : (
-              <span className="text-xs text-white/50 font-semibold mt-1">Precio a consultar</span>
+              <span className="text-xs text-white/50 font-semibold mt-1">Consultar</span>
             )}
           </div>
 
