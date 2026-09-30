@@ -2,11 +2,11 @@
 -- antes de versionar el esquema. Se reproduce a propósito sin cambios, incluidas
 -- las policies abiertas, que se corrigen en la migración siguiente.
 --
--- En la base compartida esta migración ya está aplicada "a mano": se marca con
---   supabase migration repair --status applied 20260916000000
--- en vez de correrla.
-
-create type public.sport_modality as enum ('futbol_5', 'futbol_7', 'futbol_8', 'futbol_11');
+-- `sport_modality` también estaba en el backup, pero lo crea 20260928000003
+-- (compartido con equipos); por eso esta baseline va fechada después.
+--
+-- En la base compartida esto ya existe "a mano": ver "Aplicar a la base
+-- compartida" en AGENTS.md.
 
 create type public.tournament_status as enum ('abierto', 'cerrado', 'en_curso', 'finalizado');
 

@@ -78,6 +78,17 @@ supabase test db    # corre los tests pgTAP de supabase/tests/
 
 Toda policy de RLS nueva viene con su test en `supabase/tests/`.
 
+### Aplicar a la base compartida
+
+`sport_modality` y `tournaments` ya existían en la base compartida antes de versionar el esquema (backup del 16/09). La primera vez, esas dos migraciones se marcan como aplicadas en vez de correrlas:
+
+```bash
+supabase migration repair --status applied 20260928000003 20260930000000
+supabase db push --include-all
+```
+
+`--include-all` hace falta porque hay migraciones con fecha anterior a la última aplicada (por ejemplo las de equipos, si entran después).
+
 ## Seguridad — leer antes de tocar
 
 RLS y auth son el punto crítico del proyecto:
