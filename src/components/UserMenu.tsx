@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { logout } from '@/app/login/actions'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LogOut, ChevronDown, List, UserRound, Users } from 'lucide-react'
+import { LogOut, ChevronDown, UserRound, Users } from 'lucide-react'
 
 interface UserMenuProps {
   email: string
@@ -68,15 +68,6 @@ export function UserMenu({ email }: UserMenuProps) {
               Mis equipos
             </Link>
 
-            <Link
-              href="/mis-torneos"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-display tracking-wider uppercase text-white/80 hover:text-brand-bg hover:bg-brand-lime transition-colors"
-            >
-              <List className="w-3.5 h-3.5" />
-              Mis torneos
-            </Link>
-            
             <div className="h-px bg-brand-border my-1" />
             
             <form action={logout}>

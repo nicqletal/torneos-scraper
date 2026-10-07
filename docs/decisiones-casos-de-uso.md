@@ -36,6 +36,8 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 - **Una sola cuenta por persona.** Con ella se puede ser jugador, capitán y organizador a la vez.
 - **Registro:** pide email, contraseña y **nombre** (el nombre es público, así que no se deriva del email). Se entra directo, sin confirmar el email. El único mail que manda la app es el de "Olvidé mi contraseña". El SMTP gratis de Supabase manda muy pocos por hora: alcanza para la entrega, pero con usuarios reales hace falta un servicio aparte (por ejemplo, Resend).
 - **Portada:** `/` es siempre la vista de jugador (catálogo). La barra superior tiene "Soy organizador" (lleva al panel de organizador y pide sesión) y "Volver a jugador".
+- **La vista depende solo de la ruta.** Se está en la vista de organizador dentro del panel y sus pantallas (`/mis-torneos`, `/crear-torneo` y la edición), y en la de jugador en todo lo demás, incluida la página pública de un organizador. No se guarda ninguna preferencia: un link al panel siempre abre la vista de organizador.
+- "Soy organizador" lo ve cualquiera, también sin sesión (ser organizador no es un rol). Reemplaza al botón "Cargar torneo" de la barra y al link "Mis torneos" del menú de usuario: el alta de un torneo se hace desde el panel.
 - **Perfil:** nombre, foto (JPG/PNG/WebP, máx. 2 MB), zona y **WhatsApp**. El WhatsApp es opcional, pero obligatorio para crear un equipo o tomar la capitanía. Se guarda solo con dígitos, en formato argentino de celular (`549` + 10 dígitos), que es lo que pide `wa.me`.
 - **El rol de administrador no se puede editar desde la app.** Se asigna a mano en la base. El usuario edita nombre, foto, zona y WhatsApp, y nunca el rol.
 - **Cerrar sesión** cierra solo el dispositivo actual.

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
-import { Trophy, Plus } from "lucide-react";
+import { Trophy } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { UserMenu } from "@/components/UserMenu";
+import { ViewSwitch } from "@/components/ViewSwitch";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
 
@@ -33,10 +34,6 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If user is authenticated, click leads directly to /crear-torneo.
-  // Otherwise, it redirects to login and then forwards to /crear-torneo.
-  const loadTournamentPath = user ? "/crear-torneo" : "/login?next=/crear-torneo";
-
   return (
     <html 
       lang="es" 
@@ -65,13 +62,7 @@ export default async function RootLayout({
                 </Link>
               )}
 
-              <Link 
-                href={loadTournamentPath} 
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-white text-brand-bg hover:text-brand-bg transition-all duration-200 font-display shadow-sm"
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                Cargar torneo
-              </Link>
+              <ViewSwitch />
 
               {user && user.email && (
                 <UserMenu email={user.email} />

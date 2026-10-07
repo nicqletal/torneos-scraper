@@ -39,7 +39,7 @@ Pantalla exclusiva del administrador para moderar la plataforma.
 Forma de navegar la app centrada en el catálogo, los equipos y la búsqueda de rival; es la que ve siempre cualquiera que entra a la portada.
 
 **Vista de organizador**:
-Forma de navegar la app centrada en el **Panel de organizador**; se entra con el botón "Soy organizador" de la barra superior y requiere sesión.
+Forma de navegar la app centrada en el **Panel de organizador**; se entra con el botón "Soy organizador" de la barra superior y requiere sesión. Se está en ella mientras la ruta sea la del panel o una de sus pantallas; no es un modo que se guarde.
 _Avoid_: perfil de entrada, cuenta de organizador, loguearse como organizador
 
 ### Torneos
