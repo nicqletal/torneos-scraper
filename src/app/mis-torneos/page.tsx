@@ -132,7 +132,7 @@ export default async function MisTorneosPage() {
             Todavía no publicaste torneos
           </h2>
           <p className="text-white/50 text-sm max-w-sm">
-            Cargalo acá y los equipos te van a contactar por WhatsApp o Instagram.
+            Publicalo acá y los equipos te van a contactar por WhatsApp o Instagram.
           </p>
           <Link
             href="/crear-torneo"
