@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
-import { MapPin, Users, Gauge, RefreshCw, Crown, Trophy } from 'lucide-react'
+import { MapPin, Users, Gauge, RefreshCw, Crown, Trophy, Link as LinkIcon } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { TeamCrest } from '@/components/TeamCrest'
 import { CopyLinkButton } from '@/components/CopyLinkButton'
 import { ConfirmButton } from '@/components/ConfirmButton'
+import { SubmitButton } from '@/components/SubmitButton'
 import { regenerateInvite, leaveTeam, removeMember, transferCaptaincy } from './actions'
 import { levelLabel } from '@/utils/teams'
 import { modalityLabel } from '@/utils/modality'
@@ -14,6 +15,13 @@ import { BackLink } from '@/components/BackLink'
 
 const rowButton =
   'px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm border border-brand-border text-white hover:border-brand-lime hover:text-brand-lime transition-colors font-display'
+
+// Botones de la sección de invitación: mismo tamaño y forma que "Copiar"
+// (CopyLinkButton) y que "Crear equipo" en Mis equipos.
+const actionButton =
+  'inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-sm transition-colors font-display cursor-pointer w-full sm:w-fit'
+const primaryAction = 'bg-brand-lime hover:bg-white text-brand-bg'
+const secondaryAction = 'bg-brand-bg border border-white/40 text-white hover:border-brand-lime hover:text-brand-lime'
 
 interface PublicTeam {
   id: string
@@ -239,6 +247,13 @@ export default async function EquipoPage({
                   className="flex-1 min-w-0 px-3 py-2 text-xs font-mono bg-brand-bg border border-brand-border rounded-sm text-white"
                 />
                 <CopyLinkButton url={`${origin}/unirse/${invite.token}`} />
+                {/* Secundario: con un link vigente la acción principal es copiarlo */}
+                <form action={regenerateInvite.bind(null, team.id)} className="flex">
+                  <SubmitButton pendingLabel="Regenerando…" className={`${actionButton} ${secondaryAction}`}>
+                    <RefreshCw className="w-3.5 h-3.5 stroke-[3]" />
+                    Regenerar
+                  </SubmitButton>
+                </form>
               </div>
               <p className="text-xs text-white/50">
                 Vale hasta el {new Date(invite.expires_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })}.
@@ -246,17 +261,16 @@ export default async function EquipoPage({
               </p>
             </>
           ) : (
-            <p className="text-xs text-white/50">No hay un link vigente. Generá uno para invitar jugadores; vale 7 días.</p>
+            <>
+              <p className="text-xs text-white/50">No hay un link vigente. Generá uno para invitar jugadores; vale 7 días.</p>
+              <form action={regenerateInvite.bind(null, team.id)}>
+                <SubmitButton pendingLabel="Generando…" className={`${actionButton} ${primaryAction}`}>
+                  <LinkIcon className="w-3.5 h-3.5 stroke-[3]" />
+                  Generar link
+                </SubmitButton>
+              </form>
+            </>
           )}
-          <form action={regenerateInvite.bind(null, team.id)}>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm border border-brand-border text-white hover:border-brand-lime hover:text-brand-lime transition-colors font-display"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              {invite ? 'Regenerar link' : 'Generar link'}
-            </button>
-          </form>
         </section>
       )}
     </div>
