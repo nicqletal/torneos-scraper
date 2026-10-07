@@ -33,6 +33,8 @@ test('flyer: un tipo no admitido se rechaza', () => {
 test('flyer: sin archivo elegido no hay flyer, y no es un error', () => {
   // Un <input type="file"> vacío manda un archivo sin nombre y de 0 bytes.
   assert.deepEqual(parseFlyer(file('application/octet-stream', 0, '')), { ok: true, file: null })
+  // En la Server Action de Next el archivo vacío llega con nombre "undefined".
+  assert.deepEqual(parseFlyer(file('application/octet-stream', 0, 'undefined')), { ok: true, file: null })
   assert.deepEqual(parseFlyer(null), { ok: true, file: null })
 })
 

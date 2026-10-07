@@ -13,8 +13,11 @@ export type FlyerResult = { ok: true; file: File | null } | { ok: false; error: 
 // hay flyer, y no es un error: el flyer es opcional y, al editar, dejarlo
 // vacío conserva el que ya estaba.
 export function parseFlyer(value: FormDataEntryValue | null): FlyerResult {
-  // Un <input type="file"> vacío manda un archivo sin nombre y de 0 bytes.
-  if (!(value instanceof File) || (value.size === 0 && value.name === '')) {
+  // Un <input type="file"> vacío manda un archivo de 0 bytes. No sirve mirar
+  // el nombre: en el navegador llega como '', pero en la Server Action de Next
+  // llega como el string "undefined" (arma el File con un nombre undefined).
+  // Un flyer de 0 bytes tampoco es una imagen, así que 0 bytes = sin flyer.
+  if (!(value instanceof File) || value.size === 0) {
     return { ok: true, file: null }
   }
   if (!FLYER_TYPES.includes(value.type)) {
