@@ -16,6 +16,8 @@ interface TournamentFlyerProps {
 
 // El flyer del torneo, o un placeholder de marca si no tiene. Llena el
 // contenedor, que tiene que ser `relative` y tener alto.
+// El placeholder es para las cards del catálogo, que necesitan todas el mismo
+// alto; la ficha sin flyer no lo usa: pasa a una sola columna.
 export function TournamentFlyer({ imageUrl, name, sizes, priority, className, fit = 'cover' }: TournamentFlyerProps) {
   const src = flyerSrc(imageUrl, process.env.NEXT_PUBLIC_SUPABASE_URL!)
 
