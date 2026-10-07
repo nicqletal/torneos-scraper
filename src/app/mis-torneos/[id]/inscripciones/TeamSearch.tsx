@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { parseTeamQuery, teamSearchPattern } from '@/utils/team-search'
 import { zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import { SubmitButton } from '@/components/SubmitButton'
+import { errorTextClass } from '@/components/button-styles'
 import { addLinkedInscription } from './actions'
 
 interface TeamRow {
@@ -68,7 +69,7 @@ export async function TeamSearch({ tournamentId, q, linkedTeamIds }: TeamSearchP
       </form>
 
       {!parsed.ok && parsed.error && (
-        <p role="alert" className="animate-enter text-[11px] font-mono uppercase text-brand-red">
+        <p role="alert" className={`animate-enter ${errorTextClass}`}>
           {parsed.error}
         </p>
       )}

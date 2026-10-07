@@ -11,6 +11,7 @@ import { withdrawConfirmation } from '@/utils/tournament-withdraw'
 import { inscriptionsLabel } from '@/utils/inscriptions'
 import { MANAGE_TABS, manageLoginPath, managePath, manageTab } from '@/utils/tournament-manage'
 import { BackLink } from '@/components/BackLink'
+import { secondaryButtonClass } from '@/components/button-styles'
 import { VerificationBadge } from '@/components/VerificationBadge'
 import { VerifyButton } from '../VerifyButton'
 import { WithdrawButton } from '../WithdrawButton'
@@ -116,7 +117,7 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
           <VerifyButton id={id} block={verifyBlock(verified_at, status, now)} />
           <Link
             href={`/torneos/${id}`}
-            className="press inline-flex items-center gap-1.5 px-3 py-2 border border-brand-border bg-brand-secondary text-white/80 hover:text-brand-lime hover:border-brand-lime text-xs font-display font-bold uppercase tracking-wider rounded-sm"
+            className={secondaryButtonClass}
           >
             <ExternalLink className="w-3.5 h-3.5" />
             Ver ficha pública

@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { Plus } from 'lucide-react'
 import { TEAM_NAME_MAX } from '@/utils/inscriptions'
+import { errorTextClass } from '@/components/button-styles'
 import type { InscriptionFormState } from './actions'
 
 // Alta por nombre: un campo y un botón. Si la base rechaza (cupo completo,
@@ -41,7 +42,7 @@ export function InscriptionForm({
         </button>
       </div>
       {state.error && (
-        <p role="alert" className="animate-enter text-[11px] font-mono uppercase text-brand-red">
+        <p role="alert" className={`animate-enter ${errorTextClass}`}>
           {state.error}
         </p>
       )}
