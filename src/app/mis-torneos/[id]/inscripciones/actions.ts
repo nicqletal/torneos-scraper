@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { inscriptionErrorMessage, parseTeamName } from '@/utils/inscriptions'
+import { inscriptionErrorCode, inscriptionErrorMessage, parseTeamName } from '@/utils/inscriptions'
 import { manageLoginPath, managePath } from '@/utils/tournament-manage'
 
 // Lo que devuelve el alta cuando no puede guardar: el mensaje y el nombre que
@@ -79,7 +79,7 @@ export async function addLinkedInscription(formData: FormData) {
     redirect(
       managePath(tournamentId, 'inscripciones', {
         q: typeof q === 'string' ? q : undefined,
-        error: error.code ?? 'desconocido',
+        error: inscriptionErrorCode(error.code),
       })
     )
   }
@@ -106,7 +106,7 @@ export async function removeInscription(formData: FormData) {
 
   if (error) {
     console.error(error)
-    redirect(managePath(tournamentId, 'inscripciones', { error: error.code ?? 'desconocido' }))
+    redirect(managePath(tournamentId, 'inscripciones', { error: inscriptionErrorCode(error.code) }))
   }
 
   revalidateTournament(tournamentId)
