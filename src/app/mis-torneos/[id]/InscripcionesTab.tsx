@@ -6,6 +6,7 @@ import { inscriptionErrorMessage, remainingSpots } from '@/utils/inscriptions'
 import { managePath } from '@/utils/tournament-manage'
 import { zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import { SubmitButton } from '@/components/SubmitButton'
+import { dangerButtonClass, errorTextClass } from '@/components/button-styles'
 import { InscriptionForm } from './inscripciones/InscriptionForm'
 import { TeamSearch } from './inscripciones/TeamSearch'
 import { addInscription, removeInscription } from './inscripciones/actions'
@@ -77,7 +78,7 @@ export async function InscripcionesTab({ id, status, count, capacity, q, errorCo
           <>
             <TeamSearch tournamentId={id} q={q} linkedTeamIds={linkedTeamIds} />
             {urlError && (
-              <p role="alert" className="animate-enter text-[11px] font-mono uppercase text-brand-red">
+              <p role="alert" className={`animate-enter ${errorTextClass}`}>
                 {urlError}
               </p>
             )}
@@ -101,7 +102,7 @@ export async function InscripcionesTab({ id, status, count, capacity, q, errorCo
         </h2>
 
         {urlError && (finished || full) && (
-          <p role="alert" className="animate-enter text-[11px] font-mono uppercase text-brand-red">
+          <p role="alert" className={`animate-enter ${errorTextClass}`}>
             {urlError}
           </p>
         )}
@@ -138,7 +139,7 @@ export async function InscripcionesTab({ id, status, count, capacity, q, errorCo
                     <input type="hidden" name="id" value={inscription.id} />
                     <SubmitButton
                       pendingLabel={<><Ban className="w-3.5 h-3.5" />Dando de baja…</>}
-                      className="press inline-flex items-center gap-1.5 px-3 py-2 border border-brand-border bg-brand-secondary text-white/80 hover:text-brand-red hover:border-brand-red text-xs font-display font-bold uppercase tracking-wider rounded-sm cursor-pointer"
+                      className={`${dangerButtonClass} cursor-pointer`}
                     >
                       <Ban className="w-3.5 h-3.5" />
                       Dar de baja

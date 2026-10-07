@@ -10,7 +10,7 @@ import { ZONE_LABEL_EMBED, zoneLabel } from '@/utils/zones'
 import { verificationAge } from '@/utils/tournament-verification'
 import { VerificationBadge } from '@/components/VerificationBadge'
 import { TournamentFlyer } from '@/components/TournamentFlyer'
-import { flyerSrc } from '@/utils/tournament-flyer'
+import { hasFlyer } from '@/utils/tournament-flyer'
 import { modalityLabel } from '@/utils/modality'
 import { whatsappLink } from '@/utils/whatsapp'
 import { inscriptionsLabel, isLastSpots } from '@/utils/inscriptions'
@@ -76,9 +76,9 @@ export default async function TournamentDetail({
   const defaultWhatsappMessage = `Hola, vengo de Torneos Scraper. Me interesa el torneo "${tournament.name}"!`
 
   // La ficha se arma en bloques porque el orden cambia según haya flyer o no
-  // (ver el `return`). Se usa `flyerSrc`, igual que <TournamentFlyer>: un
+  // (ver el `return`). Se usa `hasFlyer`, igual que <TournamentFlyer>: un
   // `image_url` que no es de nuestro bucket cuenta como "sin flyer".
-  const hasFlyer = flyerSrc(tournament.image_url, process.env.NEXT_PUBLIC_SUPABASE_URL!) !== null
+  const withFlyer = hasFlyer(tournament.image_url)
 
   // Estado y "Últimos cupos": van sobre el flyer, o arriba del título si no hay.
   const statusBadges = (
@@ -278,7 +278,7 @@ export default async function TournamentDetail({
   )
 
   return (
-    <div className={`${hasFlyer ? 'max-w-5xl' : 'max-w-3xl'} mx-auto flex flex-col gap-8`}>
+    <div className={`${withFlyer ? 'max-w-5xl' : 'max-w-3xl'} mx-auto flex flex-col gap-8`}>
       
       {/* Barra de dueño: lo único que cambia en la ficha para el organizador
           del torneo. Editar, inscripciones y baja viven en la pantalla de gestión. */}
@@ -315,7 +315,7 @@ export default async function TournamentDetail({
       {/* Return link */}
       <BackLink href="/" label="Volver al catálogo" />
 
-      {hasFlyer ? (
+      {withFlyer ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
           {/* Flyer (Left Column) */}
@@ -348,18 +348,19 @@ export default async function TournamentDetail({
           </div>
         </div>
       ) : (
-        // Sin flyer no hay columna izquierda ni placeholder: una sola columna,
-        // con la sede y la descripción arriba, antes del panel de precio, para
-        // que se lean sin scrollear en una notebook.
+        // Sin flyer no hay columna izquierda ni placeholder: una sola columna.
+        // El contacto es el fin del flujo, así que va apenas se sabe cuánto
+        // sale, cuándo y dónde se juega; la descripción, los anotados y el
+        // reglamento quedan debajo, para el que quiere leer más.
         <div className="flex flex-col gap-6">
           <div className="flex flex-wrap gap-2">
             {statusBadges}
           </div>
           {header}
-          {venue}
-          {description}
           {pricing}
+          {venue}
           {contact}
+          {description}
           {teams}
           {rules}
         </div>

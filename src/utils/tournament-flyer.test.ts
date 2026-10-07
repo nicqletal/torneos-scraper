@@ -1,7 +1,7 @@
 // Tests del flyer: qué archivo se acepta y qué URL se muestra. Corren con `pnpm test`.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { flyerSrc, parseFlyer } from './tournament-flyer.ts'
+import { flyerSrc, hasFlyer, parseFlyer } from './tournament-flyer.ts'
 
 const MB = 1024 * 1024
 const file = (type: string, size: number, name = 'flyer') =>
@@ -63,4 +63,22 @@ test('flyer: una URL que sale del bucket con ../ va el placeholder', () => {
 test('flyer: la URL de Supabase con / al final no cambia nada', () => {
   const url = `${SUPABASE}/storage/v1/object/public/flyers/${ID}?v=1`
   assert.equal(flyerSrc(url, `${SUPABASE}/`), url)
+})
+
+test('flyer: hasFlyer dice si hay un flyer nuestro para mostrar', () => {
+  assert.equal(hasFlyer(`${SUPABASE}/storage/v1/object/public/flyers/${ID}`, SUPABASE), true)
+  assert.equal(hasFlyer(null, SUPABASE), false)
+  assert.equal(hasFlyer('https://evil.example/flyers/x.png', SUPABASE), false)
+})
+
+test('flyer: hasFlyer sin segundo parámetro usa la URL de Supabase del entorno', () => {
+  const previous = process.env.NEXT_PUBLIC_SUPABASE_URL
+  process.env.NEXT_PUBLIC_SUPABASE_URL = SUPABASE
+  try {
+    assert.equal(hasFlyer(`${SUPABASE}/storage/v1/object/public/flyers/${ID}`), true)
+    assert.equal(hasFlyer(`https://otro.supabase.co/storage/v1/object/public/flyers/${ID}`), false)
+  } finally {
+    if (previous === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL
+    else process.env.NEXT_PUBLIC_SUPABASE_URL = previous
+  }
 })

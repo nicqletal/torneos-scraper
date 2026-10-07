@@ -66,7 +66,7 @@ Marca que el administrador pone sobre un torneo a raíz de reportes, y que solo 
 _Avoid_: sin confirmar (ese texto es exclusivo de la antigüedad de verificación)
 
 **Baja**:
-Retiro definitivo de un torneo que todavía no finalizó: desaparece del catálogo y su ficha deja de existir.
+Retiro definitivo de un torneo que todavía no finalizó: desaparece del catálogo y su ficha deja de existir. También se dice del retiro de una **Inscripción** por el organizador: el equipo deja de figurar entre los anotados y libera su lugar en el **Cupo**.
 _Avoid_: eliminar, borrar, cancelar
 
 **Inscripción**:
@@ -162,7 +162,7 @@ _Avoid_: notificación
 ### Torneos
 
 - Todo **Torneo** tiene exactamente un **Organizador**; si alguien del equipo quiere cargar torneos ajenos para que el catálogo no arranque vacío, lo hace con su propia cuenta, como cualquier organizador
-- Un torneo **Abierto** pasa a **Cerrado** al vencer el cierre de inscripción o al completar su **Cupo**; si se borra una **Inscripción** antes del cierre, vuelve a **Abierto**
+- Un torneo **Abierto** pasa a **Cerrado** al vencer el cierre de inscripción o al completar su **Cupo**; si se da de baja una **Inscripción** antes del cierre, vuelve a **Abierto**
 - Todo **Torneo** tiene fecha de fin; al pasarla queda **Finalizado** y sale del catálogo
 - Un torneo **Finalizado** no admite **Baja**: queda para siempre como trayectoria de su organizador
 - La **Baja** la hace el organizador o el administrador, y genera un **Aviso** para cada capitán con **Inscripción vinculada** en ese torneo

@@ -29,6 +29,18 @@ export function parseTeamName(raw: FormDataEntryValue | null): TeamNameResult {
 // torneo Finalizado y 42501 un torneo o una inscripción que no existe o no es
 // del que llama. Los de la vinculada: P0002 el equipo no existe, 55000 está
 // disuelto y 23505 ya está anotado en ese torneo.
+// Un error sin SQLSTATE (por ejemplo, de red) viaja en la URL de la pestaña
+// como UNKNOWN_INSCRIPTION_ERROR y muestra el mismo mensaje genérico que
+// cualquier código que no esté en la lista.
+export const UNKNOWN_INSCRIPTION_ERROR = 'desconocido'
+
+// El código que deja una acción en `?error=` al fallar: el SQLSTATE o, si el
+// error no trae uno, UNKNOWN_INSCRIPTION_ERROR (un `?error=` vacío no se
+// escribe en la URL y el mensaje no aparecería).
+export function inscriptionErrorCode(code: string | undefined): string {
+  return code || UNKNOWN_INSCRIPTION_ERROR
+}
+
 export function inscriptionErrorMessage(code: string | undefined): string {
   switch (code) {
     case '23514':
@@ -43,6 +55,7 @@ export function inscriptionErrorMessage(code: string | undefined): string {
       return 'Ese equipo está disuelto: no recibe inscripciones.'
     case '23505':
       return 'Ese equipo ya está anotado en este torneo.'
+    case UNKNOWN_INSCRIPTION_ERROR:
     default:
       return 'No pudimos guardar el cambio. Probá de nuevo.'
   }

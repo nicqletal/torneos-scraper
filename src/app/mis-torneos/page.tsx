@@ -10,6 +10,7 @@ import { ZONE_LABEL_EMBED, zoneLabel, type ZoneLabelFields } from '@/utils/zones
 import { VerificationBadge } from '@/components/VerificationBadge'
 import { VerifyButton } from './VerifyButton'
 import { BackLink } from '@/components/BackLink'
+import { secondaryButtonClass } from '@/components/button-styles'
 
 export default async function MisTorneosPage() {
   const supabase = await createClient()
@@ -115,7 +116,7 @@ export default async function MisTorneosPage() {
                   />
                   <Link
                     href={`/mis-torneos/${tournament.id}`}
-                    className="press inline-flex items-center justify-center gap-1.5 px-3 py-2 border border-brand-border bg-brand-secondary text-white/80 hover:text-brand-lime hover:border-brand-lime text-xs font-display font-bold uppercase tracking-wider rounded-sm"
+                    className={`${secondaryButtonClass} justify-center`}
                   >
                     <Settings2 className="w-3.5 h-3.5" />
                     Gestionar
@@ -132,7 +133,7 @@ export default async function MisTorneosPage() {
             Todavía no publicaste torneos
           </h2>
           <p className="text-white/50 text-sm max-w-sm">
-            Cargalo acá y los equipos te van a contactar por WhatsApp o Instagram.
+            Publicalo acá y los equipos te van a contactar por WhatsApp o Instagram.
           </p>
           <Link
             href="/crear-torneo"

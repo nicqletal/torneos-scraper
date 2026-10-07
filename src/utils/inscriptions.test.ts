@@ -3,7 +3,9 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   parseTeamName,
+  inscriptionErrorCode,
   inscriptionErrorMessage,
+  UNKNOWN_INSCRIPTION_ERROR,
   inscriptionsLabel,
   remainingSpots,
   isLastSpots,
@@ -44,6 +46,16 @@ test('errores de la base, con el mensaje de cada regla', () => {
   assert.equal(inscriptionErrorMessage('23505'), 'Ese equipo ya está anotado en este torneo.')
   assert.equal(inscriptionErrorMessage('XX000'), 'No pudimos guardar el cambio. Probá de nuevo.')
   assert.equal(inscriptionErrorMessage(undefined), 'No pudimos guardar el cambio. Probá de nuevo.')
+})
+
+test('código para la URL: el SQLSTATE, o el de error desconocido si no hay', () => {
+  assert.equal(inscriptionErrorCode('23514'), '23514')
+  assert.equal(inscriptionErrorCode(undefined), UNKNOWN_INSCRIPTION_ERROR)
+  assert.equal(inscriptionErrorCode(''), UNKNOWN_INSCRIPTION_ERROR)
+  assert.equal(
+    inscriptionErrorMessage(inscriptionErrorCode(undefined)),
+    'No pudimos guardar el cambio. Probá de nuevo.'
+  )
 })
 
 test('contador del panel: n/cupo equipos, o sin cupo', () => {

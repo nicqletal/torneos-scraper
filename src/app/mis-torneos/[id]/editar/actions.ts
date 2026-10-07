@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/server'
 import { parseTournamentForm } from '@/utils/tournament-form'
 import { parseFlyer } from '@/utils/tournament-flyer'
 import { uploadFlyer } from '@/utils/supabase/flyer'
-import { manageLoginPath } from '@/utils/tournament-manage'
+import { manageLoginPath, managePath } from '@/utils/tournament-manage'
 import type { TournamentFormState } from '@/components/TournamentForm'
 
 // Edición de torneo (pestaña "Datos" de la pantalla de gestión). El `id` llega
@@ -66,5 +66,7 @@ export async function updateTournament(
   revalidatePath('/mis-torneos')
   revalidatePath(`/mis-torneos/${id}`)
   revalidatePath(`/torneos/${id}`)
-  redirect(`/torneos/${id}`)
+  // Vuelve a la pantalla de gestión, de donde vino; la ficha pública se abre
+  // con "Ver ficha pública" (ver "Cuenta y acceso" en las decisiones).
+  redirect(managePath(id, 'datos'))
 }
