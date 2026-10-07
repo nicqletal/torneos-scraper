@@ -82,7 +82,7 @@ export default async function MisTorneosPage() {
           className="press inline-flex items-center justify-center gap-2 px-4 py-3 bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm"
         >
           <Plus className="w-4 h-4" />
-          Cargar torneo
+          Publicar torneo
         </Link>
       </div>
 

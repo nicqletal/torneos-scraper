@@ -26,7 +26,7 @@ export default async function CrearTorneoPage() {
 
       <div className="border-b border-brand-border pb-6 flex flex-col gap-2">
         <h1 className="text-5xl font-display tracking-widest font-bold text-white uppercase leading-none">
-          Cargar torneo
+          Publicar torneo
         </h1>
         <p className="text-white/60 text-xs tracking-wider uppercase font-mono">
           Los equipos te contactan por WhatsApp o Instagram. La inscripción la arreglás vos.

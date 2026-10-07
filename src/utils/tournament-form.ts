@@ -18,6 +18,7 @@ export interface TournamentInput {
   capacity: number | null
   description: string | null
   rules: string | null
+  // Null solo en torneos anteriores a que la dirección fuera obligatoria.
   venue_address: string | null
   contact_whatsapp: string | null
   contact_instagram: string | null
@@ -34,6 +35,8 @@ export const TOURNAMENT_FORM_COLUMNS =
   'name, sport_modality, zone_id, inscription_deadline, start_date, end_date, price, capacity, description, rules, venue_address, contact_whatsapp, contact_instagram'
 
 export type ParseResult = { ok: true; data: TournamentInput } | { ok: false; error: string }
+
+export const VENUE_ADDRESS_REQUIRED = 'Poné la dirección de la sede: es lo que dice si se puede llegar.'
 
 // Deja solo el usuario: sin @, sin espacios alrededor y sin la URL del perfil.
 export function normalizeInstagram(raw: string): string | null {
@@ -59,6 +62,11 @@ export function parseTournamentForm(formData: FormData): ParseResult {
 
   const zone_id = text('zone_id')
   if (!zone_id) return fail('Elegí la zona del torneo.')
+
+  // Obligatoria solo acá: en la base la columna admite vacío porque quedan
+  // torneos viejos sin dirección, que la cargan la próxima vez que se editan.
+  const venue_address = text('venue_address')
+  if (!venue_address) return fail(VENUE_ADDRESS_REQUIRED)
 
   const inscription_deadline = text('inscription_deadline')
   const start_date = text('start_date')
@@ -112,7 +120,7 @@ export function parseTournamentForm(formData: FormData): ParseResult {
       capacity,
       description: optional('description'),
       rules: optional('rules'),
-      venue_address: optional('venue_address'),
+      venue_address,
       contact_whatsapp,
       contact_instagram,
     },

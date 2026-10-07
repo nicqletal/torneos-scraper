@@ -61,8 +61,8 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 | Modalidad (F5, F7, F8, F11) | Flyer (JPG/PNG/WebP, máx. 3 MB) |
 | Zona | Cupo |
 | Cierre de inscripción, inicio y fin | Descripción |
-| Al menos un contacto: WhatsApp o Instagram | Reglamento (texto) |
-| | Dirección de la sede (si está, la ficha muestra un mapa; si no, solo la zona) |
+| Dirección de la sede (la ficha la abre en el mapa) | Reglamento (texto) |
+| Al menos un contacto: WhatsApp o Instagram | |
 
 - Las fechas cumplen **cierre ≤ inicio ≤ fin**. Si no, el formulario no guarda.
 - **La fecha de fin es obligatoria.** Sin ella, el torneo nunca llegaría a "Finalizado".
