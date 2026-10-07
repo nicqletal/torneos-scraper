@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { Save, UserRound } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { ZoneSelect } from '@/components/ZoneSelect'
+import { BackLink } from '@/components/BackLink'
 import { toNationalNumber } from '@/utils/whatsapp'
 import { safeNextPath } from '@/utils/safe-next-path'
 import { updateProfile } from './actions'
@@ -34,6 +35,8 @@ export default async function PerfilPage({
 
   return (
     <div className="max-w-xl w-full mx-auto flex flex-col gap-8">
+      <BackLink href="/" label="Volver al catálogo" />
+
       <div className="border-b border-brand-border pb-6 flex items-center gap-3">
         <div className="w-10 h-10 rounded-sm bg-brand-lime flex items-center justify-center text-brand-bg">
           <UserRound className="w-5 h-5 stroke-[2.5]" />

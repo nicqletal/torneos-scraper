@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink, UserRound, ScrollText, CheckCircle2, ImageOff, ClipboardList } from 'lucide-react'
+import { Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink, UserRound, ScrollText, CheckCircle2, ImageOff, ClipboardList } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { priceLabel } from '@/utils/tournament-price'
 import { ZONE_LABEL_EMBED, zoneLabel } from '@/utils/zones'
@@ -14,6 +14,7 @@ import { modalityLabel } from '@/utils/modality'
 import { whatsappLink } from '@/utils/whatsapp'
 import { inscriptionsLabel, isLastSpots } from '@/utils/inscriptions'
 import { LastSpotsBadge } from '@/components/LastSpotsBadge'
+import { BackLink } from '@/components/BackLink'
 
 interface TournamentDetailProps {
   params: Promise<{ id: string }>
@@ -95,13 +96,7 @@ export default async function TournamentDetail({
       )}
 
       {/* Return link */}
-      <Link 
-        href="/" 
-        className="inline-flex items-center gap-2 text-xs font-display font-bold uppercase tracking-wider text-white/50 hover:text-brand-lime transition-colors w-fit group"
-      >
-        <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-        <span>Volver al listado</span>
-      </Link>
+      <BackLink href="/" label="Volver al catálogo" />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         

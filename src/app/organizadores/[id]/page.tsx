@@ -3,11 +3,12 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { ArrowLeft, ArrowRight, Calendar, MapPin, Trophy, Users } from 'lucide-react'
+import { ArrowRight, Calendar, MapPin, Trophy, Users } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { ZONE_LABEL_EMBED, zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import { organizesSince, splitTournaments } from '@/utils/organizer-page'
 import { modalityLabel, type SportModality } from '@/utils/modality'
+import { BackLink } from '@/components/BackLink'
 
 // Página pública: la ve cualquiera, con o sin sesión. Por eso se piden solo
 // las columnas que se muestran: ni el WhatsApp del perfil (vive aparte, en
@@ -69,13 +70,7 @@ export default async function OrganizerPage({ params }: OrganizerPageProps) {
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-8">
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 text-xs font-display font-bold uppercase tracking-wider text-white/50 hover:text-brand-lime transition-colors w-fit group"
-      >
-        <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-        <span>Volver al listado</span>
-      </Link>
+      <BackLink href="/" label="Volver al catálogo" />
 
       <div className="border-b border-brand-border pb-6 flex items-center gap-5">
         <div className="w-20 h-20 shrink-0 bg-brand-surface border border-brand-border rounded-sm overflow-hidden flex items-center justify-center">

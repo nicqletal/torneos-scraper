@@ -1,7 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { TournamentForm } from '@/components/TournamentForm'
 import { getZoneGroups } from '@/components/ZoneSelect'
 import {
@@ -11,6 +9,7 @@ import {
   type TournamentInput,
 } from '@/utils/tournament-form'
 import { updateTournament } from './actions'
+import { BackLink } from '@/components/BackLink'
 
 interface EditarTorneoProps {
   params: Promise<{ id: string }>
@@ -50,13 +49,7 @@ export default async function EditarTorneoPage({ params }: EditarTorneoProps) {
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-8">
-      <Link
-        href="/mis-torneos"
-        className="inline-flex items-center gap-2 text-xs font-display font-bold uppercase tracking-wider text-white/50 hover:text-brand-lime transition-colors w-fit group"
-      >
-        <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-        <span>Volver a mis torneos</span>
-      </Link>
+      <BackLink href="/mis-torneos" label="Mis torneos" />
 
       <div className="border-b border-brand-border pb-6 flex flex-col gap-2">
         <h1 className="text-5xl font-display tracking-widest font-bold text-white uppercase leading-none">
