@@ -65,7 +65,8 @@ export default async function TournamentDetail({
   // ve la gente. Solo al dueño, por si comparte el link con el ?publicado=1.
   const { data: { user } } = await supabase.auth.getUser()
   const query = await searchParams
-  const justPublished = query.publicado === '1' && user?.id === tournament.user_id
+  const isOwner = user?.id === tournament.user_id
+  const justPublished = query.publicado === '1' && isOwner
   // El alta salió pero la subida del flyer no (ver crear-torneo/actions.ts).
   const flyerFailed = justPublished && query.flyer === 'fallo'
 
@@ -279,6 +280,18 @@ export default async function TournamentDetail({
   return (
     <div className={`${hasFlyer ? 'max-w-5xl' : 'max-w-3xl'} mx-auto flex flex-col gap-8`}>
       
+      {/* Barra de dueño: lo único que cambia en la ficha para el organizador
+          del torneo. Editar, inscripciones y baja viven en la pantalla de gestión. */}
+      {isOwner && (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-4 py-3 border border-brand-border bg-brand-surface rounded-sm text-xs font-display font-bold uppercase tracking-wider">
+          <span className="text-white/60">Este torneo es tuyo</span>
+          <span aria-hidden="true" className="text-white/30">·</span>
+          <Link href={`/mis-torneos/${tournament.id}`} className="text-brand-lime hover:text-white transition-colors">
+            Gestionar
+          </Link>
+        </div>
+      )}
+
       {justPublished && (
         <div role="status" className="animate-enter flex items-center gap-3 px-4 py-3 border border-brand-lime bg-brand-lime/5 rounded-sm">
           <CheckCircle2 className="w-5 h-5 text-brand-lime shrink-0" />
@@ -291,8 +304,8 @@ export default async function TournamentDetail({
           <ImageOff className="w-5 h-5 text-brand-amber shrink-0" />
           <p className="text-sm text-brand-amber">
             No pudimos subir el flyer.{' '}
-            <Link href={`/mis-torneos/${tournament.id}/editar`} className="underline hover:text-white">
-              Probá de nuevo desde Editar
+            <Link href={`/mis-torneos/${tournament.id}`} className="underline hover:text-white">
+              Probá de nuevo desde Gestionar
             </Link>
             .
           </p>
