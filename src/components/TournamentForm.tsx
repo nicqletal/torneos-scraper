@@ -92,11 +92,16 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
         </div>
 
         <Field label="Dirección de la sede" hint="Calle y altura de la cancha. En la ficha se abre en el mapa.">
-          {/* El aviso del navegador dice lo mismo que la Server Action. */}
+          {/* El aviso del navegador dice lo mismo que la Server Action, y la
+              regla también: `required` solo acepta una sede de puros espacios,
+              que el servidor rechaza (hace `trim`); el `pattern` pide al menos
+              un carácter que no sea espacio. */}
           <input
             name="venue_address"
             type="text"
             required
+            pattern=".*\S.*"
+            title={VENUE_ADDRESS_REQUIRED}
             defaultValue={v.venue_address}
             placeholder="Av. Santa Fe 3000, CABA"
             onInvalid={(e) => e.currentTarget.setCustomValidity(VENUE_ADDRESS_REQUIRED)}
