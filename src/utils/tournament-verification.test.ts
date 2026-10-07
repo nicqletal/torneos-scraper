@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { sortForPanel, verificationAge } from './tournament-verification.ts'
+import { sortForPanel, verificationAge, verifyBlock } from './tournament-verification.ts'
 
 const now = new Date('2026-09-30T15:00:00-03:00')
 const daysAgo = (days: number, hours = 0) =>
@@ -46,4 +46,19 @@ test('panel: primero los de 30 días o más (del más viejo al más nuevo), desp
     sortForPanel(tournaments, now).map((t) => t.id),
     ['rojo', 'ambar', 'al-dia-1', 'al-dia-2', 'finalizado-viejo']
   )
+})
+
+test('"Sigue vigente" se apaga si el torneo se confirmó hoy', () => {
+  assert.equal(verifyBlock(daysAgo(0, 3), 'abierto', now), 'confirmado_hoy')
+  assert.equal(verifyBlock(daysAgo(0, 23), 'en_curso', now), 'confirmado_hoy')
+})
+
+test('"Sigue vigente" se apaga en un Finalizado, aunque lleve meses sin confirmar', () => {
+  assert.equal(verifyBlock(daysAgo(90), 'finalizado', now), 'finalizado')
+  assert.equal(verifyBlock(daysAgo(0, 1), 'finalizado', now), 'finalizado')
+})
+
+test('"Sigue vigente" está prendido desde el día siguiente a la última confirmación', () => {
+  assert.equal(verifyBlock(daysAgo(1), 'abierto', now), null)
+  assert.equal(verifyBlock(daysAgo(45), 'cerrado', now), null)
 })
