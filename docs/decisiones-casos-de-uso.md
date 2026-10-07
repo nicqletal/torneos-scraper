@@ -34,13 +34,16 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 ## Cuenta y acceso
 
 - **Una sola cuenta por persona.** Con ella se puede ser jugador, capitán y organizador a la vez.
-- **Registro:** pide email, contraseña y **nombre** (el nombre es público, así que no se deriva del email). Se entra directo, sin confirmar el email. El único mail que manda la app es el de "Olvidé mi contraseña". El SMTP gratis de Supabase manda muy pocos por hora: alcanza para la entrega, pero con usuarios reales hace falta un servicio aparte (por ejemplo, Resend).
-- **Portada:** `/` es siempre la vista de jugador (catálogo). La barra superior tiene "Soy organizador" (lleva al panel de organizador y pide sesión) y "Volver a jugador".
-- **La vista depende solo de la ruta.** Se está en la vista de organizador dentro del panel y sus pantallas (`/mis-torneos`, `/crear-torneo` y la edición), y en la de jugador en todo lo demás, incluida la página pública de un organizador. No se guarda ninguna preferencia: un link al panel siempre abre la vista de organizador.
-- "Soy organizador" lo ve cualquiera, también sin sesión (ser organizador no es un rol). Reemplaza al botón "Cargar torneo" de la barra y al link "Mis torneos" del menú de usuario: el alta de un torneo se hace desde el panel.
+- **Registro:** pide email, contraseña y **nombre** (el nombre es público, así que no se deriva del email). Se entra directo, sin confirmar el email. Recuperar la contraseña ("Olvidé mi contraseña") **todavía no se hace**; cuando entre, va a ser el único mail que manda la app. El SMTP gratis de Supabase manda muy pocos por hora: alcanza para la entrega, pero con usuarios reales hace falta un servicio aparte (por ejemplo, Resend).
+- **Portada:** `/` es el catálogo, para cualquiera. No hay "vista de jugador" ni "vista de organizador": la app se navega de una sola forma (decidido el 07/10/2026; antes hubo un switch "Soy organizador" / "Volver a jugador" que se descartó porque no se entendía).
+- **Barra superior mínima.** Sin sesión: logo, "Iniciar sesión" (texto) y "Crear cuenta" (único botón destacado). Con sesión: logo y menú de usuario con Mi perfil, Mis equipos, Mis torneos y Cerrar sesión. Ningún botón destacado permanente.
+- **Captar organizadores:** el link "¿Organizás torneos? Publicalo" va al pie del catálogo y en el footer, no en la barra. Lleva a Crear cuenta con `next` al panel.
+- **Panel de organizador en tres niveles:** (1) la lista "Mis torneos", con una fila por torneo (nombre, zona, modalidad, cupo, estado, antigüedad de verificación) y solo dos acciones, "Sigue vigente" y "Gestionar"; (2) la **pantalla de gestión del torneo**, con cabecera (números clave, "Ver ficha pública", "Sigue vigente"), pestañas (Datos, Inscripciones, y las que se sumen) y "Dar de baja" al final, aparte; (3) la **ficha pública**, que para el dueño es idéntica a la de cualquiera más una barra arriba "Este torneo es tuyo · Gestionar". Editar, inscripciones y baja viven solo en la pantalla de gestión.
+- **Una sola convención para volver:** un link arriba a la izquierda con el nombre del destino ("← Mis torneos", "← Volver al catálogo"). Nunca dos formas de volver en la misma pantalla.
 - **Perfil:** nombre, foto (JPG/PNG/WebP, máx. 2 MB), zona y **WhatsApp**. El WhatsApp es opcional, pero obligatorio para crear un equipo o tomar la capitanía. Se guarda solo con dígitos, en formato argentino de celular (`549` + 10 dígitos), que es lo que pide `wa.me`.
 - **El rol de administrador no se puede editar desde la app.** Se asigna a mano en la base. El usuario edita nombre, foto, zona y WhatsApp, y nunca el rol.
 - **Cerrar sesión** cierra solo el dispositivo actual.
+- **Llegar desde "¿Organizás torneos? Publicalo":** se abre **Crear cuenta** con un aviso ("Para publicar un torneo necesitás una cuenta") y el link a iniciar sesión conservando el `next`. Con cualquier otro `next` se abre Iniciar sesión, sin aviso. El copy de las dos pantallas es neutro: no habla solo de torneos.
 - **Volver a la acción después del login (`next`):** solo se aceptan rutas internas. Ojo: `//sitio.com` empieza con `/` y es externa, así que hay que rechazarla también.
 
 ## Torneos
@@ -48,8 +51,7 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 ### Quién publica
 
 - **Organizadores:** cualquier usuario con sesión y sin suspensión.
-- **Torneos copiados:** el administrador los carga a partir de Instagram. No tienen organizador (solo el nombre y el contacto del organizador real, como texto), **no admiten inscripciones** y solo el administrador los edita, los verifica o les da de baja.
-- **Transferencia:** si el organizador real se crea una cuenta, el administrador le pasa el torneo después de comprobar su identidad por el mismo Instagram. Ver [ADR 0001](adr/0001-torneos-copiados-sin-organizador.md).
+- **Carga manual inicial:** si alguien del equipo carga torneos de Instagram para que el catálogo no arranque vacío, lo hace con su propia cuenta, como organizador común, y pone el contacto del organizador real. No existe un tipo de torneo "copiado" ni una "transferencia" (se descartaron el 07/10/2026).
 
 ### Formulario
 
@@ -64,7 +66,7 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 
 - Las fechas cumplen **cierre ≤ inicio ≤ fin**. Si no, el formulario no guarda.
 - **La fecha de fin es obligatoria.** Sin ella, el torneo nunca llegaría a "Finalizado".
-- Torneos copiados: se suma el nombre del organizador real.
+- **La dirección de la sede es obligatoria** al publicar y al editar: la zona dice si queda cerca a grandes rasgos, la dirección dice si se puede llegar. En la base la columna sigue admitiendo vacío hasta que no queden torneos viejos sin dirección (decidido el 07/10/2026).
 
 ### Estado (calculado, nadie lo elige)
 
@@ -174,7 +176,6 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
   - tablero con números
   - reportes pendientes
   - buscador de usuarios por nombre o email
-  - carga y transferencia de torneos copiados
 - **Reportar un torneo:** botón en la ficha, solo con sesión. Motivos: "Ya no existe", "Datos incorrectos" o "No es un torneo". Una vez por usuario y torneo. El administrador puede **descartar** el reporte, **marcar el torneo como Observado** o **darle de baja**.
 - **Reportar un equipo:** botón en la página del equipo, solo con sesión y **solo si jugaste contra ellos**. Motivos: "Violencia o agresiones", "Cuenta falsa" o "Abuso de calificaciones". El administrador puede **descartar** el reporte o **suspender al capitán**, que responde por la conducta del plantel.
 - **Suspensión:** 7 días, 30 días o indefinida, con un motivo. El usuario puede entrar y mirar, pero no puede publicar torneos, crear equipos ni buscar rival. No hay apelación dentro de la app: el aviso incluye un email de contacto. Sobre lo que ya existía:

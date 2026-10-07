@@ -29,31 +29,16 @@ Integrante del equipo de Torneos BA que modera toda la plataforma desde el **Pan
 _Avoid_: admin (a secas, porque se confunde con el organizador), moderador
 
 **Panel de organizador**:
-Pantalla "Mis torneos" donde el organizador edita sus torneos y carga sus inscripciones.
-_Avoid_: panel de admin
+Sección "Mis torneos" y las pantallas de cada torneo (datos, inscripciones y las que se sumen) donde el organizador gestiona sus torneos; es una sección más de la app, como "Mis equipos", no una forma distinta de navegar.
+_Avoid_: panel de admin, vista de organizador, modo organizador
 
 **Panel de administración**:
 Pantalla exclusiva del administrador para moderar la plataforma.
 
-**Vista de jugador**:
-Forma de navegar la app centrada en el catálogo, los equipos y la búsqueda de rival; es la que ve siempre cualquiera que entra a la portada.
-
-**Vista de organizador**:
-Forma de navegar la app centrada en el **Panel de organizador**; se entra con el botón "Soy organizador" de la barra superior y requiere sesión. Se está en ella mientras la ruta sea la del panel o una de sus pantallas; no es un modo que se guarde.
-_Avoid_: perfil de entrada, cuenta de organizador, loguearse como organizador
-
 ### Torneos
 
 **Torneo**:
-Competencia de fútbol amateur publicada en la app, ya sea por su organizador o como torneo copiado.
-
-**Torneo copiado**:
-Torneo que el administrador cargó a partir de una publicación de Instagram; no tiene organizador, solo el nombre y el contacto del organizador real como texto.
-_Avoid_: torneo de admin, torneo huérfano
-
-**Transferencia**:
-Acción del administrador que asigna un torneo copiado a la cuenta de su organizador real, una vez que este comprobó su identidad por fuera de la app.
-_Avoid_: reclamo
+Competencia de fútbol amateur que un **Organizador** publica en la app.
 
 **Estado del torneo**:
 Uno de **Abierto**, **Cerrado**, **En curso** o **Finalizado**, que la app calcula a partir de las fechas y del cupo; nadie lo elige a mano.
@@ -70,7 +55,7 @@ _Avoid_: foto, portada, banner
 Etiqueta que se muestra sobre un torneo **Abierto** cuando le quedan 2 lugares o menos; no es un estado.
 
 **Verificación**:
-Confirmación explícita de que un torneo sigue en pie, hecha con el botón "Sigue vigente" por su organizador (o por el administrador, si es un torneo copiado).
+Confirmación explícita de que un torneo sigue en pie, hecha con el botón "Sigue vigente" por su organizador.
 _Avoid_: actualización (editar un torneo no lo verifica)
 
 **Antigüedad de verificación**:
@@ -167,7 +152,7 @@ _Avoid_: notificación
 
 ### Cuentas y roles
 
-- Un usuario tiene una sola cuenta con la que puede ser jugador, capitán y **Organizador** a la vez; la **Vista de jugador** y la **Vista de organizador** son dos formas de navegar con la misma sesión
+- Un usuario tiene una sola cuenta con la que puede ser jugador, capitán y **Organizador** a la vez, y navega la app de una sola forma; el **Panel de organizador** es una sección a la que entra desde su menú de usuario
 - Un **Organizador** no tiene ningún poder de **Administrador**; ser organizador no es un rol asignado, sino que surge de haber publicado un torneo
 
 ### Geografía
@@ -176,9 +161,7 @@ _Avoid_: notificación
 
 ### Torneos
 
-- Un **Torneo** tiene un **Organizador** o es un **Torneo copiado**; nunca ambas cosas
-- Un **Torneo copiado** no admite **Inscripciones**; después de la **Transferencia** deja de ser copiado y pasa a tener organizador
-- El **Administrador** puede editar, verificar o dar de baja un **Torneo copiado**, pero no puede cargarle inscripciones
+- Todo **Torneo** tiene exactamente un **Organizador**; si alguien del equipo quiere cargar torneos ajenos para que el catálogo no arranque vacío, lo hace con su propia cuenta, como cualquier organizador
 - Un torneo **Abierto** pasa a **Cerrado** al vencer el cierre de inscripción o al completar su **Cupo**; si se borra una **Inscripción** antes del cierre, vuelve a **Abierto**
 - Todo **Torneo** tiene fecha de fin; al pasarla queda **Finalizado** y sale del catálogo
 - Un torneo **Finalizado** no admite **Baja**: queda para siempre como trayectoria de su organizador
@@ -217,7 +200,7 @@ _Avoid_: notificación
 
 ## Flagged ambiguities
 
-- "Elegir perfil de entrada (Jugar / Organizar)" y "loguearse como organizador" sugerían dos tipos de cuenta — resuelto: hay una sola cuenta; la portada es siempre la **Vista de jugador** y a la **Vista de organizador** se entra con un botón.
+- "Elegir perfil de entrada (Jugar / Organizar)" y "loguearse como organizador" sugerían dos tipos de cuenta — resuelto: hay una sola cuenta y una sola forma de navegar. Se probó una "vista de organizador" con un switch en la barra ("Soy organizador" / "Volver a jugador") y se descartó: modelaba dos mundos para una sección de dos pantallas, y el botón no se entendía. Si el **Panel de organizador** crece, crece con pestañas dentro de cada torneo, no con un modo global.
 - "panel de admin" se usaba para el panel del organizador — resuelto: son el **Panel de organizador** y el **Panel de administración**, y cada uno tiene su propio rol.
 - "Anotar mi equipo" aparecía como una acción del capitán dentro de la app — resuelto: la **Inscripción** la hace solo el organizador; el capitán lo contacta por WhatsApp.
 - Los estados aparecían con dos listas distintas (con "En curso" y con "Últimos cupos") — resuelto: son 4 estados calculados, y "Últimos cupos" es solo una etiqueta.
@@ -226,3 +209,4 @@ _Avoid_: notificación
 - "Suspender" se usaba para partidos y para cuentas — resuelto: un partido se cae (**Partido caído**); "suspensión" queda reservada para las sanciones del administrador.
 - "Disputa de no presentado" suponía que el administrador decidía quién tenía razón — resuelto: nadie decide; el partido queda **en conflicto** y la app muestra las dos versiones.
 - "Notificar" aparecía en muchos flujos sin definir el canal — resuelto: todo es un **Aviso** en la campanita.
+- "Torneo copiado" y "Transferencia" aparecieron en los docs del 27/09/2026 como un tipo de torneo sin organizador que cargaba el administrador — descartados el 07/10/2026: nadie del equipo había pedido ese concepto; la carga manual inicial se hace con una cuenta de organizador común. Queda pendiente sacarlo del esquema y de la ficha.
