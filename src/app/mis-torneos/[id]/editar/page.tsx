@@ -30,7 +30,7 @@ export default async function EditarTorneoPage({ params }: EditarTorneoProps) {
   // fallar la consulta, y también cae acá.
   const { data: tournament } = await supabase
     .from('tournaments')
-    .select(`${TOURNAMENT_FORM_COLUMNS}, image_url`)
+    .select(`${TOURNAMENT_FORM_COLUMNS}, image_url, inscriptions_count`)
     .eq('id', id)
     .eq('user_id', user.id)
     .maybeSingle()
@@ -41,10 +41,12 @@ export default async function EditarTorneoPage({ params }: EditarTorneoProps) {
 
   // El flyer no es un campo que se precarga (un <input type="file"> no puede):
   // solo se avisa que ya hay uno.
-  const { image_url, ...formColumns } = tournament as TournamentInput & { image_url: string | null }
-
-  // Hasta que exista la tabla de inscripciones, cuenta 0 y no se pide confirmar.
-  const inscriptions = 0
+  // `inscriptions_count` es una columna calculada; con equipos anotados se
+  // pide confirmar antes de guardar.
+  const { image_url, inscriptions_count, ...formColumns } = tournament as TournamentInput & {
+    image_url: string | null
+    inscriptions_count: number
+  }
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-8">
@@ -72,7 +74,7 @@ export default async function EditarTorneoPage({ params }: EditarTorneoProps) {
           submitLabel="Guardar cambios"
           pendingLabel="Guardando…"
           initialValues={tournamentToFormValues(formColumns)}
-          confirmMessage={editConfirmation(inscriptions)}
+          confirmMessage={editConfirmation(inscriptions_count)}
           hasFlyer={image_url !== null}
         />
       </div>

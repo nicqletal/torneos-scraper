@@ -1,10 +1,11 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Eye, Pencil, Plus, Trophy, CheckCircle2, Users } from 'lucide-react'
+import { ArrowLeft, ClipboardList, Eye, Pencil, Plus, Trophy, CheckCircle2, Users } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { sortForPanel, verificationAge } from '@/utils/tournament-verification'
 import { withdrawConfirmation } from '@/utils/tournament-withdraw'
+import { inscriptionsLabel } from '@/utils/inscriptions'
 import { ZONE_LABEL_EMBED, zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import { VerificationBadge } from '@/components/VerificationBadge'
 import { verifyTournament } from './actions'
@@ -25,10 +26,10 @@ export default async function MisTorneosPage() {
     redirect('/login?next=/mis-torneos')
   }
 
-  // `status` es una columna calculada: hay que pedirla explícitamente.
+  // `status` e `inscriptions_count` son columnas calculadas: hay que pedirlas.
   const { data, error } = await supabase
     .from('tournaments')
-    .select(`id, name, ${ZONE_LABEL_EMBED}, sport_modality, capacity, verified_at, status`)
+    .select(`id, name, ${ZONE_LABEL_EMBED}, sport_modality, capacity, verified_at, status, inscriptions_count`)
     .eq('user_id', user.id)
     .order('start_date', { ascending: true })
 
@@ -50,13 +51,11 @@ export default async function MisTorneosPage() {
     (data ?? []).map((t) => ({
       ...t,
       status: t.status as TournamentStatus,
+      inscriptions_count: t.inscriptions_count as number,
       zones: t.zones as unknown as ZoneLabelFields,
     })),
     now
   )
-
-  // Hasta que exista la tabla de inscripciones, cuenta 0.
-  const inscriptions = 0
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-8">
@@ -112,9 +111,7 @@ export default async function MisTorneosPage() {
                   </span>
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-brand-border text-white/70 rounded-sm">
                     <Users className="w-3.5 h-3.5 text-brand-lime" />
-                    {tournament.capacity
-                      ? `${inscriptions}/${tournament.capacity} equipos`
-                      : `${inscriptions} equipos · sin cupo`}
+                    {inscriptionsLabel(tournament.inscriptions_count, tournament.capacity)}
                   </span>
                   {age && <VerificationBadge age={age} className="px-2.5 py-1" />}
                 </div>
@@ -127,6 +124,10 @@ export default async function MisTorneosPage() {
                   <Link href={`/mis-torneos/${tournament.id}/editar`} className={actionClass}>
                     <Pencil className="w-3.5 h-3.5" />
                     Editar
+                  </Link>
+                  <Link href={`/mis-torneos/${tournament.id}/inscripciones`} className={actionClass}>
+                    <ClipboardList className="w-3.5 h-3.5" />
+                    Inscripciones
                   </Link>
 
                   {/* Un Finalizado no se verifica ni se da de baja: queda como trayectoria. */}
@@ -145,7 +146,7 @@ export default async function MisTorneosPage() {
 
                       <WithdrawButton
                         id={tournament.id}
-                        confirmMessage={withdrawConfirmation(tournament.name, inscriptions)}
+                        confirmMessage={withdrawConfirmation(tournament.name, tournament.inscriptions_count)}
                         className={actionBaseClass}
                       />
                     </>

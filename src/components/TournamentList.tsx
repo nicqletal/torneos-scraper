@@ -15,12 +15,12 @@ export async function TournamentList({
 
   const awaitedParams = await searchParams
 
-  // `status` es una columna calculada (función `public.status` en la base):
-  // no viene con '*', hay que pedirla. La zona y su corredor vienen de la lista
+  // `status` e `inscriptions_count` son columnas calculadas (funciones en la
+  // base): no vienen con '*', hay que pedirlas. La zona y su corredor vienen de la lista
   // cerrada. Los Finalizados nunca salen en el catálogo.
   let query = supabase
     .from('tournaments')
-    .select(`*, status, ${ZONE_LABEL_EMBED}`)
+    .select(`*, status, inscriptions_count, ${ZONE_LABEL_EMBED}`)
     .neq('status', 'finalizado')
 
   if (awaitedParams.modality) {

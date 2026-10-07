@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink, UserRound, ScrollText, CheckCircle2, ImageOff } from 'lucide-react'
+import { ArrowLeft, Trophy, MapPin, Users, Calendar, DollarSign, MessageCircle, Info, ExternalLink, UserRound, ScrollText, CheckCircle2, ImageOff, ClipboardList } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { priceLabel } from '@/utils/tournament-price'
 import { ZONE_LABEL_EMBED, zoneLabel } from '@/utils/zones'
@@ -12,6 +12,8 @@ import { VerificationBadge } from '@/components/VerificationBadge'
 import { TournamentFlyer } from '@/components/TournamentFlyer'
 import { modalityLabel } from '@/utils/modality'
 import { whatsappLink } from '@/utils/whatsapp'
+import { inscriptionsLabel, isLastSpots } from '@/utils/inscriptions'
+import { LastSpotsBadge } from '@/components/LastSpotsBadge'
 
 interface TournamentDetailProps {
   params: Promise<{ id: string }>
@@ -27,7 +29,7 @@ export default async function TournamentDetail({
   
   const { data: tournament, error } = await supabase
     .from('tournaments')
-    .select(`*, status, ${ZONE_LABEL_EMBED}`)
+    .select(`*, status, inscriptions_count, ${ZONE_LABEL_EMBED}`)
     .eq('id', id)
     .single()
 
@@ -44,6 +46,16 @@ export default async function TournamentDetail({
 
   const status = tournament.status as TournamentStatus
   const verification = verificationAge(tournament.verified_at, status, new Date())
+  const inscriptionsCount = tournament.inscriptions_count as number
+  const lastSpots = isLastSpots(status, tournament.capacity, inscriptionsCount)
+
+  // Los inscriptos son públicos, solo por su nombre: salen de la vista
+  // `tournament_inscriptions`, no de la tabla (ver "Visibilidad").
+  const { data: inscriptions } = await supabase
+    .from('tournament_inscriptions')
+    .select('id, team_name')
+    .eq('tournament_id', id)
+    .order('created_at', { ascending: true })
 
   // Recién publicado desde /crear-torneo: se le muestra al organizador cómo lo
   // ve la gente. Solo al dueño, por si comparte el link con el ?publicado=1.
@@ -105,10 +117,11 @@ export default async function TournamentDetail({
             className={status === 'cerrado' ? 'grayscale opacity-60' : undefined}
           />
 
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-4 left-4 flex flex-wrap gap-2">
             <span className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider border font-display rounded-sm ${statusStyles[status]}`}>
               {statusLabels[status]}
             </span>
+            {lastSpots && <LastSpotsBadge className="px-3 py-1.5 text-xs" />}
           </div>
         </div>
 
@@ -181,15 +194,16 @@ export default async function TournamentDetail({
                 </div>
               ))}
 
-              {tournament.capacity && (
-                <div>
-                  <span className="text-white/40 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1.5 mb-1.5">
-                    <Users className="w-3.5 h-3.5 text-brand-lime" />
-                    CUPO
-                  </span>
-                  <p className="font-semibold text-white text-sm">{tournament.capacity} equipos</p>
-                </div>
-              )}
+              {/* Con cupo: "3/8 equipos"; sin cupo, cuántos hay anotados */}
+              <div>
+                <span className="text-white/40 text-[10px] uppercase tracking-wider font-mono flex items-center gap-1.5 mb-1.5">
+                  <Users className="w-3.5 h-3.5 text-brand-lime" />
+                  {tournament.capacity ? 'CUPO' : 'INSCRIPTOS'}
+                </span>
+                <p className="font-semibold text-white text-sm">
+                  {inscriptionsLabel(inscriptionsCount, tournament.capacity)}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -226,6 +240,26 @@ export default async function TournamentDetail({
               </div>
             )}
           </div>
+
+          {/* Equipos inscriptos: solo los nombres, para que quien busca sepa quién juega */}
+          {inscriptions && inscriptions.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <h3 className="font-display tracking-wider text-sm text-white/90 uppercase flex items-center gap-2 font-bold border-b border-brand-border pb-2">
+                <ClipboardList className="w-4 h-4 text-brand-lime" />
+                EQUIPOS ANOTADOS
+              </h3>
+              <ol className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-3 border-l-2 border-brand-lime/30">
+                {inscriptions.map((inscription, index) => (
+                  <li key={inscription.id} className="flex items-center gap-2 text-sm text-white/80">
+                    <span className="font-display text-brand-lime/50 font-bold w-6 shrink-0">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    {inscription.team_name}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
 
           {/* Description Section */}
           {tournament.description && (
