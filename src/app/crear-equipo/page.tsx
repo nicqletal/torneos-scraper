@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowLeft, Shield, Plus } from 'lucide-react'
+import { Shield, Plus } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { ZoneSelect } from '@/components/ZoneSelect'
 import { TEAM_LEVELS, MAX_CAPTAINCIES } from '@/utils/teams'
 import { SPORT_MODALITIES } from '@/utils/modality'
 import { createTeam } from './actions'
+import { BackLink } from '@/components/BackLink'
 
 export default async function CrearEquipoPage({
   searchParams,
@@ -43,13 +44,7 @@ export default async function CrearEquipoPage({
 
   return (
     <div className="max-w-xl w-full mx-auto flex flex-col gap-8">
-      <Link
-        href="/mis-equipos"
-        className="inline-flex items-center gap-2 text-xs font-display font-bold uppercase tracking-wider text-white/50 hover:text-brand-lime transition-colors w-fit group"
-      >
-        <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-        Mis equipos
-      </Link>
+      <BackLink href="/mis-equipos" label="Mis equipos" />
 
       <div className="border-b border-brand-border pb-6 flex items-center gap-3">
         <div className="w-10 h-10 rounded-sm bg-brand-lime flex items-center justify-center text-brand-bg">

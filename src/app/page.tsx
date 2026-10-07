@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { Filters } from '@/components/Filters'
 import { TournamentList } from '@/components/TournamentList'
+import { PublishTournamentLink } from '@/components/PublishTournamentLink'
 
 interface HomeProps {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
@@ -50,6 +51,11 @@ export default async function Home(props: HomeProps) {
           </Suspense>
         </div>
 
+      </div>
+
+      {/* Captación de organizadores: al pie del catálogo, no en la barra */}
+      <div className="border-t border-brand-border pt-6 flex justify-center">
+        <PublishTournamentLink className="text-sm text-white/60 hover:text-brand-lime transition-colors" />
       </div>
     </div>
   )

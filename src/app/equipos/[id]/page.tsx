@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
-import { ArrowLeft, MapPin, Users, Gauge, RefreshCw, Crown, Trophy } from 'lucide-react'
+import { MapPin, Users, Gauge, RefreshCw, Crown, Trophy } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { TeamCrest } from '@/components/TeamCrest'
 import { CopyLinkButton } from '@/components/CopyLinkButton'
@@ -10,6 +10,7 @@ import { regenerateInvite, leaveTeam, removeMember, transferCaptaincy } from './
 import { levelLabel } from '@/utils/teams'
 import { modalityLabel } from '@/utils/modality'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
+import { BackLink } from '@/components/BackLink'
 
 const rowButton =
   'px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm border border-brand-border text-white hover:border-brand-lime hover:text-brand-lime transition-colors font-display'
@@ -113,13 +114,7 @@ export default async function EquipoPage({
 
   return (
     <div className="max-w-4xl w-full mx-auto flex flex-col gap-8">
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 text-xs font-display font-bold uppercase tracking-wider text-white/50 hover:text-brand-lime transition-colors w-fit group"
-      >
-        <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-        Volver
-      </Link>
+      <BackLink href="/" label="Volver al catálogo" />
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-6 border-b border-brand-border pb-8">
         <TeamCrest name={team.name} size="lg" />

@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ClipboardList, Eye, Pencil, Plus, Trophy, CheckCircle2, Users } from 'lucide-react'
+import { ClipboardList, Eye, Pencil, Plus, Trophy, CheckCircle2, Users } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { sortForPanel, verificationAge } from '@/utils/tournament-verification'
 import { withdrawConfirmation } from '@/utils/tournament-withdraw'
@@ -11,6 +11,7 @@ import { VerificationBadge } from '@/components/VerificationBadge'
 import { verifyTournament } from './actions'
 import { WithdrawButton } from './WithdrawButton'
 import { SubmitButton } from '@/components/SubmitButton'
+import { BackLink } from '@/components/BackLink'
 
 // Base de las acciones secundarias, sin color de hover: "Dar de baja" pone el
 // suyo (rojo) y no tiene que competir con el lima de las demás.
@@ -59,13 +60,7 @@ export default async function MisTorneosPage() {
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-8">
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 text-xs font-display font-bold uppercase tracking-wider text-white/50 hover:text-brand-lime transition-colors w-fit group"
-      >
-        <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-        <span>Volver al listado</span>
-      </Link>
+      <BackLink href="/" label="Volver al catálogo" />
 
       <div className="border-b border-brand-border pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="flex flex-col gap-2">

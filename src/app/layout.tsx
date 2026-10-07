@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Trophy } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { UserMenu } from "@/components/UserMenu";
-import { ViewSwitch } from "@/components/ViewSwitch";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
 
@@ -53,16 +52,24 @@ export default async function RootLayout({
             </Link>
             
             <div className="flex items-center gap-4">
+              {/* Barra mínima: sin sesión, un solo botón destacado ("Crear
+                  cuenta"); con sesión, solo el menú de usuario. */}
               {!user && (
-                <Link 
-                  href="/login" 
-                  className="text-xs font-semibold uppercase tracking-wider text-white/70 hover:text-brand-lime transition-colors font-display"
-                >
-                  Iniciar sesión
-                </Link>
+                <>
+                  <Link
+                    href="/login"
+                    className="text-xs font-semibold uppercase tracking-wider text-white/70 hover:text-brand-lime transition-colors font-display"
+                  >
+                    Iniciar sesión
+                  </Link>
+                  <Link
+                    href="/login?modo=registro"
+                    className="inline-flex items-center px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-white text-brand-bg transition-colors duration-200 font-display shadow-sm"
+                  >
+                    Crear cuenta
+                  </Link>
+                </>
               )}
-
-              <ViewSwitch />
 
               {user && user.email && (
                 <UserMenu email={user.email} />
