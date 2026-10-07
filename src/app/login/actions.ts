@@ -26,7 +26,9 @@ export async function login(formData: FormData) {
   if (error) {
     // You could return an error object here to show in the UI, 
     // but for simplicity in this MVP we redirect with an error flag.
-    redirect(`/login?error=Invalid Credentials&next=${encodeURIComponent(nextUrl)}`)
+    // El modo va explícito: sin él, con `next` al Panel de organizador la
+    // pantalla abriría Crear cuenta en vez de volver a Iniciar sesión.
+    redirect(`/login?modo=ingreso&error=Invalid Credentials&next=${encodeURIComponent(nextUrl)}`)
   }
 
   revalidatePath('/', 'layout')
