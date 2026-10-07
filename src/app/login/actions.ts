@@ -3,13 +3,20 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { safeNextPath } from '@/utils/safe-next-path'
+
+// Sin `next`, después de entrar se vuelve a la portada: `/` es siempre la vista
+// de jugador, y a la de organizador se entra por su ruta (el proxy ya manda
+// `next=/mis-torneos` cuando hace falta sesión para el panel).
+const DEFAULT_NEXT = '/'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
-  const nextUrl = formData.get('next') as string || '/admin' // Default to /admin (mis torneos)
+  // Solo rutas internas: `next` viene del formulario y cualquiera puede armarlo
+  const nextUrl = safeNextPath(formData.get('next'), DEFAULT_NEXT)
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -32,7 +39,7 @@ export async function signup(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const displayName = ((formData.get('display_name') as string) || '').trim()
-  const nextUrl = formData.get('next') as string || '/admin'
+  const nextUrl = safeNextPath(formData.get('next'), DEFAULT_NEXT)
 
   // Same rule as the check on profiles.display_name. Validating here avoids
   // the generic "Database error saving new user" from the trigger.
@@ -60,7 +67,9 @@ export async function signup(formData: FormData) {
 
 export async function logout() {
   const supabase = await createClient()
-  await supabase.auth.signOut()
+  // Cerrar sesión cierra solo este dispositivo; sin `scope`, Supabase revoca
+  // todas las sesiones de la cuenta.
+  await supabase.auth.signOut({ scope: 'local' })
   revalidatePath('/', 'layout')
   redirect('/')
 }

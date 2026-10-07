@@ -221,9 +221,7 @@ Esta tabla es la base de las reglas de acceso (RLS) de la base de datos.
 - **Estados de torneo y partido calculados, no guardados.** El prototipo guarda `status: 'abierto'` a mano en `crear-torneo`, y eso hay que cambiarlo.
 - **Todo lo de partidos va por funciones de Postgres (RPC).** RLS no puede expresar "cada capitán escribe solo su propia confirmación".
 - **La tabla de visibilidad necesita vistas públicas.** RLS filtra filas, no columnas.
-- **Bugs del prototipo:**
-  - `login/actions.ts` no valida `next` y manda a `/admin` por defecto
-  - `signOut()` cierra todas las sesiones: hay que pasarle `{ scope: 'local' }`
+- **Bugs del prototipo** (resueltos en #8): `login/actions.ts` y `login/page.tsx` validan `next` con `safeNextPath` y vuelven a `/` por defecto; `signOut({ scope: 'local' })` cierra solo el dispositivo actual.
 - **Orden de subida del flyer:** el id del torneo no existe antes de insertarlo, y no tienen que quedar archivos huérfanos si el insert falla. Resuelto: el flyer se sube después del insert, como `flyers/<id del torneo>`. En la baja lo borra la Server Action por la API de Storage, después de la función de baja, porque Postgres no puede borrar archivos de Storage.
 - **Parámetros de URL del catálogo en español** (`modalidad`, `zona`, `precio_max`). El prototipo usa `modality` y `status`.
 - **Filtro de zona del catálogo:** el torneo guarda `zone_id` (FK a `zones`), ya no la zona como texto. `?zona=` recibe el id de una zona o de un corredor: una zona filtra por `zone_id` y un corredor, por `zones.corridor_id` con el embed `zones!inner(corridor_id)`. El filtro de `feat/dynamic-filters`, que compara el texto `zone`, deja de andar.
