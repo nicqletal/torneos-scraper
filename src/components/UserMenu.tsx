@@ -35,10 +35,10 @@ export function UserMenu({ email }: UserMenuProps) {
         <div className="w-6 h-6 rounded-sm bg-brand-lime flex items-center justify-center font-bold text-brand-bg text-xs">
           {initial}
         </div>
-        <span className="text-xs font-semibold tracking-wider font-display uppercase hidden sm:inline max-w-[120px] truncate">
+        <span className="text-sm font-semibold tracking-wide font-sans hidden sm:inline max-w-[140px] truncate">
           {email.split('@')[0]}
         </span>
-        <ChevronDown className={`w-3.5 h-3.5 text-white/60 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-white/60 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
@@ -48,32 +48,32 @@ export function UserMenu({ email }: UserMenuProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 5 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-48 rounded-sm bg-brand-surface border border-brand-border shadow-2xl py-1 backdrop-blur-md z-50 origin-top-right"
+            className="absolute right-0 mt-2 w-52 rounded-sm bg-brand-surface border border-brand-border shadow-2xl py-1.5 backdrop-blur-md z-50 origin-top-right"
           >
             <Link
               href="/perfil"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-display tracking-wider uppercase text-white/80 hover:text-brand-bg hover:bg-brand-lime transition-colors"
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-white/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
             >
-              <UserRound className="w-3.5 h-3.5" />
+              <UserRound className="w-4 h-4" />
               Mi perfil
             </Link>
 
             <Link
               href="/mis-equipos"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-display tracking-wider uppercase text-white/80 hover:text-brand-bg hover:bg-brand-lime transition-colors"
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-white/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
             >
-              <Users className="w-3.5 h-3.5" />
+              <Users className="w-4 h-4" />
               Mis equipos
             </Link>
 
             <Link
               href="/mis-torneos"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-display tracking-wider uppercase text-white/80 hover:text-brand-bg hover:bg-brand-lime transition-colors"
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-white/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
             >
-              <List className="w-3.5 h-3.5" />
+              <List className="w-4 h-4" />
               Mis torneos
             </Link>
             
@@ -83,9 +83,9 @@ export function UserMenu({ email }: UserMenuProps) {
               <button
                 type="submit"
                 onClick={() => setIsOpen(false)}
-                className="w-full flex items-center gap-2 px-4 py-2 text-xs font-display tracking-wider uppercase text-red-400 hover:text-white hover:bg-red-600 transition-colors text-left cursor-pointer"
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-red-400 hover:text-white hover:bg-red-600 transition-colors text-left cursor-pointer"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="w-4 h-4" />
                 Cerrar sesión
               </button>
             </form>

@@ -14,7 +14,7 @@ import { SubmitButton } from '@/components/SubmitButton'
 // Base de las acciones secundarias, sin color de hover: "Dar de baja" pone el
 // suyo (rojo) y no tiene que competir con el lima de las demás.
 const actionBaseClass =
-  'press inline-flex items-center gap-1.5 px-3 py-2 border border-brand-border bg-brand-secondary text-white/80 text-xs font-display font-bold uppercase tracking-wider rounded-sm'
+  'press inline-flex items-center gap-1.5 px-3.5 py-2 border border-brand-border bg-brand-secondary text-white/80 text-sm font-display font-bold uppercase tracking-wider rounded-sm'
 const actionClass = `${actionBaseClass} hover:text-brand-lime hover:border-brand-lime`
 
 export default async function MisTorneosPage() {
@@ -136,7 +136,7 @@ export default async function MisTorneosPage() {
                         <input type="hidden" name="id" value={tournament.id} />
                         <SubmitButton
                           pendingLabel={<><CheckCircle2 className="w-3.5 h-3.5" />Confirmando…</>}
-                          className="press inline-flex items-center gap-1.5 px-3 py-2 bg-brand-lime hover:bg-white text-brand-bg text-xs font-display font-bold uppercase tracking-wider rounded-sm cursor-pointer"
+                          className="press inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand-lime hover:bg-white text-brand-bg text-sm font-display font-bold uppercase tracking-wider rounded-sm cursor-pointer"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Sigue vigente

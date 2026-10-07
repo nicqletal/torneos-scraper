@@ -31,6 +31,7 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // --- First layer: routes that require any session ---
   // Optimistic check only: each page and Server Action verifies the session again
   const protectedPrefixes = ['/admin', '/crear-torneo', '/mis-torneos', '/perfil', '/crear-equipo', '/mis-equipos']
   const isProtectedRoute = protectedPrefixes.some((prefix) => request.nextUrl.pathname.startsWith(prefix))
@@ -41,6 +42,19 @@ export async function proxy(request: NextRequest) {
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('next', request.nextUrl.pathname)
     return NextResponse.redirect(loginUrl)
+  }
+
+  // --- Second layer: /admin requires the admin role ---
+  // Calls is_admin(), a security-definer RPC that reads the `admins` table
+  // without exposing it through the API. Non-admins land on home silently.
+  if (user && request.nextUrl.pathname.startsWith('/admin')) {
+    const { data: isAdmin } = await supabase.rpc('is_admin')
+    if (!isAdmin) {
+      const homeUrl = request.nextUrl.clone()
+      homeUrl.pathname = '/'
+      homeUrl.search = ''
+      return NextResponse.redirect(homeUrl)
+    }
   }
 
   return supabaseResponse

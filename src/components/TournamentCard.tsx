@@ -87,9 +87,9 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
         </div>
 
         {/* Tabular Sports Metrics Layout */}
-        <div className="grid grid-cols-2 gap-px bg-brand-border/60 border border-brand-border/60 mb-5 text-xs text-white/80">
+        <div className="grid grid-cols-2 gap-px bg-brand-border/60 border border-brand-border/60 mb-5 text-sm text-white/90">
           <div className="bg-brand-surface p-2.5 flex flex-col gap-1">
-            <span className="text-[10px] uppercase text-white/40 tracking-wider font-mono">Zona</span>
+            <span className="text-xs uppercase text-white/50 tracking-wider font-mono">Zona</span>
             {/* "Zona · Corredor" puede ser largo: que baje de línea en vez de cortarse */}
             <span className="font-semibold flex items-start gap-1 leading-snug">
               <MapPin className="w-3.5 h-3.5 mt-px text-brand-lime shrink-0" />
@@ -98,7 +98,7 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
           </div>
 
           <div className="bg-brand-surface p-2.5 flex flex-col gap-1">
-            <span className="text-[10px] uppercase text-white/40 tracking-wider font-mono">Modalidad</span>
+            <span className="text-xs uppercase text-white/50 tracking-wider font-mono">Modalidad</span>
             <span className="font-semibold flex items-center gap-1 truncate">
               <Users className="w-3.5 h-3.5 text-brand-lime shrink-0" />
               {modalityLabel(tournament.sport_modality)}
@@ -110,7 +110,7 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
         <div className="mt-auto pt-4 border-t border-brand-border flex items-center justify-between gap-2">
           <div className="flex flex-col items-start">
             {verification && (
-              <VerificationBadge age={verification} className="text-[9px] tracking-wider px-1.5 py-0.5" />
+              <VerificationBadge age={verification} className="text-[10px] tracking-wider px-2 py-0.5" />
             )}
             <span className="text-lg font-bold text-white font-mono mt-1">
               {priceLabel(tournament.price)}
@@ -118,9 +118,9 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
           </div>
 
           {/* Ya no es un link aparte (no se anidan links): se ilumina con el hover de la card */}
-          <span className="inline-flex items-center gap-1 px-3 py-2 bg-brand-border text-white text-xs font-bold uppercase tracking-wider rounded-sm transition-colors font-display group-hover:bg-brand-lime group-hover:text-brand-bg shadow-sm">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand-border text-white text-sm font-bold uppercase tracking-wider rounded-sm transition-colors font-display group-hover:bg-brand-lime group-hover:text-brand-bg shadow-sm">
             Ficha
-            <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+            <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
           </span>
         </div>
 

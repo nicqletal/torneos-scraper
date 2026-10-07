@@ -14,7 +14,8 @@ export default async function LoginPage({
 }) {
   const awaitedParams = await searchParams
   const error = awaitedParams.error as string | undefined
-  const next = awaitedParams.next as string || '/admin'
+  const nextParam = awaitedParams.next as string | undefined
+  const next = (nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')) ? nextParam : '/'
   // The mode lives in the URL (not in client state) so the page stays a Server Component
   const isSignup = awaitedParams.modo === 'registro'
   const toggleHref = isSignup

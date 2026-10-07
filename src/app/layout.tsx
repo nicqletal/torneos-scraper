@@ -59,7 +59,7 @@ export default async function RootLayout({
               {!user && (
                 <Link 
                   href="/login" 
-                  className="text-xs font-semibold uppercase tracking-wider text-white/70 hover:text-brand-lime transition-colors font-display"
+                  className="text-base font-semibold uppercase tracking-wider text-white/80 hover:text-brand-lime transition-colors font-display"
                 >
                   Iniciar sesión
                 </Link>
@@ -67,9 +67,9 @@ export default async function RootLayout({
 
               <Link 
                 href={loadTournamentPath} 
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-white text-brand-bg hover:text-brand-bg transition-all duration-200 font-display shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-base font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-white text-brand-bg hover:text-brand-bg transition-all duration-200 font-display shadow-sm"
               >
-                <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                <Plus className="w-4 h-4 stroke-[3]" />
                 Cargar torneo
               </Link>
 

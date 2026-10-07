@@ -4,12 +4,19 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 
+function getSafeRedirectUrl(nextPath: string | null): string {
+  if (!nextPath || !nextPath.startsWith('/') || nextPath.startsWith('//')) {
+    return '/'
+  }
+  return nextPath
+}
+
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
-  const nextUrl = formData.get('next') as string || '/admin' // Default to /admin (mis torneos)
+  const nextUrl = getSafeRedirectUrl(formData.get('next') as string | null)
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -32,7 +39,7 @@ export async function signup(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const displayName = ((formData.get('display_name') as string) || '').trim()
-  const nextUrl = formData.get('next') as string || '/admin'
+  const nextUrl = getSafeRedirectUrl(formData.get('next') as string | null)
 
   // Same rule as the check on profiles.display_name. Validating here avoids
   // the generic "Database error saving new user" from the trigger.
@@ -60,7 +67,7 @@ export async function signup(formData: FormData) {
 
 export async function logout() {
   const supabase = await createClient()
-  await supabase.auth.signOut()
+  await supabase.auth.signOut({ scope: 'local' })
   revalidatePath('/', 'layout')
   redirect('/')
 }

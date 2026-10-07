@@ -52,8 +52,8 @@ export function Filters() {
 
       {/* Modality Section */}
       <div className="flex flex-col gap-3">
-        <h3 className="font-display tracking-wider text-xs text-white/50 uppercase flex items-center gap-1.5 font-bold">
-          <Trophy className="w-3.5 h-3.5 text-brand-lime" />
+        <h3 className="font-display tracking-wider text-sm text-white/70 uppercase flex items-center gap-1.5 font-bold">
+          <Trophy className="w-4 h-4 text-brand-lime" />
           MODALIDAD DE JUEGO
         </h3>
         
@@ -64,7 +64,7 @@ export function Filters() {
               <button
                 key={mod.value}
                 onClick={() => updateFilter('modality', mod.value)}
-                className={`relative w-full text-left px-3 py-2 text-xs font-display tracking-wider uppercase transition-all duration-150 flex items-center justify-between border cursor-pointer ${
+                className={`relative w-full text-left px-3.5 py-2.5 text-sm font-display tracking-wider uppercase transition-all duration-150 flex items-center justify-between border cursor-pointer ${
                   isActive
                     ? 'bg-brand-lime text-brand-bg border-brand-lime font-bold'
                     : 'bg-brand-secondary/40 text-white/80 hover:text-white border-brand-border hover:bg-brand-secondary'
@@ -72,7 +72,7 @@ export function Filters() {
               >
                 <span>{mod.label}</span>
                 {isActive ? (
-                  <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
+                  <ChevronRight className="w-4 h-4 stroke-[3]" />
                 ) : (
                   <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
                 )}
@@ -84,8 +84,8 @@ export function Filters() {
 
       {/* Status Section */}
       <div className="flex flex-col gap-3">
-        <h3 className="font-display tracking-wider text-xs text-white/50 uppercase flex items-center gap-1.5 font-bold">
-          <Activity className="w-3.5 h-3.5 text-brand-lime" />
+        <h3 className="font-display tracking-wider text-sm text-white/70 uppercase flex items-center gap-1.5 font-bold">
+          <Activity className="w-4 h-4 text-brand-lime" />
           ESTADO DE INSCRIPCIÓN
         </h3>
 
@@ -96,7 +96,7 @@ export function Filters() {
               <button
                 key={status.value}
                 onClick={() => updateFilter('status', status.value)}
-                className={`relative w-full text-left px-3 py-2 text-xs font-display tracking-wider uppercase transition-all duration-150 flex items-center justify-between border cursor-pointer ${
+                className={`relative w-full text-left px-3.5 py-2.5 text-sm font-display tracking-wider uppercase transition-all duration-150 flex items-center justify-between border cursor-pointer ${
                   isActive
                     ? 'bg-brand-lime text-brand-bg border-brand-lime font-bold'
                     : 'bg-brand-secondary/40 text-white/80 hover:text-white border-brand-border hover:bg-brand-secondary'
@@ -104,7 +104,7 @@ export function Filters() {
               >
                 <span>{status.label}</span>
                 {isActive ? (
-                  <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
+                  <ChevronRight className="w-4 h-4 stroke-[3]" />
                 ) : (
                   <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
                 )}
