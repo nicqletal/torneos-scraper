@@ -50,10 +50,11 @@ export default async function TournamentDetail({
   const lastSpots = isLastSpots(status, tournament.capacity, inscriptionsCount)
 
   // Los inscriptos son públicos, solo por su nombre: salen de la vista
-  // `tournament_inscriptions`, no de la tabla (ver "Visibilidad").
+  // `tournament_inscriptions`, no de la tabla (ver "Visibilidad"). `team_id`
+  // viene en las vinculadas, para enlazar a la página pública del equipo.
   const { data: inscriptions } = await supabase
     .from('tournament_inscriptions')
-    .select('id, team_name')
+    .select('id, team_name, team_id')
     .eq('tournament_id', id)
     .order('created_at', { ascending: true })
 
@@ -254,7 +255,16 @@ export default async function TournamentDetail({
                     <span className="font-display text-brand-lime/50 font-bold w-6 shrink-0">
                       {String(index + 1).padStart(2, '0')}
                     </span>
-                    {inscription.team_name}
+                    {inscription.team_id ? (
+                      <Link
+                        href={`/equipos/${inscription.team_id}`}
+                        className="hover:text-brand-lime underline decoration-brand-lime/30 underline-offset-4 transition-colors"
+                      >
+                        {inscription.team_name}
+                      </Link>
+                    ) : (
+                      inscription.team_name
+                    )}
                   </li>
                 ))}
               </ol>

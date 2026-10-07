@@ -38,6 +38,10 @@ test('errores de la base, con el mensaje de cada regla', () => {
     'Este torneo ya finalizó: sus inscripciones no cambian.'
   )
   assert.equal(inscriptionErrorMessage('42501'), 'Este torneo ya no existe o no es tuyo.')
+  // Los de la vinculada (`add_linked_inscription`).
+  assert.equal(inscriptionErrorMessage('P0002'), 'Ese equipo ya no existe.')
+  assert.equal(inscriptionErrorMessage('55000'), 'Ese equipo está disuelto: no recibe inscripciones.')
+  assert.equal(inscriptionErrorMessage('23505'), 'Ese equipo ya está anotado en este torneo.')
   assert.equal(inscriptionErrorMessage('XX000'), 'No pudimos guardar el cambio. Probá de nuevo.')
   assert.equal(inscriptionErrorMessage(undefined), 'No pudimos guardar el cambio. Probá de nuevo.')
 })
