@@ -21,8 +21,7 @@ revoke delete on public.tournaments from anon, authenticated;
 -- así que el control de quién es el dueño lo hace ella en el `where`.
 --
 -- Un torneo ajeno, uno que no existe y uno ya dado de baja dan el mismo error,
--- para no confirmar que existe un torneo con ese id. Los torneos copiados (sin
--- organizador) los va a dar de baja el administrador cuando exista ese rol.
+-- para no confirmar que existe un torneo con ese id.
 
 create function public.withdraw_tournament(tournament_id uuid)
 returns void

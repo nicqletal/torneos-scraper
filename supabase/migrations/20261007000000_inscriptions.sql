@@ -3,7 +3,7 @@
 -- Una Inscripción es el registro de un equipo en un torneo, cargado por el
 -- organizador desde su panel. Es **por nombre** (solo `team_name`, el equipo no
 -- está en la app) o **vinculada** (`team_id`, un Equipo de la app; entra en #5).
--- Nunca las dos cosas ni ninguna: mismo criterio que `tournaments_organizer_xor_copied`.
+-- Nunca las dos cosas ni ninguna.
 -- El nombre público de una vinculada sale del `join` con `teams`, así no queda
 -- viejo si el equipo se renombra.
 
@@ -117,10 +117,9 @@ create policy "inscriptions: el organizador ve las de sus torneos"
 --
 -- `security definer` y `set search_path = ''`: igual que `withdraw_tournament`.
 -- La función corre como su dueño, que sí puede insertar, así que el control de
--- quién es el organizador lo hace ella en el `where`. Un torneo ajeno, uno que
--- no existe y un torneo copiado (sin organizador) dan el mismo error, para no
--- confirmar que existe un torneo con ese id; así "un torneo copiado no admite
--- inscripciones" sale solo: `user_id` es null y nunca es `auth.uid()`.
+-- quién es el organizador lo hace ella en el `where`. Un torneo ajeno y uno
+-- que no existe dan el mismo error, para no confirmar que existe un torneo con
+-- ese id.
 --
 -- `for update` bloquea el torneo hasta el final de la transacción: el cupo se
 -- cuenta con la fila bloqueada, y dos altas a la vez se serializan.

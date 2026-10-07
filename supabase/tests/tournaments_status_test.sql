@@ -1,5 +1,5 @@
 -- Estado del torneo calculado (Abierto, Cerrado, En curso, Finalizado) y
--- restricciones de fechas y de organizador/copiado.
+-- restricciones de fechas y de organizador obligatorio.
 -- Cada test corre en una transacción que se descarta al final.
 
 begin;
@@ -96,26 +96,21 @@ select throws_ok(
   '23514', null, 'el cupo, si está, es de al menos 1'
 );
 
--- Restricción organizador/copiado: exactamente uno de user_id u organizer_name.
-select lives_ok(
-  $$ insert into public.tournaments
-       (contact_instagram, name, sport_modality, zone_id, inscription_deadline, start_date, end_date, organizer_name)
-     values ('copa.test', 'Copa copiada', 'futbol_5', 'palermo', '2026-11-10', '2026-11-15', '2026-11-30',
-             'Liga del Sur') $$,
-  'un torneo copiado tiene solo el nombre del organizador real'
-);
+-- Todo torneo tiene exactamente un organizador: `user_id` es obligatorio y ya
+-- no existe el nombre de organizador en texto ni su restricción.
 select throws_ok(
   $$ insert into public.tournaments
        (contact_instagram, name, sport_modality, zone_id, inscription_deadline, start_date, end_date)
      values ('copa.test', 'Copa de nadie', 'futbol_5', 'palermo', '2026-11-10', '2026-11-15', '2026-11-30') $$,
-  '23514', null, 'un torneo sin organizador ni nombre de organizador no se guarda'
+  '23502', null, 'un torneo sin organizador no se guarda'
 );
-select throws_ok(
-  $$ insert into public.tournaments
-       (contact_instagram, name, sport_modality, zone_id, inscription_deadline, start_date, end_date, user_id, organizer_name)
-     values ('copa.test', 'Copa doble', 'futbol_5', 'palermo', '2026-11-10', '2026-11-15', '2026-11-30',
-             '00000000-0000-0000-0000-00000000000a', 'Liga del Sur') $$,
-  '23514', null, 'un torneo no puede tener organizador y ser copiado a la vez'
+select hasnt_column('public', 'tournaments', 'organizer_name',
+  'ya no se guarda el nombre del organizador como texto');
+select is_empty(
+  $$ select 1 from pg_constraint
+      where conrelid = 'public.tournaments'::regclass
+        and conname = 'tournaments_organizer_xor_copied' $$,
+  'ya no existe la restricción "organizador o copiado"'
 );
 
 select * from finish();

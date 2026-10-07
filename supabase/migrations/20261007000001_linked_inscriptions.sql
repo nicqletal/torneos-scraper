@@ -21,11 +21,11 @@ declare
   team public.teams;
   v_id uuid;
 begin
-  -- 1. Mismo control de dueño que `add_inscription`: un torneo ajeno, uno que
-  --    no existe y uno copiado (sin organizador) dan el mismo error, para no
-  --    confirmar que existe un torneo con ese id. `for update` bloquea el
-  --    torneo: el cupo y el "ya está anotado" se evalúan con la fila
-  --    bloqueada, así dos altas a la vez se serializan.
+  -- 1. Mismo control de dueño que `add_inscription`: un torneo ajeno y uno
+  --    que no existe dan el mismo error, para no confirmar que existe un
+  --    torneo con ese id. `for update` bloquea el torneo: el cupo y el "ya
+  --    está anotado" se evalúan con la fila bloqueada, así dos altas a la vez
+  --    se serializan.
   select * into t
     from public.tournaments
    where id = p_tournament_id
