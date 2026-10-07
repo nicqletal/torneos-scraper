@@ -24,9 +24,11 @@ export function parseTeamName(raw: FormDataEntryValue | null): TeamNameResult {
   return { ok: true, name }
 }
 
-// Mensaje para cada error de `add_inscription` / `remove_inscription`, por su
-// SQLSTATE: 23514 es el cupo completo, 22023 el torneo Finalizado y 42501 un
-// torneo o una inscripción que no existe o no es del que llama.
+// Mensaje para cada error de `add_inscription`, `add_linked_inscription` y
+// `remove_inscription`, por su SQLSTATE: 23514 es el cupo completo, 22023 el
+// torneo Finalizado y 42501 un torneo o una inscripción que no existe o no es
+// del que llama. Los de la vinculada: P0002 el equipo no existe, 55000 está
+// disuelto y 23505 ya está anotado en ese torneo.
 export function inscriptionErrorMessage(code: string | undefined): string {
   switch (code) {
     case '23514':
@@ -35,6 +37,12 @@ export function inscriptionErrorMessage(code: string | undefined): string {
       return 'Este torneo ya finalizó: sus inscripciones no cambian.'
     case '42501':
       return 'Este torneo ya no existe o no es tuyo.'
+    case 'P0002':
+      return 'Ese equipo ya no existe.'
+    case '55000':
+      return 'Ese equipo está disuelto: no recibe inscripciones.'
+    case '23505':
+      return 'Ese equipo ya está anotado en este torneo.'
     default:
       return 'No pudimos guardar el cambio. Probá de nuevo.'
   }

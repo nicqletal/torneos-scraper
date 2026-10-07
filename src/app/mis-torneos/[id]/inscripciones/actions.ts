@@ -51,6 +51,42 @@ export async function addInscription(
   return { error: null, teamName: '' }
 }
 
+// Alta vinculada: el organizador eligió un equipo del buscador. Es un <form>
+// con los ids en campos ocultos, así que funciona sin JavaScript. Que el
+// torneo sea del que llama, que el equipo exista y no esté disuelto, que no
+// esté ya anotado y que haya cupo lo decide `add_linked_inscription` en la
+// base. Si falla, vuelve a la página con el código en la URL, conservando la
+// búsqueda para que el organizador vea el error al lado de lo que eligió.
+export async function addLinkedInscription(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const tournamentId = formData.get('tournament_id')
+  const teamId = formData.get('team_id')
+  const q = formData.get('q')
+  if (typeof tournamentId !== 'string' || typeof teamId !== 'string') return
+
+  const back = new URLSearchParams()
+  if (typeof q === 'string' && q) back.set('q', q)
+
+  if (!user) redirect(`/login?next=/mis-torneos/${tournamentId}/inscripciones`)
+
+  const { error } = await supabase.rpc('add_linked_inscription', {
+    p_tournament_id: tournamentId,
+    p_team_id: teamId,
+  })
+
+  if (error) {
+    console.error(error)
+    back.set('error', error.code ?? '')
+    redirect(`/mis-torneos/${tournamentId}/inscripciones?${back}`)
+  }
+
+  revalidateTournament(tournamentId)
+  // Con el equipo anotado, la búsqueda ya cumplió: vuelve a la lista limpia.
+  redirect(`/mis-torneos/${tournamentId}/inscripciones`)
+}
+
 // Borrar una inscripción. Es un <form> con el id en un campo oculto, así que
 // funciona sin JavaScript. Si falla (por ejemplo, el torneo finalizó a
 // medianoche), vuelve a la página con el mensaje en la URL.

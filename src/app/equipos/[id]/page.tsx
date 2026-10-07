@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
-import { ArrowLeft, MapPin, Users, Gauge, RefreshCw, Crown } from 'lucide-react'
+import { ArrowLeft, MapPin, Users, Gauge, RefreshCw, Crown, Trophy } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { TeamCrest } from '@/components/TeamCrest'
 import { CopyLinkButton } from '@/components/CopyLinkButton'
@@ -9,6 +9,7 @@ import { ConfirmButton } from '@/components/ConfirmButton'
 import { regenerateInvite, leaveTeam, removeMember, transferCaptaincy } from './actions'
 import { levelLabel } from '@/utils/teams'
 import { modalityLabel } from '@/utils/modality'
+import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 
 const rowButton =
   'px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-sm border border-brand-border text-white hover:border-brand-lime hover:text-brand-lime transition-colors font-display'
@@ -21,6 +22,16 @@ interface PublicTeam {
   dissolved_at: string | null
   player_count: number
   zones: { name: string; corridors: { name: string } }
+}
+
+// Un torneo de la historia del equipo: los que tienen una Inscripción
+// vinculada a este equipo. Es público (vista `tournament_inscriptions` más
+// la ficha del torneo), igual que el resto de la página.
+interface TeamTournament {
+  id: string
+  name: string
+  start_date: string
+  status: TournamentStatus
 }
 
 interface RosterRow {
@@ -73,6 +84,23 @@ export default async function EquipoPage({
     invite = rows?.[0] ?? null
   }
 
+  // Historia: torneos con inscripción vinculada. Primero los ids por la vista
+  // pública y después los torneos, con su estado calculado. La baja de un
+  // torneo se lleva sus inscripciones, así que acá solo quedan los vigentes.
+  const { data: linked } = await supabase
+    .from('tournament_inscriptions')
+    .select('tournament_id')
+    .eq('team_id', id)
+  const tournamentIds = (linked ?? []).map((row) => row.tournament_id as string)
+  const { data: tournamentRows } = tournamentIds.length > 0
+    ? await supabase
+        .from('tournaments')
+        .select('id, name, start_date, status')
+        .in('id', tournamentIds)
+        .order('start_date', { ascending: false })
+    : { data: [] }
+  const tournaments = (tournamentRows ?? []) as unknown as TeamTournament[]
+
   const h = await headers()
   const origin = `${h.get('x-forwarded-proto') ?? 'http'}://${h.get('host')}`
 
@@ -122,6 +150,35 @@ export default async function EquipoPage({
           {error}
         </p>
       )}
+
+      <section className="border border-brand-border bg-brand-surface rounded-sm p-5 flex flex-col gap-3">
+        <h2 className="text-xl font-display tracking-wider text-white uppercase flex items-center gap-2">
+          <Trophy className="w-5 h-5 text-brand-lime" />
+          Torneos
+        </h2>
+        {tournaments.length > 0 ? (
+          <ul className="flex flex-col divide-y divide-brand-border">
+            {tournaments.map((t) => (
+              <li key={t.id} className="py-2.5 flex items-center gap-3">
+                <Link
+                  href={`/torneos/${t.id}`}
+                  className="flex-1 min-w-0 truncate text-sm text-white font-semibold hover:text-brand-lime transition-colors"
+                >
+                  {t.name}
+                </Link>
+                <span className="text-[11px] font-mono text-white/40 shrink-0">
+                  {new Date(`${t.start_date}T00:00:00`).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+                <span className={`px-2 py-0.5 text-[10px] font-display font-bold tracking-widest uppercase border rounded-sm shrink-0 ${statusStyles[t.status]}`}>
+                  {statusLabels[t.status]}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-white/50">Todavía no está anotado en ningún torneo.</p>
+        )}
+      </section>
 
       {isMember && (
         <section className="border border-brand-border bg-brand-surface rounded-sm p-5 flex flex-col gap-3">
