@@ -1,23 +1,15 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ClipboardList, Eye, Pencil, Plus, Trophy, CheckCircle2, Users } from 'lucide-react'
+import { Plus, Settings2, Trophy, Users } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
-import { sortForPanel, verificationAge } from '@/utils/tournament-verification'
-import { withdrawConfirmation } from '@/utils/tournament-withdraw'
+import { sortForPanel, verificationAge, verifyBlock } from '@/utils/tournament-verification'
+import { modalityLabel } from '@/utils/modality'
 import { inscriptionsLabel } from '@/utils/inscriptions'
 import { ZONE_LABEL_EMBED, zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import { VerificationBadge } from '@/components/VerificationBadge'
-import { verifyTournament } from './actions'
-import { WithdrawButton } from './WithdrawButton'
-import { SubmitButton } from '@/components/SubmitButton'
+import { VerifyButton } from './VerifyButton'
 import { BackLink } from '@/components/BackLink'
-
-// Base de las acciones secundarias, sin color de hover: "Dar de baja" pone el
-// suyo (rojo) y no tiene que competir con el lima de las demás.
-const actionBaseClass =
-  'press inline-flex items-center gap-1.5 px-3 py-2 border border-brand-border bg-brand-secondary text-white/80 text-xs font-display font-bold uppercase tracking-wider rounded-sm'
-const actionClass = `${actionBaseClass} hover:text-brand-lime hover:border-brand-lime`
 
 export default async function MisTorneosPage() {
   const supabase = await createClient()
@@ -67,8 +59,9 @@ export default async function MisTorneosPage() {
           <h1 className="text-5xl font-display tracking-widest font-bold text-white uppercase leading-none">
             Mis torneos
           </h1>
-          <p className="text-white/60 text-xs tracking-wider uppercase font-mono">
-            Tocá “Sigue vigente” para que la gente sepa que el torneo está en pie.
+          <p className="text-white/60 text-sm leading-relaxed max-w-xl">
+            Tocá “Sigue vigente” para confirmar que un torneo está en pie: a los 30 días sin
+            confirmar se marca en ámbar y a los 60, en rojo como “sin confirmar”.
           </p>
         </div>
 
@@ -87,65 +80,46 @@ export default async function MisTorneosPage() {
             const age = verificationAge(tournament.verified_at, tournament.status, now)
 
             return (
+              // Una fila liviana: los datos y dos acciones. Editar, inscripciones
+              // y baja viven en la pantalla de gestión.
               <li
                 key={tournament.id}
-                className="p-5 bg-brand-surface border border-brand-border rounded-sm flex flex-col gap-4"
+                className="p-5 bg-brand-surface border border-brand-border rounded-sm flex flex-col sm:flex-row sm:items-center gap-4"
               >
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-2xl font-display font-bold tracking-wider text-white uppercase leading-tight">
-                    {tournament.name}
-                  </h2>
-                  <p className="text-xs text-white/50 font-mono uppercase">
-                    {zoneLabel(tournament.zones)} · {tournament.sport_modality.replace('futbol_', 'Fútbol ')}
-                  </p>
+                <div className="flex-1 min-w-0 flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-2xl font-display font-bold tracking-wider text-white uppercase leading-tight">
+                      {tournament.name}
+                    </h2>
+                    <p className="text-xs text-white/50 font-mono uppercase">
+                      {zoneLabel(tournament.zones)} · {modalityLabel(tournament.sport_modality)}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase">
+                    <span className={`px-2.5 py-1 border font-display font-bold tracking-widest rounded-sm ${statusStyles[tournament.status]}`}>
+                      {statusLabels[tournament.status]}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-brand-border text-white/70 rounded-sm">
+                      <Users className="w-3.5 h-3.5 text-brand-lime" />
+                      {inscriptionsLabel(tournament.inscriptions_count, tournament.capacity)}
+                    </span>
+                    {age && <VerificationBadge age={age} className="px-2.5 py-1" />}
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase">
-                  <span className={`px-2.5 py-1 border font-display font-bold tracking-widest rounded-sm ${statusStyles[tournament.status]}`}>
-                    {statusLabels[tournament.status]}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-brand-border text-white/70 rounded-sm">
-                    <Users className="w-3.5 h-3.5 text-brand-lime" />
-                    {inscriptionsLabel(tournament.inscriptions_count, tournament.capacity)}
-                  </span>
-                  {age && <VerificationBadge age={age} className="px-2.5 py-1" />}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-brand-border">
-                  <Link href={`/torneos/${tournament.id}`} className={actionClass}>
-                    <Eye className="w-3.5 h-3.5" />
-                    Ver
+                <div className="flex sm:flex-col gap-2 shrink-0">
+                  <VerifyButton
+                    id={tournament.id}
+                    block={verifyBlock(tournament.verified_at, tournament.status, now)}
+                  />
+                  <Link
+                    href={`/mis-torneos/${tournament.id}`}
+                    className="press inline-flex items-center justify-center gap-1.5 px-3 py-2 border border-brand-border bg-brand-secondary text-white/80 hover:text-brand-lime hover:border-brand-lime text-xs font-display font-bold uppercase tracking-wider rounded-sm"
+                  >
+                    <Settings2 className="w-3.5 h-3.5" />
+                    Gestionar
                   </Link>
-                  <Link href={`/mis-torneos/${tournament.id}/editar`} className={actionClass}>
-                    <Pencil className="w-3.5 h-3.5" />
-                    Editar
-                  </Link>
-                  <Link href={`/mis-torneos/${tournament.id}/inscripciones`} className={actionClass}>
-                    <ClipboardList className="w-3.5 h-3.5" />
-                    Inscripciones
-                  </Link>
-
-                  {/* Un Finalizado no se verifica ni se da de baja: queda como trayectoria. */}
-                  {tournament.status !== 'finalizado' && (
-                    <>
-                      <form action={verifyTournament}>
-                        <input type="hidden" name="id" value={tournament.id} />
-                        <SubmitButton
-                          pendingLabel={<><CheckCircle2 className="w-3.5 h-3.5" />Confirmando…</>}
-                          className="press inline-flex items-center gap-1.5 px-3 py-2 bg-brand-lime hover:bg-white text-brand-bg text-xs font-display font-bold uppercase tracking-wider rounded-sm cursor-pointer"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Sigue vigente
-                        </SubmitButton>
-                      </form>
-
-                      <WithdrawButton
-                        id={tournament.id}
-                        confirmMessage={withdrawConfirmation(tournament.name, tournament.inscriptions_count)}
-                        className={actionBaseClass}
-                      />
-                    </>
-                  )}
                 </div>
               </li>
             )
@@ -164,7 +138,7 @@ export default async function MisTorneosPage() {
             href="/crear-torneo"
             className="press px-6 py-3 bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm"
           >
-            Cargar mi primer torneo
+            Publicar mi primer torneo
           </Link>
         </div>
       )}

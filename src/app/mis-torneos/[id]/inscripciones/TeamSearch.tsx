@@ -45,6 +45,8 @@ export async function TeamSearch({ tournamentId, q, linkedTeamIds }: TeamSearchP
   return (
     <div className="flex flex-col gap-3">
       <form method="get" className="flex flex-col sm:flex-row gap-2">
+        {/* Un form GET pisa la query entera: sin esto, buscar volvería a "Datos". */}
+        <input type="hidden" name="tab" value="inscripciones" />
         <label className="flex-1 flex flex-col gap-1.5">
           <span className="sr-only">Buscar equipo de la app</span>
           <input
@@ -73,7 +75,7 @@ export async function TeamSearch({ tournamentId, q, linkedTeamIds }: TeamSearchP
 
       {parsed.ok && teams.length === 0 && (
         <p className="text-[11px] font-mono uppercase text-white/50">
-          No hay equipos activos con ese nombre. Si no está en la app, anotalo por nombre.
+          No hay equipos activos con ese nombre. Si no está en la app, anotalo solo con el nombre.
         </p>
       )}
 

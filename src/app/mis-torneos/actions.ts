@@ -5,8 +5,9 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { removeFlyer } from '@/utils/supabase/flyer'
 
-// "Sigue vigente". El form del panel manda el id en un campo oculto, así que
-// funciona sin JavaScript. El id viene del cliente y no es de confiar: que sea
+// "Sigue vigente". El form (`VerifyButton`, en la lista y en la pantalla de
+// gestión) manda el id en un campo oculto, así que funciona sin JavaScript.
+// El id viene del cliente y no es de confiar: que sea
 // del dueño lo controla la función `verify_tournament` en la base, que además
 // es la única que puede escribir `verified_at`.
 export async function verifyTournament(formData: FormData) {
@@ -20,7 +21,8 @@ export async function verifyTournament(formData: FormData) {
   const { error } = await supabase.rpc('verify_tournament', { tournament_id: id })
 
   // Solo falla con un torneo ajeno, dado de baja, Finalizado o un id trucho:
-  // el panel no le ofrece ninguno de esos al dueño, así que alcanza con el log.
+  // el panel no le ofrece ninguno de esos al dueño (el botón sale apagado),
+  // así que alcanza con el log.
   if (error) {
     console.error(error)
     return
@@ -28,6 +30,7 @@ export async function verifyTournament(formData: FormData) {
 
   revalidatePath('/')
   revalidatePath('/mis-torneos')
+  revalidatePath(`/mis-torneos/${id}`)
   revalidatePath(`/torneos/${id}`)
 }
 
@@ -64,4 +67,6 @@ export async function withdrawTournament(id: string): Promise<{ error: string } 
   revalidatePath('/')
   revalidatePath('/mis-torneos')
   revalidatePath(`/torneos/${id}`)
+  // La pantalla de gestión de este torneo ya no existe: vuelve a la lista.
+  redirect('/mis-torneos')
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { inscriptionErrorMessage, parseTeamName } from '@/utils/inscriptions'
+import { manageLoginPath, managePath } from '@/utils/tournament-manage'
 
 // Lo que devuelve el alta cuando no puede guardar: el mensaje y el nombre que
 // se había escrito, para no vaciar el campo.
@@ -15,7 +16,7 @@ export interface InscriptionFormState {
 function revalidateTournament(id: string) {
   revalidatePath('/')
   revalidatePath('/mis-torneos')
-  revalidatePath(`/mis-torneos/${id}/inscripciones`)
+  revalidatePath(`/mis-torneos/${id}`)
   revalidatePath(`/torneos/${id}`)
 }
 
@@ -31,7 +32,7 @@ export async function addInscription(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) redirect(`/login?next=/mis-torneos/${tournamentId}/inscripciones`)
+  if (!user) redirect(manageLoginPath(tournamentId, 'inscripciones'))
 
   const teamName = String(formData.get('team_name') ?? '')
   const parsed = parseTeamName(teamName)
@@ -55,7 +56,7 @@ export async function addInscription(
 // con los ids en campos ocultos, así que funciona sin JavaScript. Que el
 // torneo sea del que llama, que el equipo exista y no esté disuelto, que no
 // esté ya anotado y que haya cupo lo decide `add_linked_inscription` en la
-// base. Si falla, vuelve a la página con el código en la URL, conservando la
+// base. Si falla, vuelve a la pestaña con el código en la URL, conservando la
 // búsqueda para que el organizador vea el error al lado de lo que eligió.
 export async function addLinkedInscription(formData: FormData) {
   const supabase = await createClient()
@@ -66,10 +67,7 @@ export async function addLinkedInscription(formData: FormData) {
   const q = formData.get('q')
   if (typeof tournamentId !== 'string' || typeof teamId !== 'string') return
 
-  const back = new URLSearchParams()
-  if (typeof q === 'string' && q) back.set('q', q)
-
-  if (!user) redirect(`/login?next=/mis-torneos/${tournamentId}/inscripciones`)
+  if (!user) redirect(manageLoginPath(tournamentId, 'inscripciones'))
 
   const { error } = await supabase.rpc('add_linked_inscription', {
     p_tournament_id: tournamentId,
@@ -78,18 +76,22 @@ export async function addLinkedInscription(formData: FormData) {
 
   if (error) {
     console.error(error)
-    back.set('error', error.code ?? '')
-    redirect(`/mis-torneos/${tournamentId}/inscripciones?${back}`)
+    redirect(
+      managePath(tournamentId, 'inscripciones', {
+        q: typeof q === 'string' ? q : undefined,
+        error: error.code ?? 'desconocido',
+      })
+    )
   }
 
   revalidateTournament(tournamentId)
   // Con el equipo anotado, la búsqueda ya cumplió: vuelve a la lista limpia.
-  redirect(`/mis-torneos/${tournamentId}/inscripciones`)
+  redirect(managePath(tournamentId, 'inscripciones'))
 }
 
-// Borrar una inscripción. Es un <form> con el id en un campo oculto, así que
+// Dar de baja una inscripción. Es un <form> con el id en un campo oculto, así que
 // funciona sin JavaScript. Si falla (por ejemplo, el torneo finalizó a
-// medianoche), vuelve a la página con el mensaje en la URL.
+// medianoche), vuelve a la pestaña con el mensaje en la URL.
 export async function removeInscription(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -98,13 +100,13 @@ export async function removeInscription(formData: FormData) {
   const inscriptionId = formData.get('id')
   if (typeof tournamentId !== 'string' || typeof inscriptionId !== 'string') return
 
-  if (!user) redirect(`/login?next=/mis-torneos/${tournamentId}/inscripciones`)
+  if (!user) redirect(manageLoginPath(tournamentId, 'inscripciones'))
 
   const { error } = await supabase.rpc('remove_inscription', { p_inscription_id: inscriptionId })
 
   if (error) {
     console.error(error)
-    redirect(`/mis-torneos/${tournamentId}/inscripciones?error=${error.code ?? ''}`)
+    redirect(managePath(tournamentId, 'inscripciones', { error: error.code ?? 'desconocido' }))
   }
 
   revalidateTournament(tournamentId)

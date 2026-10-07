@@ -63,3 +63,17 @@ export function sortForPanel<T extends { status: TournamentStatus; verified_at: 
     return new Date(a.verified_at).getTime() - new Date(b.verified_at).getTime()
   })
 }
+
+// Por qué "Sigue vigente" aparece apagado, o null si se puede tocar. "Hoy" es
+// lo mismo que dice la etiqueta "Verificado hoy": menos de 24 h.
+export type VerifyBlock = 'confirmado_hoy' | 'finalizado'
+
+export function verifyBlock(
+  verifiedAt: string,
+  status: TournamentStatus,
+  now: Date
+): VerifyBlock | null {
+  const age = verificationAge(verifiedAt, status, now)
+  if (age === null) return 'finalizado'
+  return age.days === 0 ? 'confirmado_hoy' : null
+}

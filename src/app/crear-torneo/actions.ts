@@ -50,7 +50,7 @@ export async function createTournament(
   // El flyer va después del insert: el objeto se llama como el id del torneo,
   // que antes no existe, y así un alta que falla no deja un archivo huérfano.
   // Si lo que falla es la subida, el torneo ya está publicado: se avisa en la
-  // ficha y el flyer se puede subir de nuevo desde Editar.
+  // ficha y el flyer se puede subir de nuevo desde la pestaña Datos.
   const flyerFailed = flyer.file !== null && !(await uploadFlyer(supabase, data.id, flyer.file))
 
   revalidatePath('/')
