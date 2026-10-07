@@ -2,6 +2,7 @@ import { login, signup } from './actions'
 import Link from 'next/link'
 import { SubmitButton } from '@/components/SubmitButton'
 import { safeNextPath } from '@/utils/safe-next-path'
+import { loginHref, loginScreen } from '@/utils/login-screen'
 
 // Los mismos estilos de campo que el formulario de torneo
 const labelClass = 'font-display tracking-wider text-sm text-white/60 uppercase'
@@ -18,10 +19,13 @@ export default async function LoginPage({
   // Se valida acá y también en la Server Action: el hidden input se puede editar
   const next = safeNextPath(awaitedParams.next, '/')
   // The mode lives in the URL (not in client state) so the page stays a Server Component
-  const isSignup = awaitedParams.modo === 'registro'
-  const toggleHref = isSignup
-    ? `/login?next=${encodeURIComponent(next)}`
-    : `/login?modo=registro&next=${encodeURIComponent(next)}`
+  // Qué pantalla se abre lo decide loginScreen: con `next` al Panel de organizador
+  // y sin modo en la URL, Crear cuenta con el aviso de "Publicalo".
+  const { mode, showPublishNotice } = loginScreen(awaitedParams.modo, next)
+  const isSignup = mode === 'signup'
+  // El link lleva siempre el modo explícito: si no, "Iniciá sesión" con `next`
+  // al panel volvería a abrir Crear cuenta.
+  const toggleHref = loginHref(isSignup ? 'login' : 'signup', next)
 
   return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center">
@@ -31,9 +35,17 @@ export default async function LoginPage({
             {isSignup ? 'Crear cuenta' : 'Iniciar sesión'}
           </h1>
           <p className="text-white/60 text-xs tracking-wider uppercase font-mono">
-            {isSignup ? 'Con tu cuenta publicás y manejás tus torneos.' : 'Entrá para cargar y manejar tus torneos.'}
+            {isSignup
+              ? 'Con tu cuenta publicás torneos, armás tu equipo y buscás rival.'
+              : 'Entrá para seguir con tus torneos, tus equipos y tus partidos.'}
           </p>
         </div>
+
+        {showPublishNotice && (
+          <p className="px-4 py-3 border border-brand-lime/40 bg-brand-lime/5 text-white text-sm rounded-sm">
+            Para publicar un torneo necesitás una cuenta. Es gratis.
+          </p>
+        )}
 
         {error && (
           <p role="alert" className="px-4 py-3 border border-brand-red/40 bg-brand-red/5 text-brand-red text-sm rounded-sm">
