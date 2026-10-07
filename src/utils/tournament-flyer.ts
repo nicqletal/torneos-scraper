@@ -43,3 +43,15 @@ export function flyerSrc(imageUrl: string | null, supabaseUrl: string): string |
     && url.pathname.startsWith('/storage/v1/object/public/flyers/')
   return ours ? imageUrl : null
 }
+
+// Si el torneo tiene un flyer que se puede mostrar. Es la pregunta que hacen la
+// ficha (para elegir entre una y dos columnas) y <TournamentFlyer> (para elegir
+// entre la imagen y el placeholder): que la respondan con la misma función
+// evita que una diga "hay flyer" y la otra dibuje el placeholder. La URL de
+// Supabase sale del entorno; el segundo parámetro existe para los tests.
+export function hasFlyer(
+  imageUrl: string | null,
+  supabaseUrl: string = process.env.NEXT_PUBLIC_SUPABASE_URL!
+): imageUrl is string {
+  return flyerSrc(imageUrl, supabaseUrl) !== null
+}
