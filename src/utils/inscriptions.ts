@@ -32,7 +32,7 @@ export function parseTeamName(raw: FormDataEntryValue | null): TeamNameResult {
 export function inscriptionErrorMessage(code: string | undefined): string {
   switch (code) {
     case '23514':
-      return 'El cupo está completo. Subí el cupo desde “Editar” para anotar más equipos.'
+      return 'El cupo está completo. Subí el cupo desde la pestaña “Datos” para anotar más equipos.'
     case '22023':
       return 'Este torneo ya finalizó: sus inscripciones no cambian.'
     case '42501':

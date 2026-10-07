@@ -6,11 +6,13 @@ import { createClient } from '@/utils/supabase/server'
 import { parseTournamentForm } from '@/utils/tournament-form'
 import { parseFlyer } from '@/utils/tournament-flyer'
 import { uploadFlyer } from '@/utils/supabase/flyer'
+import { manageLoginPath } from '@/utils/tournament-manage'
 import type { TournamentFormState } from '@/components/TournamentForm'
 
-// Edición de torneo. El `id` llega atado con `.bind` desde la página, así que
-// viaja por el cliente y no es de confiar: quién puede editar qué lo decide la
-// base (policy de update + grant por columnas), no este código.
+// Edición de torneo (pestaña "Datos" de la pantalla de gestión). El `id` llega
+// atado con `.bind`, así que viaja por el cliente y no es de confiar: quién
+// puede editar qué lo decide la base (policy de update + grant por columnas),
+// no este código.
 export async function updateTournament(
   id: string,
   _state: TournamentFormState,
@@ -19,7 +21,7 @@ export async function updateTournament(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) redirect(`/login?next=/mis-torneos/${id}/editar`)
+  if (!user) redirect(manageLoginPath(id, 'datos'))
 
   // El flyer no vuelve al formulario: un <input type="file"> no se puede precargar.
   const values = Object.fromEntries(
@@ -62,6 +64,7 @@ export async function updateTournament(
 
   revalidatePath('/')
   revalidatePath('/mis-torneos')
+  revalidatePath(`/mis-torneos/${id}`)
   revalidatePath(`/torneos/${id}`)
   redirect(`/torneos/${id}`)
 }

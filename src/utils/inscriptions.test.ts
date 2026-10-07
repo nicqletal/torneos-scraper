@@ -31,7 +31,7 @@ test('nombre del equipo: vacío, muy corto o muy largo', () => {
 test('errores de la base, con el mensaje de cada regla', () => {
   assert.equal(
     inscriptionErrorMessage('23514'),
-    'El cupo está completo. Subí el cupo desde “Editar” para anotar más equipos.'
+    'El cupo está completo. Subí el cupo desde la pestaña “Datos” para anotar más equipos.'
   )
   assert.equal(
     inscriptionErrorMessage('22023'),
