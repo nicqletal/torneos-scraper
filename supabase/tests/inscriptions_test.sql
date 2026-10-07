@@ -1,33 +1,30 @@
 -- Inscripciones: solo el organizador carga y borra (por función), la lectura
--- pública es solo del nombre (vista), un torneo copiado no admite inscripciones,
--- el cupo completo rechaza el alta y borrar una antes del cierre reabre un
--- torneo cerrado por cupo. Cada test corre en una transacción que se descarta al final.
+-- pública es solo del nombre (vista), el cupo completo rechaza el alta y
+-- borrar una antes del cierre reabre un torneo cerrado por cupo. Cada test corre en una transacción que se descarta al final.
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(38);
+select plan(37);
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000a', 'ana@test.local',  '{"display_name": "Ana"}'),
   ('00000000-0000-0000-0000-00000000000b', 'beto@test.local', '{"display_name": "Beto"}');
 
 -- Un torneo de Ana en cada estado (fechas relativas a hoy, en la zona horaria
--- de Buenos Aires, que es el "hoy" de `status`), más un torneo copiado.
+-- de Buenos Aires, que es el "hoy" de `status`).
 set local timezone = 'America/Argentina/Buenos_Aires';
 
 insert into public.tournaments
-  (contact_instagram, id, name, sport_modality, zone_id, inscription_deadline, start_date, end_date, capacity, user_id, organizer_name)
+  (contact_instagram, id, name, sport_modality, zone_id, inscription_deadline, start_date, end_date, capacity, user_id)
 values
   ('copa.test', '11111111-1111-1111-1111-111111111111', 'Copa abierta', 'futbol_5', 'palermo',
-   current_date + 10, current_date + 20, current_date + 50, 2, '00000000-0000-0000-0000-00000000000a', null),
+   current_date + 10, current_date + 20, current_date + 50, 2, '00000000-0000-0000-0000-00000000000a'),
   ('copa.test', '22222222-2222-2222-2222-222222222222', 'Copa cerrada', 'futbol_5', 'palermo',
-   current_date - 1, current_date + 5, current_date + 30, null, '00000000-0000-0000-0000-00000000000a', null),
+   current_date - 1, current_date + 5, current_date + 30, null, '00000000-0000-0000-0000-00000000000a'),
   ('copa.test', '33333333-3333-3333-3333-333333333333', 'Copa en curso', 'futbol_5', 'palermo',
-   current_date - 20, current_date - 10, current_date + 10, null, '00000000-0000-0000-0000-00000000000a', null),
+   current_date - 20, current_date - 10, current_date + 10, null, '00000000-0000-0000-0000-00000000000a'),
   ('copa.test', '44444444-4444-4444-4444-444444444444', 'Copa finalizada', 'futbol_5', 'palermo',
-   current_date - 60, current_date - 50, current_date - 1, null, '00000000-0000-0000-0000-00000000000a', null),
-  ('copa.test', '55555555-5555-5555-5555-555555555555', 'Copa copiada', 'futbol_5', 'palermo',
-   current_date + 10, current_date + 20, current_date + 50, null, null, 'Liga del Sur');
+   current_date - 60, current_date - 50, current_date - 1, null, '00000000-0000-0000-0000-00000000000a');
 
 select results_eq(
   $$ select t.status from public.tournaments t where t.user_id = '00000000-0000-0000-0000-00000000000a' order by t.name $$,
@@ -89,11 +86,6 @@ select throws_ok(
   $$ select public.add_inscription('44444444-4444-4444-4444-444444444444', 'Los tardíos') $$,
   '22023', 'Un torneo finalizado no cambia sus inscripciones',
   'en un torneo Finalizado no se carga'
-);
-select throws_ok(
-  $$ select public.add_inscription('55555555-5555-5555-5555-555555555555', 'Los copiados') $$,
-  '42501', 'El torneo no existe o no es tuyo',
-  'un torneo copiado no admite inscripciones'
 );
 select throws_ok(
   $$ select public.add_inscription('99999999-9999-9999-9999-999999999999', 'Los de nadie') $$,

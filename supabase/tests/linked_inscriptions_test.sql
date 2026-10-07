@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(24);
+select plan(23);
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000a', 'ana@test.local',  '{"display_name": "Ana"}'),
@@ -15,18 +15,16 @@ insert into auth.users (id, email, raw_user_meta_data) values
 set local timezone = 'America/Argentina/Buenos_Aires';
 
 insert into public.tournaments
-  (contact_instagram, id, name, sport_modality, zone_id, inscription_deadline, start_date, end_date, capacity, user_id, organizer_name)
+  (contact_instagram, id, name, sport_modality, zone_id, inscription_deadline, start_date, end_date, capacity, user_id)
 values
   ('copa.test', '11111111-1111-1111-1111-111111111111', 'Copa abierta', 'futbol_5', 'palermo',
-   current_date + 10, current_date + 20, current_date + 50, 2, '00000000-0000-0000-0000-00000000000a', null),
+   current_date + 10, current_date + 20, current_date + 50, 2, '00000000-0000-0000-0000-00000000000a'),
   ('copa.test', '22222222-2222-2222-2222-222222222222', 'Copa cerrada', 'futbol_5', 'palermo',
-   current_date - 1, current_date + 5, current_date + 30, null, '00000000-0000-0000-0000-00000000000a', null),
+   current_date - 1, current_date + 5, current_date + 30, null, '00000000-0000-0000-0000-00000000000a'),
   ('copa.test', '33333333-3333-3333-3333-333333333333', 'Copa en curso', 'futbol_5', 'palermo',
-   current_date - 20, current_date - 10, current_date + 10, null, '00000000-0000-0000-0000-00000000000a', null),
+   current_date - 20, current_date - 10, current_date + 10, null, '00000000-0000-0000-0000-00000000000a'),
   ('copa.test', '44444444-4444-4444-4444-444444444444', 'Copa finalizada', 'futbol_5', 'palermo',
-   current_date - 60, current_date - 50, current_date - 1, null, '00000000-0000-0000-0000-00000000000a', null),
-  ('copa.test', '55555555-5555-5555-5555-555555555555', 'Copa copiada', 'futbol_5', 'palermo',
-   current_date + 10, current_date + 20, current_date + 50, null, null, 'Liga del Sur');
+   current_date - 60, current_date - 50, current_date - 1, null, '00000000-0000-0000-0000-00000000000a');
 
 -- Equipos: tres activos y uno disuelto (insertados directo, como postgres).
 insert into public.teams (id, name, zone_id, modality, level, dissolved_at) values
@@ -64,11 +62,6 @@ select throws_ok(
   $$ select public.add_linked_inscription('44444444-4444-4444-4444-444444444444', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa') $$,
   '22023', 'Un torneo finalizado no cambia sus inscripciones',
   'en un torneo Finalizado no se anota'
-);
-select throws_ok(
-  $$ select public.add_linked_inscription('55555555-5555-5555-5555-555555555555', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa') $$,
-  '42501', 'El torneo no existe o no es tuyo',
-  'un torneo copiado no admite inscripciones vinculadas'
 );
 select throws_ok(
   $$ select public.add_linked_inscription('99999999-9999-9999-9999-999999999999', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa') $$,

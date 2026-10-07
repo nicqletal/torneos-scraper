@@ -209,4 +209,4 @@ _Avoid_: notificación
 - "Suspender" se usaba para partidos y para cuentas — resuelto: un partido se cae (**Partido caído**); "suspensión" queda reservada para las sanciones del administrador.
 - "Disputa de no presentado" suponía que el administrador decidía quién tenía razón — resuelto: nadie decide; el partido queda **en conflicto** y la app muestra las dos versiones.
 - "Notificar" aparecía en muchos flujos sin definir el canal — resuelto: todo es un **Aviso** en la campanita.
-- "Torneo copiado" y "Transferencia" aparecieron en los docs del 27/09/2026 como un tipo de torneo sin organizador que cargaba el administrador — descartados el 07/10/2026: nadie del equipo había pedido ese concepto; la carga manual inicial se hace con una cuenta de organizador común. Queda pendiente sacarlo del esquema y de la ficha.
+- "Torneo copiado" y "Transferencia" aparecieron en los docs del 27/09/2026 como un tipo de torneo sin organizador que cargaba el administrador — descartados el 07/10/2026: nadie del equipo había pedido ese concepto; la carga manual inicial se hace con una cuenta de organizador común.
