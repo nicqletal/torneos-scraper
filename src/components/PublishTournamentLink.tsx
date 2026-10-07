@@ -1,7 +1,10 @@
 import Link from 'next/link'
 
-// Lleva a Crear cuenta y, después de registrarse, al panel de organizador.
-export const PUBLISH_TOURNAMENT_HREF = '/login?modo=registro&next=/mis-torneos'
+// Apunta directo al panel de organizador. Con sesión, entra; sin sesión, el
+// proxy manda a /login?next=/mis-torneos y esa pantalla abre Crear cuenta con
+// el aviso de "Publicalo" (ver src/utils/login-screen.ts). Así el link sirve
+// para los dos casos sin que el componente tenga que conocer la sesión.
+export const PUBLISH_TOURNAMENT_HREF = '/mis-torneos'
 
 // Link para captar organizadores. Va al pie del catálogo y en el footer, nunca
 // en la barra superior (ver "Cuenta y acceso" en docs/decisiones-casos-de-uso.md).
