@@ -1,6 +1,8 @@
 import { createClient } from '@/utils/supabase/server'
 import { TournamentCard, Tournament } from './TournamentCard'
 import { Trophy, HelpCircle } from 'lucide-react'
+import { verificationAge } from '@/utils/tournament-verification'
+import { ZONE_LABEL_EMBED } from '@/utils/zones'
 
 interface TournamentListProps {
   searchParams: { [key: string]: string | string[] | undefined }
@@ -13,7 +15,13 @@ export async function TournamentList({
 
   const awaitedParams = await searchParams
 
-  let query = supabase.from('tournaments').select('*')
+  // `status` e `inscriptions_count` son columnas calculadas (funciones en la
+  // base): no vienen con '*', hay que pedirlas. La zona y su corredor vienen de la lista
+  // cerrada. Los Finalizados nunca salen en el catálogo.
+  let query = supabase
+    .from('tournaments')
+    .select(`*, status, inscriptions_count, ${ZONE_LABEL_EMBED}`)
+    .neq('status', 'finalizado')
 
   if (awaitedParams.modality) {
     query = query.eq('sport_modality', awaitedParams.modality as string)
@@ -55,6 +63,11 @@ export async function TournamentList({
     )
   }
 
+  // La antigüedad se calcula acá, en el servidor, y la tarjeta (de cliente) la
+  // recibe hecha: si la calculara la tarjeta, el "ahora" del servidor y el del
+  // navegador podrían no coincidir al hidratar.
+  const now = new Date()
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {tournaments.map((tournament: Tournament, index: number) => (
@@ -62,6 +75,7 @@ export async function TournamentList({
           key={tournament.id} 
           tournament={tournament} 
           index={index} 
+          verification={verificationAge(tournament.verified_at, tournament.status, now)}
         />
       ))}
     </div>
