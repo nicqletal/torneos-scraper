@@ -103,7 +103,7 @@ RLS y auth son el punto crítico del proyecto:
 
 ## Quién publica torneos (resuelto)
 
-Publican los **organizadores** (cualquier usuario con sesión). Todo torneo tiene exactamente un organizador. No existe el "torneo copiado" sin organizador: se descartó el 07/10/2026 y queda pendiente sacarlo del esquema (`organizer_name`, `tournaments_organizer_xor_copied`) y de la ficha. Organizador y administrador son roles distintos: el organizador no tiene ningún poder de administración.
+Publican los **organizadores** (cualquier usuario con sesión). Todo torneo tiene exactamente un organizador. No existe el "torneo copiado" sin organizador: se descartó el 07/10/2026 y `tournaments.user_id` es obligatorio en la base. Organizador y administrador son roles distintos: el organizador no tiene ningún poder de administración.
 
 ## Forma de trabajo
 
