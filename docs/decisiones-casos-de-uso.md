@@ -103,6 +103,8 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 - Las dos cuentan para el cupo. Solo la vinculada genera avisos y aparece en la historia del equipo.
 - Un mismo equipo de la app tiene como mucho una inscripción por torneo. El capitán no confirma la vinculación.
 - La ficha muestra públicamente los nombres de los equipos inscriptos.
+- **No se puede cargar una inscripción con el cupo completo:** la app la rechaza y sugiere subir el cupo desde Editar.
+- **En un torneo Finalizado no se cargan ni se borran inscripciones.** En Cerrado y En curso, sí: el organizador puede seguir acomodando la lista aunque ya no se inscriba nadie nuevo.
 
 ## Equipos
 
