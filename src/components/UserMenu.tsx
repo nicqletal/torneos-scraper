@@ -4,13 +4,15 @@ import { useState, useRef, useEffect, useId } from 'react'
 import Link from 'next/link'
 import { logout } from '@/app/login/actions'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LogOut, ChevronDown, List, UserRound, Users, Plus } from 'lucide-react'
+import { LogOut, ChevronDown, Trophy, UserRound, Users, ShieldCheck } from 'lucide-react'
 
 interface UserMenuProps {
   email: string
+  // Solo muestra el link: el acceso a /admin lo controlan el proxy y is_admin()
+  isAdmin?: boolean
 }
 
-export function UserMenu({ email }: UserMenuProps) {
+export function UserMenu({ email, isAdmin = false }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const menuId = useId()
@@ -86,15 +88,20 @@ export function UserMenu({ email }: UserMenuProps) {
               onClick={() => setIsOpen(false)}
               className="ui-action flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
             >
-              <List className="w-4 h-4" />
+              <Trophy className="w-4 h-4" />
               Mis torneos
             </Link>
-            
-            <Link href="/crear-torneo" onClick={() => setIsOpen(false)}
-              className="ui-action flex items-center gap-2.5 px-4 py-2.5 text-sm text-brand-lime hover:text-brand-bg hover:bg-brand-lime transition-colors">
-              <Plus className="w-4 h-4" aria-hidden="true" />
-              Cargar torneo
-            </Link>
+
+            {isAdmin && (
+              <Link
+                href="/admin"
+                onClick={() => setIsOpen(false)}
+                className="ui-action flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Administración
+              </Link>
+            )}
 
             <div className="h-px bg-brand-border my-1" />
             

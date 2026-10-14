@@ -82,7 +82,6 @@ export async function updateTeam(teamId: string, formData: FormData) {
   if (!result.ok) editError(result.error)
 
   revalidatePath('/')
-  revalidatePath('/torneos')
   revalidatePath('/mis-equipos')
   revalidatePath(`/equipos/${teamId}`)
   revalidatePath(`/equipos/${teamId}/editar`)
@@ -98,7 +97,6 @@ export async function dissolveTeam(teamId: string, formData: FormData) {
   const { error } = await supabase.rpc('dissolve_team', { p_team_id: teamId })
   if (error) backWithError(teamId, error)
   revalidatePath('/')
-  revalidatePath('/torneos')
   revalidatePath('/mis-equipos')
   revalidatePath('/crear-equipo')
   revalidatePath(`/equipos/${teamId}`)

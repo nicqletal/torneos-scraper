@@ -6,15 +6,19 @@ import { TEAM_LEVELS } from '@/utils/teams'
 import { CREST_TYPES } from '@/utils/team-crest'
 import type { TeamFields } from '@/utils/team-form'
 
-export function TeamForm({ action, initial, crestUrl, submitLabel }: {
+export function TeamForm({ action, initial, crestUrl, submitLabel, disabled = false }: {
   action: (formData: FormData) => Promise<void>
   initial?: TeamFields
   crestUrl?: string | null
   submitLabel: string
+  // Sin WhatsApp en el perfil el formulario se ve igual, pero no se puede usar
+  disabled?: boolean
 }) {
   const inputClass = 'ui-input px-3 py-3 bg-brand-bg border border-brand-border rounded-sm text-foreground focus:outline-none focus:border-brand-lime'
   return (
-    <form action={action} className="p-5 sm:p-8 bg-brand-surface border border-brand-border rounded-sm flex flex-col gap-6">
+    <form action={action} className="p-5 sm:p-8 bg-brand-surface border border-brand-border rounded-sm">
+      {/* <fieldset disabled> deshabilita de una todos los campos y el botón */}
+      <fieldset disabled={disabled} className="flex flex-col gap-6 disabled:opacity-50">
       <div className="flex flex-col gap-2">
         <label htmlFor="name" className="ui-label">Nombre del equipo</label>
         <input id="name" name="name" required minLength={2} maxLength={50} defaultValue={initial?.name}
@@ -59,6 +63,7 @@ export function TeamForm({ action, initial, crestUrl, submitLabel }: {
       <SubmitButton pendingLabel="Guardando…" className="ui-action press inline-flex items-center justify-center gap-2 px-5 py-3 bg-brand-lime hover:bg-foreground text-brand-bg rounded-sm disabled:opacity-60">
         {submitLabel}
       </SubmitButton>
+      </fieldset>
     </form>
   )
 }

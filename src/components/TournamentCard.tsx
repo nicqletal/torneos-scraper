@@ -6,6 +6,8 @@ import { zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import type { VerificationAge } from '@/utils/tournament-verification'
 import { VerificationBadge } from './VerificationBadge'
 import { TournamentFlyer } from './TournamentFlyer'
+import { LastSpotsBadge } from './LastSpotsBadge'
+import { isLastSpots } from '@/utils/inscriptions'
 import { modalityLabel, type SportModality } from '@/utils/modality'
 
 export interface Tournament {
@@ -17,8 +19,10 @@ export interface Tournament {
   zones: ZoneLabelFields
   price: number | null
   price_currency: string
-  // Columna calculada: hay que pedirla explícitamente con select('*, status')
+  // Columnas calculadas: hay que pedirlas con select('*, status, inscriptions_count')
   status: TournamentStatus
+  inscriptions_count: number
+  capacity: number | null
   contact_whatsapp: string | null
   contact_instagram: string | null
   image_url: string | null
@@ -62,10 +66,13 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
         {/* Floating elements inside image */}
         <div className="absolute inset-0 bg-gradient-to-t from-brand-surface via-transparent to-transparent opacity-90" />
         
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
           <span className={`px-2.5 py-1 text-sm font-bold uppercase tracking-widest border font-sans rounded-sm ${statusStyles[tournament.status]}`}>
             {statusLabels[tournament.status]}
           </span>
+          {isLastSpots(tournament.status, tournament.capacity, tournament.inscriptions_count) && (
+            <LastSpotsBadge className="px-2.5 py-1 text-sm" />
+          )}
         </div>
 
         <div className="absolute bottom-3 right-3 text-sm text-foreground/70 bg-brand-bg/80 px-2 py-0.5 border border-brand-border rounded-sm backdrop-blur-xs font-mono">

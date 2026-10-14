@@ -38,7 +38,7 @@ export function verificationAge(
 }
 
 export const verificationStyles: Record<VerificationLevel, string> = {
-  al_dia: 'text-white/50 border-brand-border',
+  al_dia: 'text-foreground/70 border-brand-border',
   ambar: 'text-brand-amber border-brand-amber/40 bg-brand-amber/5',
   sin_confirmar: 'text-brand-red border-brand-red/40 bg-brand-red/5',
 }
@@ -62,4 +62,18 @@ export function sortForPanel<T extends { status: TournamentStatus; verified_at: 
     if (byRank !== 0 || rank(a) !== 0) return byRank
     return new Date(a.verified_at).getTime() - new Date(b.verified_at).getTime()
   })
+}
+
+// Por qué "Sigue vigente" aparece apagado, o null si se puede tocar. "Hoy" es
+// lo mismo que dice la etiqueta "Verificado hoy": menos de 24 h.
+export type VerifyBlock = 'confirmado_hoy' | 'finalizado'
+
+export function verifyBlock(
+  verifiedAt: string,
+  status: TournamentStatus,
+  now: Date
+): VerifyBlock | null {
+  const age = verificationAge(verifiedAt, status, now)
+  if (age === null) return 'finalizado'
+  return age.days === 0 ? 'confirmado_hoy' : null
 }

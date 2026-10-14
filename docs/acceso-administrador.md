@@ -5,9 +5,10 @@ con los módulos de gestión. No aplica migraciones ni modifica la base comparti
 
 ## Entrada y permisos
 
-- `/login` y registro no tienen navbar ni footer. Conservan el formulario,
-  la bienvenida, la atmósfera y la opción de invitado. Se agrega el enlace
-  discreto a `/admin/login`.
+- `/login` y registro llevan la barra mínima del sitio, como cualquier otra
+  página (la pantalla sin barra y la opción de invitado se descartaron al
+  integrar con `feat/ui-design`, ver `decisiones-casos-de-uso.md`). Tienen un
+  enlace discreto a `/admin/login`.
 - `/admin/login` es un formulario público, sin registro ni invitado. Usa
   `signInWithPassword` con la misma cuenta de Supabase y después consulta
   `is_admin()` con esa sesión. La contraseña no se modifica ni se registra.
@@ -70,9 +71,8 @@ y Suspensión.
   autenticada, cuenta sin rol, fallo de RPC, destinos, marco visual y navbar.
   Los tests del login administrativo usan el SDK real con transporte simulado;
   no autentican cuentas de la base compartida.
-- `pnpm test:entry`: prueba HTTP real del acceso sin navbar, invitado, rutas
-  protegidas, login administrativo público y rechazo de formularios sin
-  credenciales. No crea cuentas ni modifica datos.
+- `pnpm test:entry` (prueba HTTP de la entrada con invitado) se retiró junto
+  con esa entrada.
 - `pnpm exec next typegen` y `pnpm exec tsc --noEmit`: validación de las nuevas
   rutas. Se retiró solo el tipo generado obsoleto que apuntaba al panel antes
   de trasladarlo al grupo de rutas.

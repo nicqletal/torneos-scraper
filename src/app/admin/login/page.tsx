@@ -37,7 +37,7 @@ export default async function AdminLoginPage({ searchParams }: {
         <SubmitButton pendingLabel="Verificando acceso…" className="ui-action press w-full justify-center gap-2 py-3 bg-brand-lime hover:bg-foreground text-brand-bg rounded-sm"><ShieldCheck className="w-4 h-4" aria-hidden="true" />Ingresar como administrador</SubmitButton>
       </form>
       <p className="text-sm text-foreground/60">Las cuentas se registran desde el acceso general. El rol se asigna manualmente en la base por una persona autorizada.</p>
-      {user && <Link href="/torneos" className="ui-action text-brand-lime hover:text-foreground w-fit">Continuar en el catálogo con mi cuenta</Link>}
+      {user && <Link href="/" className="ui-action text-brand-lime hover:text-foreground w-fit">Continuar en el catálogo con mi cuenta</Link>}
     </div>
   )
 }

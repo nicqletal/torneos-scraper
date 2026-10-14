@@ -37,7 +37,7 @@ export function AdminSidebar({ email }: { email?: string }) {
         </div>
       </div>
       <div className="px-4 py-2 border-b border-brand-border shrink-0">
-        <Link href="/torneos" onClick={() => setOpen(false)} className="ui-action gap-2 text-foreground/80 hover:text-brand-lime"><ArrowLeft className="w-4 h-4" aria-hidden="true" />Volver al sitio</Link>
+        <Link href="/" onClick={() => setOpen(false)} className="ui-action gap-2 text-foreground/80 hover:text-brand-lime"><ArrowLeft className="w-4 h-4" aria-hidden="true" />Volver al sitio</Link>
       </div>
       <div id={menuId} className={`${open ? 'flex' : 'hidden'} md:flex flex-col flex-1 min-h-0 max-h-[calc(100dvh-10rem)] md:max-h-none overflow-y-auto md:overflow-visible`}>
         <nav aria-label="Navegación de administración" className="flex flex-col gap-5 px-3 py-5 flex-1 md:min-h-0 md:overflow-y-auto">

@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { Trophy, Mail } from 'lucide-react'
+import { Trophy } from 'lucide-react'
+import { PublishTournamentLink } from '@/components/PublishTournamentLink'
 
 export function Footer() {
   return (
@@ -16,20 +16,12 @@ export function Footer() {
           </span>
         </div>
         
-        {/* Description text */}
-        <p className="text-sm text-foreground/70 text-center max-w-md md:text-left leading-relaxed">
-          Proyecto creado para simplificar la búsqueda y organización de torneos de fútbol amateur. Todos los derechos reservados.
+        <p className="text-xs text-foreground/60 text-center">
+          Proyecto de Metodología de Sistemas · 2026
         </p>
 
-        {/* Contact Links */}
-        <div className="flex items-center gap-6">
-          <a
-            href="mailto:contacto@torneosscraper.com"
-            className="ui-action flex items-center gap-1.5 text-sm font-display tracking-wider uppercase text-foreground/60 hover:text-brand-lime transition-colors"
-          >
-            <Mail className="w-3.5 h-3.5 text-brand-lime" />
-            Contacto
-          </a>
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+          <PublishTournamentLink className="text-xs text-foreground/60 hover:text-brand-lime transition-colors" />
           <a
             href="https://instagram.com/torneosscraper"
             target="_blank"

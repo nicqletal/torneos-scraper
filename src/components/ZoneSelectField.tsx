@@ -20,7 +20,7 @@ export function ZoneSelectField({
   defaultValue,
   required,
   placeholder = 'Elegí una zona',
-  className = 'px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-white text-sm focus:outline-none focus:border-brand-lime transition-colors',
+  className = 'px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-foreground text-sm focus:outline-none focus:border-brand-lime transition-colors',
 }: ZoneSelectFieldProps) {
   return (
     <select id={id} name={name} required={required} defaultValue={defaultValue ?? ''} className={`ui-input ${className}`}>

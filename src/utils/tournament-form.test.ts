@@ -26,6 +26,7 @@ function form(fields: Record<string, string>) {
     inscription_deadline: '2026-11-10',
     start_date: '2026-11-15',
     end_date: '2026-11-30',
+    venue_address: 'Av. Santa Fe 3000',
     contact_whatsapp: '11 1234 5678',
     ...fields,
   }
@@ -35,7 +36,7 @@ function form(fields: Record<string, string>) {
 
 test('un formulario completo se convierte en la fila a insertar', () => {
   const result = parseTournamentForm(
-    form({ price: '45000', capacity: '16', rules: ' Fair play ', venue_address: 'Av. Santa Fe 3000' })
+    form({ price: '45000', capacity: '16', rules: ' Fair play ', venue_address: ' Av. Santa Fe 3000 ' })
   )
   assert.equal(result.ok, true)
   if (!result.ok) return
@@ -97,7 +98,7 @@ test('edición: un torneo guardado precarga el formulario y, sin cambios, vuelve
     capacity: 16,
     description: 'Con tercer tiempo',
     rules: null,
-    venue_address: null,
+    venue_address: 'Av. Santa Fe 3000',
     contact_whatsapp: '5491112345678',
     contact_instagram: 'copa.palermo',
   }
@@ -130,4 +131,30 @@ test('edición: se pide confirmar solo si hay equipos anotados', () => {
   assert.equal(editConfirmation(0), null)
   assert.equal(editConfirmation(1), 'Hay 1 equipo anotado, ¿confirmás el cambio?')
   assert.equal(editConfirmation(3), 'Hay 3 equipos anotados, ¿confirmás el cambio?')
+})
+
+test('sin dirección de la sede no valida, y el mensaje dice qué falta', () => {
+  for (const venue_address of ['', '   ']) {
+    const result = parseTournamentForm(form({ venue_address }))
+    assert.equal(result.ok, false, JSON.stringify(venue_address))
+    if (!result.ok) assert.equal(result.error, 'Poné la dirección de la sede: es lo que dice si se puede llegar.')
+  }
+})
+
+test('edición: un torneo viejo sin dirección no guarda hasta que se le carga', () => {
+  const values = tournamentToFormValues({
+    name: 'Copa', sport_modality: 'futbol_5', zone_id: 'palermo',
+    inscription_deadline: '2026-11-10', start_date: '2026-11-15', end_date: '2026-11-30',
+    price: null, capacity: null, description: null, rules: null, venue_address: null,
+    contact_whatsapp: null, contact_instagram: 'copa',
+  })
+  assert.equal(values.venue_address, '')
+
+  const data = new FormData()
+  for (const [key, value] of Object.entries(values)) data.set(key, value)
+  assert.equal(parseTournamentForm(data).ok, false)
+
+  data.set('venue_address', 'Av. Santa Fe 3000')
+  const loaded = parseTournamentForm(data)
+  assert.ok(loaded.ok && loaded.data.venue_address === 'Av. Santa Fe 3000')
 })

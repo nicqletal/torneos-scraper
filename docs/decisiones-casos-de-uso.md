@@ -34,16 +34,17 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 ## Cuenta y acceso
 
 - **Una sola cuenta por persona.** Con ella se puede ser jugador, capitán y organizador a la vez.
-- **Registro:** pide email, contraseña y **nombre** (el nombre es público, así que no se deriva del email). Se entra directo, sin confirmar el email. El único mail que manda la app es el de "Olvidé mi contraseña". El SMTP gratis de Supabase manda muy pocos por hora: alcanza para la entrega, pero con usuarios reales hace falta un servicio aparte (por ejemplo, Resend).
-- **Entrada (acuerdo del 14/10/2026):** al visitar `/` sin sesión ni elección previa de invitado, se muestra `/login`, con iniciar sesión, registrarse y entrar como invitado. Una sesión autenticada o la elección de invitado llevan directamente al catálogo, sin pedir nuevamente el acceso. Una cuenta existente que abre `/login` continúa al destino interno indicado, o al catálogo si no lo hay.
-- **Invitado:** no se crea una cuenta ni una sesión anónima de Supabase. Su elección se recuerda durante la sesión de navegación, sin habilitar ninguna gestión privada. Al iniciar sesión, registrarse correctamente o cerrar sesión se retira esa preferencia. Cerrar sesión vuelve al acceso.
-- **Catálogo público:** vive en `/torneos`, mantiene los filtros en la URL y se puede abrir directamente sin pasar por `/login`. Los links filtrados anteriores (`/?…`) conservan sus parámetros y redirigen al catálogo. Las fichas públicas de equipos, torneos y organizadores siguen accesibles sin sesión.
-- **Navbar:** Torneos, Mis equipos y Soy organizador (lleva al panel de organizador). Los dos últimos piden sesión si no la hay, conservando el destino. Mi perfil, Mis torneos, Cargar torneo y Cerrar sesión quedan en el menú de cuenta. Administración aparece solo con sesión y rol confirmado en el servidor; ocultar el enlace no reemplaza los controles de acceso.
-- **Pantallas de acceso:** `/login` (incluido registro) y `/admin/login` no muestran la navbar ni el footer del sitio; conservan el fondo y sus formularios. El acceso general incluye un enlace discreto al acceso de administrador.
+- **Registro:** pide email, contraseña y **nombre** (el nombre es público, así que no se deriva del email). Se entra directo, sin confirmar el email. Recuperar la contraseña ("Olvidé mi contraseña") **todavía no se hace**; cuando entre, va a ser el único mail que manda la app. El SMTP gratis de Supabase manda muy pocos por hora: alcanza para la entrega, pero con usuarios reales hace falta un servicio aparte (por ejemplo, Resend).
+- **Portada:** `/` es el catálogo, para cualquiera. No hay "vista de jugador" ni "vista de organizador": la app se navega de una sola forma (decidido el 07/10/2026; antes hubo un switch "Soy organizador" / "Volver a jugador" que se descartó porque no se entendía). El PR #26 propuso otra entrada (al visitar `/` sin sesión se mostraba `/login` con "entrar como invitado", el catálogo en `/torneos` y una navbar con "Soy organizador"); al integrarlo el 14/10/2026 se descartó por lo mismo, y `/torneos` quedó solo como redirección a `/`.
+- **Barra superior mínima.** Sin sesión: logo, "Iniciar sesión" (texto) y "Crear cuenta" (único botón destacado). Con sesión: logo y menú de usuario con Mi perfil, Mis equipos, Mis torneos y Cerrar sesión. Ningún botón destacado permanente.
+- **Captar organizadores:** el link "¿Organizás torneos? Publicalo" va al pie del catálogo y en el footer, no en la barra. Lleva a Crear cuenta con `next` al panel.
+- **Panel de organizador en tres niveles:** (1) la lista "Mis torneos", con una fila por torneo (nombre, zona, modalidad, cupo, estado, antigüedad de verificación) y solo dos acciones, "Sigue vigente" y "Gestionar"; (2) la **pantalla de gestión del torneo**, con cabecera (números clave, "Ver ficha pública", "Sigue vigente"), pestañas (Datos, Inscripciones, y las que se sumen) y "Dar de baja" al final, aparte; (3) la **ficha pública**, que para el dueño es idéntica a la de cualquiera más una barra arriba "Este torneo es tuyo · Gestionar". Editar, inscripciones y baja viven solo en la pantalla de gestión. Guardar en Datos vuelve a la pantalla de gestión; la ficha pública se abre con "Ver ficha pública".
+- **Una sola convención para volver:** un link arriba a la izquierda con el nombre del destino ("← Mis torneos", "← Volver al catálogo"). Nunca dos formas de volver en la misma pantalla.
 - **Perfil:** nombre, foto (JPG/PNG/WebP, máx. 2 MB), zona y **WhatsApp**. El WhatsApp es opcional, pero obligatorio para crear un equipo o tomar la capitanía. Se guarda solo con dígitos, en formato argentino de celular (`549` + 10 dígitos), que es lo que pide `wa.me`.
   - Cada foto nueva reemplaza a la anterior; no hay una galería. Se retira la anterior de Storage después de guardar la nueva URL. Si el guardado falla, se conserva la anterior y se intenta retirar la subida nueva.
 - **El rol de administrador no se puede editar desde la app.** Se asigna a mano en la base. El usuario edita nombre, foto, zona y WhatsApp, y nunca el rol.
 - **Cerrar sesión** cierra solo el dispositivo actual.
+- **Llegar desde "¿Organizás torneos? Publicalo":** se abre **Crear cuenta** con un aviso ("Para publicar un torneo necesitás una cuenta") y el link a iniciar sesión conservando el `next`. Con cualquier otro `next` se abre Iniciar sesión, sin aviso. El copy de las dos pantallas es neutro: no habla solo de torneos.
 - **Volver a la acción después del login (`next`):** solo se aceptan rutas internas. Ojo: `//sitio.com` empieza con `/` y es externa, así que hay que rechazarla también.
 
 ## Torneos
@@ -51,8 +52,7 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 ### Quién publica
 
 - **Organizadores:** cualquier usuario con sesión y sin suspensión.
-- **Torneos copiados:** el administrador los carga a partir de Instagram. No tienen organizador (solo el nombre y el contacto del organizador real, como texto), **no admiten inscripciones** y solo el administrador los edita, los verifica o les da de baja.
-- **Transferencia:** si el organizador real se crea una cuenta, el administrador le pasa el torneo después de comprobar su identidad por el mismo Instagram. Ver [ADR 0001](adr/0001-torneos-copiados-sin-organizador.md).
+- **Carga manual inicial:** si alguien del equipo carga torneos de Instagram para que el catálogo no arranque vacío, lo hace con su propia cuenta, como organizador común, y pone el contacto del organizador real. No existe un tipo de torneo "copiado" ni una "transferencia" (se descartaron el 07/10/2026).
 
 ### Formulario
 
@@ -62,12 +62,12 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 | Modalidad (F5, F7, F8, F11) | Flyer (JPG/PNG/WebP, máx. 3 MB) |
 | Zona | Cupo |
 | Cierre de inscripción, inicio y fin | Descripción |
-| Al menos un contacto: WhatsApp o Instagram | Reglamento (texto) |
-| | Dirección de la sede (si está, la ficha muestra un mapa; si no, solo la zona) |
+| Dirección de la sede (la ficha la abre en el mapa) | Reglamento (texto) |
+| Al menos un contacto: WhatsApp o Instagram | |
 
 - Las fechas cumplen **cierre ≤ inicio ≤ fin**. Si no, el formulario no guarda.
 - **La fecha de fin es obligatoria.** Sin ella, el torneo nunca llegaría a "Finalizado".
-- Torneos copiados: se suma el nombre del organizador real.
+- **La dirección de la sede es obligatoria** al publicar y al editar: la zona dice si queda cerca a grandes rasgos, la dirección dice si se puede llegar. En la base la columna sigue admitiendo vacío hasta que no queden torneos viejos sin dirección (decidido el 07/10/2026).
 
 ### Estado (calculado, nadie lo elige)
 
@@ -106,6 +106,8 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 - Las dos cuentan para el cupo. Solo la vinculada genera avisos y aparece en la historia del equipo.
 - Un mismo equipo de la app tiene como mucho una inscripción por torneo. El capitán no confirma la vinculación.
 - La ficha muestra públicamente los nombres de los equipos inscriptos.
+- **No se puede cargar una inscripción con el cupo completo:** la app la rechaza y sugiere subir el cupo desde Editar.
+- **En un torneo Finalizado no se cargan ni se borran inscripciones.** En Cerrado y En curso, sí: el organizador puede seguir acomodando la lista aunque ya no se inscriba nadie nuevo.
 
 ## Equipos
 
@@ -183,7 +185,6 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
   - tablero con números
   - reportes pendientes
   - buscador de usuarios por nombre o email
-  - carga y transferencia de torneos copiados
 - **Reportar un torneo:** botón en la ficha, solo con sesión. Motivos: "Ya no existe", "Datos incorrectos" o "No es un torneo". Una vez por usuario y torneo. El administrador puede **descartar** el reporte, **marcar el torneo como Observado** o **darle de baja**.
 - **Reportar un equipo:** botón en la página del equipo, solo con sesión y **solo si jugaste contra ellos**. Motivos: "Violencia o agresiones", "Cuenta falsa" o "Abuso de calificaciones". El administrador puede **descartar** el reporte o **suspender al capitán**, que responde por la conducta del plantel.
 - **Suspensión:** 7 días, 30 días o indefinida, con un motivo. El usuario puede entrar y mirar, pero no puede publicar torneos, crear equipos ni buscar rival. No hay apelación dentro de la app: el aviso incluye un email de contacto. Sobre lo que ya existía:
@@ -228,10 +229,6 @@ Esta tabla es la base de las reglas de acceso (RLS) de la base de datos.
 
 ## Pendientes técnicos (no son de producto, se resuelven al programar)
 
-- **Entrada y navbar (14/10/2026):** rutas públicas, preferencia de invitado y
-  verificación en [entrada-y-navbar.md](entrada-y-navbar.md). El acceso
-  diferenciado de administrador y la sidebar siguen en la etapa siguiente.
-
 - **Gestión de equipos y diseño (14/10/2026):** acuerdos de edición,
   disolución, escudos, navegación y legibilidad en
   [mejoras-equipos-ux.md](mejoras-equipos-ux.md). La disolución se integra con
@@ -241,7 +238,7 @@ Esta tabla es la base de las reglas de acceso (RLS) de la base de datos.
 - **Estados de torneo y partido calculados, no guardados.** El prototipo guarda `status: 'abierto'` a mano en `crear-torneo`, y eso hay que cambiarlo.
 - **Todo lo de partidos va por funciones de Postgres (RPC).** RLS no puede expresar "cada capitán escribe solo su propia confirmación".
 - **La tabla de visibilidad necesita vistas públicas.** RLS filtra filas, no columnas.
-- **Acceso corregido:** login y registro validan `next` con `safeNextPath`, incluyendo parámetros repetidos y barras invertidas; sin destino válido vuelven a `/`. Cerrar sesión usa `{ scope: 'local' }`.
+- **Bugs del prototipo** (resueltos en #8): `login/actions.ts` y `login/page.tsx` validan `next` con `safeNextPath` y vuelven a `/` por defecto; `signOut({ scope: 'local' })` cierra solo el dispositivo actual.
 - **Panel de organizador:** la gestión vive en `/mis-torneos`; `/panel` conserva los links anteriores redirigiendo allí.
 - **Orden de subida del flyer:** el id del torneo no existe antes de insertarlo, y no tienen que quedar archivos huérfanos si el insert falla. Resuelto: el flyer se sube después del insert, como `flyers/<id del torneo>`. En la baja lo borra la Server Action por la API de Storage, después de la función de baja, porque Postgres no puede borrar archivos de Storage.
 - **Parámetros de URL del catálogo en español** (`modalidad`, `zona`, `precio_max`). El prototipo usa `modality` y `status`.

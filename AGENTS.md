@@ -103,7 +103,7 @@ RLS y auth son el punto crítico del proyecto:
 
 ## Quién publica torneos (resuelto)
 
-Publican los **organizadores** (cualquier usuario con sesión). Además, el **administrador** puede cargar **torneos copiados** de Instagram, sin organizador, que después puede transferir. Ver `docs/adr/0001-torneos-copiados-sin-organizador.md`. Organizador y administrador son roles distintos: el organizador no tiene ningún poder de administración.
+Publican los **organizadores** (cualquier usuario con sesión). Todo torneo tiene exactamente un organizador. No existe el "torneo copiado" sin organizador: se descartó el 07/10/2026 y `tournaments.user_id` es obligatorio en la base. Organizador y administrador son roles distintos: el organizador no tiene ningún poder de administración.
 
 ## Forma de trabajo
 
@@ -113,3 +113,17 @@ Publican los **organizadores** (cualquier usuario con sesión). Además, el **ad
 - Frenar y esperar confirmación en todo lo que toque RLS o autenticación.
 - Preferir código simple y legible a abstracciones tempranas: el objetivo incluye aprender el stack.
 - Actuar como tutor: explicar el código, no solo producirlo.
+
+## Agent skills
+
+### Issue tracker
+
+Los issues y specs viven en GitHub Issues del repo, en español y con los términos de `CONTEXT.md`. Ver `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Los cinco labels canónicos con su nombre por defecto (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). Ver `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Contexto único: `CONTEXT.md` y `docs/adr/` en la raíz. Ver `docs/agents/domain.md`.

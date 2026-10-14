@@ -1,21 +1,16 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Eye, Pencil, Plus, Trophy, CheckCircle2, Users } from 'lucide-react'
+import { Plus, Settings2, Trophy, Users } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
-import { sortForPanel, verificationAge } from '@/utils/tournament-verification'
-import { withdrawConfirmation } from '@/utils/tournament-withdraw'
+import { sortForPanel, verificationAge, verifyBlock } from '@/utils/tournament-verification'
+import { modalityLabel } from '@/utils/modality'
+import { inscriptionsLabel } from '@/utils/inscriptions'
 import { ZONE_LABEL_EMBED, zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import { VerificationBadge } from '@/components/VerificationBadge'
-import { verifyTournament } from './actions'
-import { WithdrawButton } from './WithdrawButton'
-import { SubmitButton } from '@/components/SubmitButton'
-
-// Base de las acciones secundarias, sin color de hover: "Dar de baja" pone el
-// suyo (rojo) y no tiene que competir con el lima de las demás.
-const actionBaseClass =
-  'press inline-flex items-center gap-1.5 px-3.5 py-2 border border-brand-border bg-brand-secondary text-foreground/80 text-sm font-display font-bold uppercase tracking-wider rounded-sm'
-const actionClass = `${actionBaseClass} hover:text-brand-lime hover:border-brand-lime`
+import { VerifyButton } from './VerifyButton'
+import { BackLink } from '@/components/BackLink'
+import { secondaryButtonClass } from '@/components/button-styles'
 
 export default async function MisTorneosPage() {
   const supabase = await createClient()
@@ -25,10 +20,10 @@ export default async function MisTorneosPage() {
     redirect('/login?next=/mis-torneos')
   }
 
-  // `status` es una columna calculada: hay que pedirla explícitamente.
+  // `status` e `inscriptions_count` son columnas calculadas: hay que pedirlas.
   const { data, error } = await supabase
     .from('tournaments')
-    .select(`id, name, ${ZONE_LABEL_EMBED}, sport_modality, capacity, verified_at, status`)
+    .select(`id, name, ${ZONE_LABEL_EMBED}, sport_modality, capacity, verified_at, status, inscriptions_count`)
     .eq('user_id', user.id)
     .order('start_date', { ascending: true })
 
@@ -50,31 +45,24 @@ export default async function MisTorneosPage() {
     (data ?? []).map((t) => ({
       ...t,
       status: t.status as TournamentStatus,
+      inscriptions_count: t.inscriptions_count as number,
       zones: t.zones as unknown as ZoneLabelFields,
     })),
     now
   )
 
-  // Hasta que exista la tabla de inscripciones, cuenta 0.
-  const inscriptions = 0
-
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-8">
-      <Link
-        href="/torneos"
-        className="ui-action inline-flex items-center gap-2 text-sm font-display font-bold uppercase tracking-wider text-foreground/70 hover:text-brand-lime transition-colors w-fit group"
-      >
-        <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-        <span>Volver al listado</span>
-      </Link>
+      <BackLink href="/" label="Volver al catálogo" />
 
       <div className="border-b border-brand-border pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="flex flex-col gap-2">
           <h1 className="text-5xl font-display tracking-widest font-bold text-foreground uppercase leading-none">
             Mis torneos
           </h1>
-          <p className="text-foreground/60 text-sm tracking-wider uppercase font-sans">
-            Tocá “Sigue vigente” para que la gente sepa que el torneo está en pie.
+          <p className="text-foreground/60 text-sm leading-relaxed max-w-xl">
+            Tocá “Sigue vigente” para confirmar que un torneo está en pie: a los 30 días sin
+            confirmar se marca en ámbar y a los 60, en rojo como “sin confirmar”.
           </p>
         </div>
 
@@ -83,7 +71,7 @@ export default async function MisTorneosPage() {
           className="ui-action press inline-flex items-center justify-center gap-2 px-4 py-3 bg-brand-lime hover:bg-foreground text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm"
         >
           <Plus className="w-4 h-4" />
-          Cargar torneo
+          Publicar torneo
         </Link>
       </div>
 
@@ -93,63 +81,46 @@ export default async function MisTorneosPage() {
             const age = verificationAge(tournament.verified_at, tournament.status, now)
 
             return (
+              // Una fila liviana: los datos y dos acciones. Editar, inscripciones
+              // y baja viven en la pantalla de gestión.
               <li
                 key={tournament.id}
-                className="p-5 bg-brand-surface border border-brand-border rounded-sm flex flex-col gap-4"
+                className="p-5 bg-brand-surface border border-brand-border rounded-sm flex flex-col sm:flex-row sm:items-center gap-4"
               >
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-2xl font-display font-bold tracking-wider text-foreground uppercase leading-tight">
-                    {tournament.name}
-                  </h2>
-                  <p className="text-sm text-foreground/70 font-sans uppercase">
-                    {zoneLabel(tournament.zones)} · {tournament.sport_modality.replace('futbol_', 'Fútbol ')}
-                  </p>
+                <div className="flex-1 min-w-0 flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-2xl font-display font-bold tracking-wider text-foreground uppercase leading-tight">
+                      {tournament.name}
+                    </h2>
+                    <p className="text-xs text-foreground/70 font-mono uppercase">
+                      {zoneLabel(tournament.zones)} · {modalityLabel(tournament.sport_modality)}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase">
+                    <span className={`px-2.5 py-1 border font-display font-bold tracking-widest rounded-sm ${statusStyles[tournament.status]}`}>
+                      {statusLabels[tournament.status]}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-brand-border text-foreground/70 rounded-sm">
+                      <Users className="w-3.5 h-3.5 text-brand-lime" />
+                      {inscriptionsLabel(tournament.inscriptions_count, tournament.capacity)}
+                    </span>
+                    {age && <VerificationBadge age={age} className="px-2.5 py-1" />}
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 text-sm font-mono uppercase">
-                  <span className={`px-2.5 py-1 border font-display font-bold tracking-widest rounded-sm ${statusStyles[tournament.status]}`}>
-                    {statusLabels[tournament.status]}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-brand-border text-foreground/70 rounded-sm">
-                    <Users className="w-3.5 h-3.5 text-brand-lime" />
-                    {tournament.capacity
-                      ? `${inscriptions}/${tournament.capacity} equipos`
-                      : `${inscriptions} equipos · sin cupo`}
-                  </span>
-                  {age && <VerificationBadge age={age} className="px-2.5 py-1" />}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-brand-border">
-                  <Link href={`/torneos/${tournament.id}`} className={`ui-action ${actionClass}`}>
-                    <Eye className="w-3.5 h-3.5" />
-                    Ver
+                <div className="flex sm:flex-col gap-2 shrink-0">
+                  <VerifyButton
+                    id={tournament.id}
+                    block={verifyBlock(tournament.verified_at, tournament.status, now)}
+                  />
+                  <Link
+                    href={`/mis-torneos/${tournament.id}`}
+                    className={`${secondaryButtonClass} justify-center`}
+                  >
+                    <Settings2 className="w-3.5 h-3.5" />
+                    Gestionar
                   </Link>
-                  <Link href={`/mis-torneos/${tournament.id}/editar`} className={`ui-action ${actionClass}`}>
-                    <Pencil className="w-3.5 h-3.5" />
-                    Editar
-                  </Link>
-
-                  {/* Un Finalizado no se verifica ni se da de baja: queda como trayectoria. */}
-                  {tournament.status !== 'finalizado' && (
-                    <>
-                      <form action={verifyTournament}>
-                        <input type="hidden" name="id" value={tournament.id} />
-                        <SubmitButton
-                          pendingLabel={<><CheckCircle2 className="w-3.5 h-3.5" />Confirmando…</>}
-                          className="ui-action press inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand-lime hover:bg-foreground text-brand-bg text-sm font-display font-bold uppercase tracking-wider rounded-sm cursor-pointer"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Sigue vigente
-                        </SubmitButton>
-                      </form>
-
-                      <WithdrawButton
-                        id={tournament.id}
-                        confirmMessage={withdrawConfirmation(tournament.name, inscriptions)}
-                        className={actionBaseClass}
-                      />
-                    </>
-                  )}
                 </div>
               </li>
             )
@@ -162,13 +133,13 @@ export default async function MisTorneosPage() {
             Todavía no publicaste torneos
           </h2>
           <p className="text-foreground/70 text-sm max-w-sm">
-            Cargalo acá y los equipos te van a contactar por WhatsApp o Instagram.
+            Publicalo acá y los equipos te van a contactar por WhatsApp o Instagram.
           </p>
           <Link
             href="/crear-torneo"
             className="ui-action press px-6 py-3 bg-brand-lime hover:bg-foreground text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm"
           >
-            Cargar mi primer torneo
+            Publicar mi primer torneo
           </Link>
         </div>
       )}

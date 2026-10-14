@@ -7,11 +7,6 @@ import { pageFrame } from '@/utils/page-frame'
 export function AppFrame({ children, navbar, footer }: { children: ReactNode; navbar: ReactNode; footer: ReactNode }) {
   const frame = pageFrame(usePathname())
   // Solo presentación. Cada página y acción privada verifica permisos en el servidor.
-  if (frame === 'access') return (
-    <main className="relative z-10 flex-1 min-h-screen container mx-auto px-4 py-8 sm:py-12 flex flex-col justify-center">
-      {children}
-    </main>
-  )
   if (frame === 'admin') return <main className="relative z-10 flex-1 min-w-0">{children}</main>
   return <>
     <header className="sticky top-0 z-50 w-full border-b border-brand-border bg-brand-secondary/90 backdrop-blur-md">{navbar}</header>

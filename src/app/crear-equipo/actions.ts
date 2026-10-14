@@ -39,7 +39,6 @@ export async function createTeam(formData: FormData) {
   }
 
   revalidatePath('/')
-  revalidatePath('/torneos')
   revalidatePath('/mis-equipos')
   if (crest.file) {
     const result = await saveTeam(supabase, teamId, parsed.fields, crest.file, false, process.env.NEXT_PUBLIC_SUPABASE_URL!)

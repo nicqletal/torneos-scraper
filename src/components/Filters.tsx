@@ -20,7 +20,7 @@ export function Filters() {
       // Reset page when filters change
       params.delete('page')
       
-      router.push(params.size ? `/torneos?${params.toString()}` : '/torneos')
+      router.push(params.size ? `/?${params.toString()}` : '/')
     },
     [searchParams, router]
   )

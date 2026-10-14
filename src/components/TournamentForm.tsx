@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react'
 import { Save } from 'lucide-react'
 import { FLYER_TYPES, parseFlyer } from '@/utils/tournament-flyer'
 import { SPORT_MODALITIES } from '@/utils/modality'
+import { VENUE_ADDRESS_REQUIRED } from '@/utils/tournament-form'
 import type { ZoneGroup } from '@/utils/zones'
 import { ZoneSelectField } from './ZoneSelectField'
 
@@ -89,6 +90,37 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
             <ZoneSelectField name="zone_id" groups={zoneGroups} required defaultValue={v.zone_id} className={`ui-input ${inputClass}`} />
           </Field>
         </div>
+
+        <Field label="Dirección de la sede" hint="Calle y altura de la cancha. En la ficha se abre en el mapa.">
+          {/* El aviso del navegador dice lo mismo que la Server Action, y la
+              regla también: `required` solo acepta una sede de puros espacios,
+              que el servidor rechaza (hace `trim`); el `pattern` pide al menos
+              un carácter que no sea espacio. */}
+          <input
+            name="venue_address"
+            type="text"
+            required
+            pattern=".*\S.*"
+            title={VENUE_ADDRESS_REQUIRED}
+            defaultValue={v.venue_address}
+            placeholder="Av. Santa Fe 3000, CABA"
+            onInvalid={(e) => e.currentTarget.setCustomValidity(VENUE_ADDRESS_REQUIRED)}
+            onInput={(e) => e.currentTarget.setCustomValidity('')}
+            className={`ui-input ${inputClass}`}
+          />
+        </Field>
+      </Section>
+
+      <Section title="Contacto">
+        <p className={hintClass}>Dejá al menos uno: es por donde te van a escribir los equipos.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label="WhatsApp" hint="Con código de área y sin el 15.">
+            <input name="contact_whatsapp" type="tel" defaultValue={v.contact_whatsapp} placeholder="11 1234 5678" className={`ui-input ${inputClass}`} />
+          </Field>
+          <Field label="Instagram" hint="Solo el usuario.">
+            <input name="contact_instagram" type="text" defaultValue={v.contact_instagram} placeholder="copa.palermo" className={`ui-input ${inputClass}`} />
+          </Field>
+        </div>
       </Section>
 
       {/* El estado del torneo sale de estas tres fechas y del cupo */}
@@ -111,18 +143,6 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
           </Field>
           <Field label="Cupo (opcional)" hint="Cantidad máxima de equipos.">
             <input name="capacity" type="number" min={1} step={1} defaultValue={v.capacity} placeholder="16" className={`ui-input ${inputClass}`} />
-          </Field>
-        </div>
-      </Section>
-
-      <Section title="Contacto">
-        <p className={hintClass}>Dejá al menos uno: es por donde te van a escribir los equipos.</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="WhatsApp" hint="Con código de área y sin el 15.">
-            <input name="contact_whatsapp" type="tel" defaultValue={v.contact_whatsapp} placeholder="11 1234 5678" className={`ui-input ${inputClass}`} />
-          </Field>
-          <Field label="Instagram" hint="Solo el usuario.">
-            <input name="contact_instagram" type="text" defaultValue={v.contact_instagram} placeholder="copa.palermo" className={`ui-input ${inputClass}`} />
           </Field>
         </div>
       </Section>
@@ -157,9 +177,6 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
         </Field>
         <Field label="Reglamento">
           <textarea name="rules" rows={4} defaultValue={v.rules} placeholder="Tarjetas, cambios, duración de los partidos…" className={`ui-input ${`${inputClass} resize-y`}`} />
-        </Field>
-        <Field label="Dirección de la sede">
-          <input name="venue_address" type="text" defaultValue={v.venue_address} placeholder="Av. Santa Fe 3000, CABA" className={`ui-input ${inputClass}`} />
         </Field>
       </Section>
 

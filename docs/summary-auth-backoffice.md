@@ -1,5 +1,7 @@
 ## Summary
 
+> Resumen del PR #26 tal como se mergeó a `main`. Al integrarlo con `feat/ui-design` (14/10/2026) se descartó la parte de **entrada y navbar** (login al entrar a `/`, invitado, catálogo en `/torneos`, navbar con "Soy organizador"): manda lo decidido el 07/10 en `docs/decisiones-casos-de-uso.md`. El resto (administración, equipos, perfil, migraciones) sí entró.
+
 ### Autenticación y seguridad
 
 - Protección de administración en dos capas: Proxy y comprobación de sesión/rol en el servidor mediante `is_admin()` y `requireAdmin()`.

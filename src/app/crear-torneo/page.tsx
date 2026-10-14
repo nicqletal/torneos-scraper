@@ -1,10 +1,9 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { TournamentForm } from '@/components/TournamentForm'
 import { getZoneGroups } from '@/components/ZoneSelect'
 import { createTournament } from './actions'
+import { BackLink } from '@/components/BackLink'
 
 export default async function CrearTorneoPage() {
   const supabase = await createClient()
@@ -16,17 +15,11 @@ export default async function CrearTorneoPage() {
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col gap-8">
-      <Link
-        href="/mis-torneos"
-        className="ui-action inline-flex items-center gap-2 text-sm font-display font-bold uppercase tracking-wider text-foreground/70 hover:text-brand-lime transition-colors w-fit group"
-      >
-        <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-        <span>Volver a mis torneos</span>
-      </Link>
+      <BackLink href="/mis-torneos" label="Mis torneos" />
 
       <div className="border-b border-brand-border pb-6 flex flex-col gap-2">
         <h1 className="text-5xl font-display tracking-widest font-bold text-foreground uppercase leading-none">
-          Cargar torneo
+          Publicar torneo
         </h1>
         <p className="text-foreground/60 text-sm tracking-wider uppercase font-sans">
           Los equipos te contactan por WhatsApp o Instagram. La inscripción la arreglás vos.

@@ -2,23 +2,21 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
-import { CATALOG_PATH, GUEST_COOKIE, guestCookieOptions, loginDestination } from '@/utils/entry-navigation'
+import { safeNextPath } from '@/utils/safe-next-path'
 
-export async function enterAsGuest() {
-  const cookieStore = await cookies()
-  cookieStore.set(GUEST_COOKIE, '1', guestCookieOptions(process.env.NODE_ENV === 'production'))
-  // No se crea una cuenta ni una sesión anónima de Supabase.
-  redirect(CATALOG_PATH)
-}
+// Sin `next`, después de entrar se vuelve a la portada: `/` es siempre la vista
+// de jugador, y a la de organizador se entra por su ruta (el proxy ya manda
+// `next=/mis-torneos` cuando hace falta sesión para el panel).
+const DEFAULT_NEXT = '/'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
-  const nextUrl = loginDestination(formData.get('next'))
+  // Solo rutas internas: `next` viene del formulario y cualquiera puede armarlo
+  const nextUrl = safeNextPath(formData.get('next'), DEFAULT_NEXT)
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -28,12 +26,12 @@ export async function login(formData: FormData) {
   if (error) {
     // You could return an error object here to show in the UI, 
     // but for simplicity in this MVP we redirect with an error flag.
-    redirect(`/login?error=Invalid Credentials&next=${encodeURIComponent(nextUrl)}`)
+    // El modo va explícito: sin él, con `next` al Panel de organizador la
+    // pantalla abriría Crear cuenta en vez de volver a Iniciar sesión.
+    redirect(`/login?modo=ingreso&error=Invalid Credentials&next=${encodeURIComponent(nextUrl)}`)
   }
 
   revalidatePath('/', 'layout')
-  const cookieStore = await cookies()
-  cookieStore.delete(GUEST_COOKIE)
   redirect(nextUrl)
 }
 
@@ -43,7 +41,7 @@ export async function signup(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const displayName = ((formData.get('display_name') as string) || '').trim()
-  const nextUrl = loginDestination(formData.get('next'))
+  const nextUrl = safeNextPath(formData.get('next'), DEFAULT_NEXT)
 
   // Same rule as the check on profiles.display_name. Validating here avoids
   // the generic "Database error saving new user" from the trigger.
@@ -66,16 +64,14 @@ export async function signup(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  const cookieStore = await cookies()
-  cookieStore.delete(GUEST_COOKIE)
   redirect(nextUrl)
 }
 
 export async function logout() {
   const supabase = await createClient()
+  // Cerrar sesión cierra solo este dispositivo; sin `scope`, Supabase revoca
+  // todas las sesiones de la cuenta.
   await supabase.auth.signOut({ scope: 'local' })
-  const cookieStore = await cookies()
-  cookieStore.delete(GUEST_COOKIE)
   revalidatePath('/', 'layout')
-  redirect('/login')
+  redirect('/')
 }

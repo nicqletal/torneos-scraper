@@ -2,11 +2,11 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { pageFrame } from './page-frame.ts'
 
-test('marco: los accesos no muestran navbar ni footer', () => {
-  for (const path of ['/login', '/login/', '/admin/login', '/admin/login/']) assert.equal(pageFrame(path), 'access')
-})
-test('marco: el panel usa su propia sidebar, el sitio conserva la navbar', () => {
+test('marco: el panel de administración usa su propia sidebar', () => {
   assert.equal(pageFrame('/admin'), 'admin')
   assert.equal(pageFrame('/admin/seguridad'), 'admin')
-  for (const path of ['/torneos', '/mis-equipos', '/administrador', '/login-otro']) assert.equal(pageFrame(path), 'site')
+  assert.equal(pageFrame('/admin/login'), 'admin')
+})
+test('marco: el resto del sitio, incluido el acceso, conserva la barra', () => {
+  for (const path of ['/', '/torneos/abc', '/mis-equipos', '/administrador', '/login', '/login-otro']) assert.equal(pageFrame(path), 'site')
 })

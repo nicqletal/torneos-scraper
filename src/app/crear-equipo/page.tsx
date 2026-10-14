@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowLeft, Shield } from 'lucide-react'
+import { Shield } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { TeamForm } from '@/components/TeamForm'
 import { MAX_CAPTAINCIES } from '@/utils/teams'
 import { createTeam } from './actions'
+import { BackLink } from '@/components/BackLink'
 
 export default async function CrearEquipoPage({
   searchParams,
@@ -38,13 +39,7 @@ export default async function CrearEquipoPage({
 
   return (
     <div className="max-w-xl w-full mx-auto flex flex-col gap-8">
-      <Link
-        href="/mis-equipos"
-        className="ui-action inline-flex items-center gap-2 text-sm font-display font-bold uppercase tracking-wider text-foreground/70 hover:text-brand-lime transition-colors w-fit group"
-      >
-        <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-        Mis equipos
-      </Link>
+      <BackLink href="/mis-equipos" label="Mis equipos" />
 
       <div className="border-b border-brand-border pb-6 flex items-center gap-3">
         <div className="w-10 h-10 rounded-sm bg-brand-lime flex items-center justify-center text-brand-bg">
@@ -62,26 +57,30 @@ export default async function CrearEquipoPage({
         </div>
       )}
 
-      {!hasWhatsapp ? (
-        <div className="p-6 bg-brand-surface border border-brand-border rounded-sm flex flex-col gap-4">
-          <p className="text-foreground/80 text-sm">
+      {/* Sin WhatsApp el formulario se ve igual, pero deshabilitado: el aviso
+          explica por qué y lleva al perfil, que devuelve acá con `next`. */}
+      {!hasWhatsapp && (
+        <div role="status" className="p-4 border border-brand-amber bg-brand-amber/5 rounded-sm flex flex-col sm:flex-row sm:items-center gap-3">
+          <p className="flex-1 text-sm text-brand-amber">
             Para crear un equipo necesitás tener tu WhatsApp en el perfil: es la forma en que los capitanes rivales
             coordinan los partidos con vos.
           </p>
           <Link
             href="/perfil?next=/crear-equipo"
-            className="ui-action inline-flex items-center justify-center py-3 bg-brand-lime hover:bg-foreground text-brand-bg font-display font-bold uppercase tracking-wider text-sm rounded-sm transition-colors"
+            className="ui-action inline-flex items-center justify-center px-4 py-2 bg-brand-lime hover:bg-foreground text-brand-bg font-display font-bold uppercase tracking-wider text-sm rounded-sm transition-colors shrink-0"
           >
             Cargar mi WhatsApp
           </Link>
         </div>
-      ) : reachedLimit ? (
+      )}
+
+      {hasWhatsapp && reachedLimit ? (
         <div className="p-6 bg-brand-surface border border-brand-border rounded-sm text-foreground/80 text-sm">
           Ya sos capitán de {MAX_CAPTAINCIES} equipos, que es el máximo. Para crear otro, pasá la capitanía de alguno
           o disolvelo.
         </div>
       ) : (
-        <TeamForm action={createTeam} submitLabel="Crear equipo" />
+        <TeamForm action={createTeam} submitLabel="Crear equipo" disabled={!hasWhatsapp} />
       )}
     </div>
   )

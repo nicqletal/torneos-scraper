@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { Trophy } from 'lucide-react'
-import { flyerSrc } from '@/utils/tournament-flyer'
+import { hasFlyer } from '@/utils/tournament-flyer'
 
 interface TournamentFlyerProps {
   imageUrl: string | null
@@ -16,10 +16,10 @@ interface TournamentFlyerProps {
 
 // El flyer del torneo, o un placeholder de marca si no tiene. Llena el
 // contenedor, que tiene que ser `relative` y tener alto.
+// El placeholder es para las cards del catálogo, que necesitan todas el mismo
+// alto; la ficha sin flyer no lo usa: pasa a una sola columna.
 export function TournamentFlyer({ imageUrl, name, sizes, priority, className, fit = 'cover' }: TournamentFlyerProps) {
-  const src = flyerSrc(imageUrl, process.env.NEXT_PUBLIC_SUPABASE_URL!)
-
-  if (!src) {
+  if (!hasFlyer(imageUrl)) {
     return (
       <div
         role="img"
@@ -34,7 +34,7 @@ export function TournamentFlyer({ imageUrl, name, sizes, priority, className, fi
 
   return (
     <Image
-      src={src}
+      src={imageUrl}
       alt={`Flyer de ${name}`}
       fill
       sizes={sizes}

@@ -9,6 +9,8 @@
 -- Además, el esquema contempla el torneo copiado (ADR 0001): o tiene
 -- organizador (`user_id`) o guarda el nombre del organizador real como texto
 -- (`organizer_name`), nunca las dos cosas ni ninguna.
+-- (El torneo copiado se descartó el 07/10/2026: `organizer_name` y su
+-- restricción se eliminan en 20261014000005.)
 
 -- 1. Torneos de prueba con fechas coherentes, antes de agregar los `check`.
 --    Los de la base compartida no tienen cierre de inscripción y alguno podría

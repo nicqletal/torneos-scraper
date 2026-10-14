@@ -49,7 +49,6 @@ export async function updateProfile(formData: FormData) {
   if (!result.ok) backWithError(result.error, next)
 
   revalidatePath('/')
-  revalidatePath('/torneos')
   revalidatePath('/perfil')
   revalidatePath(`/organizadores/${user.id}`)
 

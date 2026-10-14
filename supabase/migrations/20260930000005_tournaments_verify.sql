@@ -69,9 +69,7 @@ end $$;
 --
 -- Un torneo ajeno y uno que no existe dan el mismo error, para no confirmar
 -- que existe un torneo con ese id. Un Finalizado no se verifica: ya no tiene
--- que confirmar que sigue en pie (el panel ni muestra el botón). Los torneos
--- copiados (sin organizador) los va a verificar el administrador cuando
--- exista ese rol; hoy `user_id` es null y nadie los puede verificar.
+-- que confirmar que sigue en pie (el panel ni muestra el botón).
 
 create or replace function public.verify_tournament(tournament_id uuid)
 returns timestamptz

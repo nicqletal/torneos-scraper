@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Plus, Users, Crown, ArrowLeft, Pencil, ArrowRight } from 'lucide-react'
+import { Plus, Users, Crown, Pencil, ArrowRight } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { TeamCrest } from '@/components/TeamCrest'
+import { BackLink } from '@/components/BackLink'
 import { levelLabel } from '@/utils/teams'
 import { modalityLabel } from '@/utils/modality'
 
@@ -39,9 +40,8 @@ export default async function MisEquiposPage() {
 
   return (
     <div className="max-w-3xl w-full mx-auto flex flex-col gap-8">
-      <Link href="/torneos" className="ui-action inline-flex items-center gap-2 w-fit text-foreground/80 hover:text-brand-lime">
-        <ArrowLeft className="w-5 h-5" /> Inicio
-      </Link>
+      <BackLink href="/" label="Volver al catálogo" />
+
       <div className="border-b border-brand-border pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-4xl md:text-5xl font-display tracking-wider text-foreground uppercase leading-none">Mis equipos</h1>
