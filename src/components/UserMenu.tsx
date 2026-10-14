@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useId } from 'react'
 import Link from 'next/link'
 import { logout } from '@/app/login/actions'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LogOut, ChevronDown, List, UserRound, Users } from 'lucide-react'
+import { LogOut, ChevronDown, List, UserRound, Users, Plus } from 'lucide-react'
 
 interface UserMenuProps {
   email: string
@@ -13,6 +13,7 @@ interface UserMenuProps {
 export function UserMenu({ email }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const menuId = useId()
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -21,7 +22,14 @@ export function UserMenu({ email }: UserMenuProps) {
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setIsOpen(false)
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
   }, [])
 
   const initial = email ? email[0].toUpperCase() : 'U'
@@ -29,21 +37,26 @@ export function UserMenu({ email }: UserMenuProps) {
   return (
     <div className="relative" ref={menuRef}>
       <button
+        type="button"
+        aria-label="Mi cuenta"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? menuId : undefined}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-sm bg-brand-surface hover:bg-brand-secondary border border-brand-border text-white transition-colors cursor-pointer"
+        className="ui-action flex items-center gap-2 px-3 py-1.5 rounded-sm bg-brand-surface hover:bg-brand-secondary border border-brand-border text-foreground transition-colors cursor-pointer"
       >
-        <div className="w-6 h-6 rounded-sm bg-brand-lime flex items-center justify-center font-bold text-brand-bg text-xs">
+        <div className="w-6 h-6 rounded-sm bg-brand-lime flex items-center justify-center font-bold text-brand-bg text-sm">
           {initial}
         </div>
         <span className="text-sm font-semibold tracking-wide font-sans hidden sm:inline max-w-[140px] truncate">
           {email.split('@')[0]}
         </span>
-        <ChevronDown className={`w-4 h-4 text-white/60 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-foreground/60 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id={menuId}
             initial={{ opacity: 0, scale: 0.95, y: 5 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 5 }}
@@ -53,7 +66,7 @@ export function UserMenu({ email }: UserMenuProps) {
             <Link
               href="/perfil"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-white/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
+              className="ui-action flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
             >
               <UserRound className="w-4 h-4" />
               Mi perfil
@@ -62,7 +75,7 @@ export function UserMenu({ email }: UserMenuProps) {
             <Link
               href="/mis-equipos"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-white/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
+              className="ui-action flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
             >
               <Users className="w-4 h-4" />
               Mis equipos
@@ -71,19 +84,25 @@ export function UserMenu({ email }: UserMenuProps) {
             <Link
               href="/mis-torneos"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-white/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
+              className="ui-action flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
             >
               <List className="w-4 h-4" />
               Mis torneos
             </Link>
             
+            <Link href="/crear-torneo" onClick={() => setIsOpen(false)}
+              className="ui-action flex items-center gap-2.5 px-4 py-2.5 text-sm text-brand-lime hover:text-brand-bg hover:bg-brand-lime transition-colors">
+              <Plus className="w-4 h-4" aria-hidden="true" />
+              Cargar torneo
+            </Link>
+
             <div className="h-px bg-brand-border my-1" />
             
             <form action={logout}>
               <button
                 type="submit"
                 onClick={() => setIsOpen(false)}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-red-400 hover:text-white hover:bg-red-600 transition-colors text-left cursor-pointer"
+                className="ui-action w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-brand-red hover:text-foreground hover:bg-brand-red transition-colors text-left cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 Cerrar sesión

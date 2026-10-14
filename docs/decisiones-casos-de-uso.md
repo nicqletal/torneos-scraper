@@ -20,7 +20,7 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 
 | Qué | Por qué |
 |---|---|
-| "Elegir perfil de entrada" (Jugar / Organizar) | Se reemplaza por una portada fija y el botón "Soy organizador" |
+| "Elegir perfil de entrada" (Jugar / Organizar) | Una sola cuenta, vista de jugador predeterminada y botón "Soy organizador" |
 | Botón "Anotar mi equipo" del capitán | La inscripción la carga el organizador |
 | El organizador ve el WhatsApp del capitán | Ya lo tiene: el capitán le escribió |
 | Grilla de disponibilidad del equipo (mañana/tarde/noche) | No se traducía a horas; la reemplaza "copiar horarios de la última búsqueda" |
@@ -35,7 +35,11 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 
 - **Una sola cuenta por persona.** Con ella se puede ser jugador, capitán y organizador a la vez.
 - **Registro:** pide email, contraseña y **nombre** (el nombre es público, así que no se deriva del email). Se entra directo, sin confirmar el email. El único mail que manda la app es el de "Olvidé mi contraseña". El SMTP gratis de Supabase manda muy pocos por hora: alcanza para la entrega, pero con usuarios reales hace falta un servicio aparte (por ejemplo, Resend).
-- **Portada:** `/` es siempre la vista de jugador (catálogo). La barra superior tiene "Soy organizador" (lleva al panel de organizador y pide sesión) y "Volver a jugador".
+- **Entrada (acuerdo del 14/10/2026):** al visitar `/` sin sesión ni elección previa de invitado, se muestra `/login`, con iniciar sesión, registrarse y entrar como invitado. Una sesión autenticada o la elección de invitado llevan directamente al catálogo, sin pedir nuevamente el acceso. Una cuenta existente que abre `/login` continúa al destino interno indicado, o al catálogo si no lo hay.
+- **Invitado:** no se crea una cuenta ni una sesión anónima de Supabase. Su elección se recuerda durante la sesión de navegación, sin habilitar ninguna gestión privada. Al iniciar sesión, registrarse correctamente o cerrar sesión se retira esa preferencia. Cerrar sesión vuelve al acceso.
+- **Catálogo público:** vive en `/torneos`, mantiene los filtros en la URL y se puede abrir directamente sin pasar por `/login`. Los links filtrados anteriores (`/?…`) conservan sus parámetros y redirigen al catálogo. Las fichas públicas de equipos, torneos y organizadores siguen accesibles sin sesión.
+- **Navbar:** Torneos, Mis equipos y Soy organizador (lleva al panel de organizador). Los dos últimos piden sesión si no la hay, conservando el destino. Mi perfil, Mis torneos, Cargar torneo y Cerrar sesión quedan en el menú de cuenta. Administración aparece solo con sesión y rol confirmado en el servidor; ocultar el enlace no reemplaza los controles de acceso.
+- **Pantallas de acceso:** `/login` (incluido registro) y `/admin/login` no muestran la navbar ni el footer del sitio; conservan el fondo y sus formularios. El acceso general incluye un enlace discreto al acceso de administrador.
 - **Perfil:** nombre, foto (JPG/PNG/WebP, máx. 2 MB), zona y **WhatsApp**. El WhatsApp es opcional, pero obligatorio para crear un equipo o tomar la capitanía. Se guarda solo con dígitos, en formato argentino de celular (`549` + 10 dígitos), que es lo que pide `wa.me`.
   - Cada foto nueva reemplaza a la anterior; no hay una galería. Se retira la anterior de Storage después de guardar la nueva URL. Si el guardado falla, se conserva la anterior y se intenta retirar la subida nueva.
 - **El rol de administrador no se puede editar desde la app.** Se asigna a mano en la base. El usuario edita nombre, foto, zona y WhatsApp, y nunca el rol.
@@ -113,9 +117,15 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
   - Si quien lo abre ya está en el plantel, no hay error: lo lleva a la página del equipo.
   - Un usuario suspendido puede sumarse a un equipo, pero no puede recibir la capitanía.
 - **Editar:** solo el capitán (nombre, escudo, zona, modalidad, nivel).
+- **Escudo:** se puede subir al crear, reemplazar o quitar al editar. Dejar
+  vacío el archivo conserva el actual. Un equipo disuelto conserva su escudo.
 - **Salir:** cualquier jugador. El capitán primero tiene que pasar la capitanía.
 - **Sacar a un jugador:** el capitán puede sacar a cualquiera.
 - **Disolver:** el equipo **no se borra**. Queda "disuelto", con su página pública y su historia. No puede buscar rival ni recibir inscripciones. No se puede disolver con un partido acordado pendiente. Las propuestas pendientes se cancelan. No se reactiva: si vuelven, crean un equipo nuevo.
+  - **Etapa actual (14/10/2026):** se implementa la disolución del módulo de
+    equipos, conservando plantel y escudo e invalidando invitaciones. Los
+    controles por partidos y la cancelación de propuestas se integrarán cuando
+    existan esas tablas; estas reglas siguen vigentes.
 
 ## Partidos
 
@@ -167,6 +177,8 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 
 ## Administración
 
+- **Acceso diferenciado (14/10/2026):** `/admin/login` usa la misma cuenta de Supabase; exige que `is_admin()` confirme el rol en el servidor. No hay registro de administradores ni selección de rol en el formulario. El rol sigue asignándose manualmente en `public.admins`, nunca desde la app. Una cuenta común que se autentica aquí conserva su sesión normal, pero recibe acceso denegado al backoffice. Si no se puede verificar el rol, también se deniega el acceso.
+- **Backoffice inicial:** `/admin` muestra el resumen y `/admin/seguridad` muestra el acceso de la cuenta actual, ambos con comprobación de sesión y rol junto a sus datos. Sidebar propia, desplegable en móvil, sin navbar ni footer del catálogo. Usuarios, contenido, reportes, actividad, soporte, avisos y configuración se señalan como etapas pendientes, sin enlaces ni acciones ficticias. Alcance y verificación en [acceso-administrador.md](acceso-administrador.md).
 - **Panel de administración** (solo para el rol administrador):
   - tablero con números
   - reportes pendientes
@@ -215,6 +227,15 @@ Esta tabla es la base de las reglas de acceso (RLS) de la base de datos.
 ---
 
 ## Pendientes técnicos (no son de producto, se resuelven al programar)
+
+- **Entrada y navbar (14/10/2026):** rutas públicas, preferencia de invitado y
+  verificación en [entrada-y-navbar.md](entrada-y-navbar.md). El acceso
+  diferenciado de administrador y la sidebar siguen en la etapa siguiente.
+
+- **Gestión de equipos y diseño (14/10/2026):** acuerdos de edición,
+  disolución, escudos, navegación y legibilidad en
+  [mejoras-equipos-ux.md](mejoras-equipos-ux.md). La disolución se integra con
+  partidos y propuestas cuando exista ese módulo.
 
 - **Migraciones versionadas en el repo** (`supabase/migrations/`). Hoy el esquema vive solo en el dashboard de Supabase.
 - **Estados de torneo y partido calculados, no guardados.** El prototipo guarda `status: 'abierto'` a mano en `crear-torneo`, y eso hay que cambiarlo.

@@ -50,17 +50,17 @@ export default async function EditarTorneoPage({ params }: EditarTorneoProps) {
     <div className="max-w-3xl mx-auto flex flex-col gap-8">
       <Link
         href="/mis-torneos"
-        className="inline-flex items-center gap-2 text-xs font-display font-bold uppercase tracking-wider text-white/50 hover:text-brand-lime transition-colors w-fit group"
+        className="ui-action inline-flex items-center gap-2 text-sm font-display font-bold uppercase tracking-wider text-foreground/70 hover:text-brand-lime transition-colors w-fit group"
       >
         <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
         <span>Volver a mis torneos</span>
       </Link>
 
       <div className="border-b border-brand-border pb-6 flex flex-col gap-2">
-        <h1 className="text-5xl font-display tracking-widest font-bold text-white uppercase leading-none">
+        <h1 className="text-5xl font-display tracking-widest font-bold text-foreground uppercase leading-none">
           Editar torneo
         </h1>
-        <p className="text-white/60 text-xs tracking-wider uppercase font-mono">
+        <p className="text-foreground/60 text-sm tracking-wider uppercase font-sans">
           Editar no cuenta como confirmar que sigue vigente.
         </p>
       </div>

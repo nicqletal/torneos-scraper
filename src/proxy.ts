@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { ADMIN_LOGIN_PATH, isProtectedAdminPath } from '@/utils/admin-access'
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -15,7 +16,7 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -33,27 +34,39 @@ export async function proxy(request: NextRequest) {
 
   // --- First layer: routes that require any session ---
   // Optimistic check only: each page and Server Action verifies the session again
-  const protectedPrefixes = ['/admin', '/crear-torneo', '/mis-torneos', '/perfil', '/crear-equipo', '/mis-equipos']
-  const isProtectedRoute = protectedPrefixes.some((prefix) => request.nextUrl.pathname.startsWith(prefix))
+  const pathname = request.nextUrl.pathname
+  const adminRoute = isProtectedAdminPath(pathname)
+  const protectedPrefixes = ['/crear-torneo', '/mis-torneos', '/perfil', '/crear-equipo', '/mis-equipos']
+  const isProtectedRoute = adminRoute || protectedPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
+
+  function redirectWithCookies(url: URL) {
+    const response = NextResponse.redirect(url)
+    // No perder cookies renovadas al redirigir desde el proxy.
+    for (const cookie of supabaseResponse.cookies.getAll()) response.cookies.set(cookie)
+    return response
+  }
 
   if (!user && isProtectedRoute) {
     // Redirect to login page and preserve the original URL in the `next` query parameter
     const loginUrl = request.nextUrl.clone()
-    loginUrl.pathname = '/login'
-    loginUrl.searchParams.set('next', request.nextUrl.pathname)
-    return NextResponse.redirect(loginUrl)
+    loginUrl.pathname = adminRoute ? ADMIN_LOGIN_PATH : '/login'
+    loginUrl.search = ''
+    loginUrl.searchParams.set('next', `${pathname}${request.nextUrl.search}`)
+    return redirectWithCookies(loginUrl)
   }
 
   // --- Second layer: /admin requires the admin role ---
   // Calls is_admin(), a security-definer RPC that reads the `admins` table
-  // without exposing it through the API. Non-admins land on home silently.
-  if (user && request.nextUrl.pathname.startsWith('/admin')) {
-    const { data: isAdmin } = await supabase.rpc('is_admin')
-    if (!isAdmin) {
+  // without exposing it through the API. /admin/login is the public access form.
+  if (user && adminRoute) {
+    const { data: isAdmin, error } = await supabase.rpc('is_admin')
+    if (error || isAdmin !== true) {
       const homeUrl = request.nextUrl.clone()
-      homeUrl.pathname = '/'
+      homeUrl.pathname = ADMIN_LOGIN_PATH
       homeUrl.search = ''
-      return NextResponse.redirect(homeUrl)
+      homeUrl.searchParams.set('error', error ? 'unavailable' : 'denied')
+      homeUrl.searchParams.set('next', `${pathname}${request.nextUrl.search}`)
+      return redirectWithCookies(homeUrl)
     }
   }
 

@@ -54,6 +54,7 @@ export async function createTournament(
   const flyerFailed = flyer.file !== null && !(await uploadFlyer(supabase, data.id, flyer.file))
 
   revalidatePath('/')
+  revalidatePath('/torneos')
   revalidatePath('/mis-torneos')
   redirect(`/torneos/${data.id}?publicado=1${flyerFailed ? '&flyer=fallo' : ''}`)
 }

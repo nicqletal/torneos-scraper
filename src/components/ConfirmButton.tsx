@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { useFormStatus } from 'react-dom'
 
 // Submit button that asks for confirmation first. Lives inside a <form action>.
 export function ConfirmButton({
@@ -12,15 +13,18 @@ export function ConfirmButton({
   className?: string
   children: ReactNode
 }) {
+  const { pending } = useFormStatus()
   return (
     <button
       type="submit"
-      className={className}
+      disabled={pending}
+      aria-busy={pending}
+      className={`ui-action ${className ?? ''} disabled:opacity-60 disabled:cursor-wait`}
       onClick={(e) => {
         if (!window.confirm(message)) e.preventDefault()
       }}
     >
-      {children}
+      {pending ? 'Procesando…' : children}
     </button>
   )
 }

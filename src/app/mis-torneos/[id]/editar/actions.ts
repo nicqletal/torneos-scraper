@@ -61,6 +61,7 @@ export async function updateTournament(
   }
 
   revalidatePath('/')
+  revalidatePath('/torneos')
   revalidatePath('/mis-torneos')
   revalidatePath(`/torneos/${id}`)
   redirect(`/torneos/${id}`)

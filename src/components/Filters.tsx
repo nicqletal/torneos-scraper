@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback } from 'react'
 import { Filter, Trophy, Activity, ChevronRight } from 'lucide-react'
-import { motion } from 'framer-motion'
 import { SPORT_MODALITIES } from '@/utils/modality'
 
 export function Filters() {
@@ -21,7 +20,7 @@ export function Filters() {
       // Reset page when filters change
       params.delete('page')
       
-      router.push(`/?${params.toString()}`)
+      router.push(params.size ? `/torneos?${params.toString()}` : '/torneos')
     },
     [searchParams, router]
   )
@@ -45,14 +44,14 @@ export function Filters() {
     <div className="bg-brand-surface border border-brand-border p-5 flex flex-col gap-6">
       
       {/* Title Header */}
-      <div className="flex items-center gap-2 text-white font-display text-lg tracking-wider pb-3 border-b border-brand-border uppercase font-bold">
+      <div className="flex items-center gap-2 text-foreground font-display text-lg tracking-wider pb-3 border-b border-brand-border uppercase font-bold">
         <Filter className="w-4 h-4 text-brand-lime stroke-[2.5]" />
         <span>PANEL DE FILTROS</span>
       </div>
 
       {/* Modality Section */}
       <div className="flex flex-col gap-3">
-        <h3 className="font-display tracking-wider text-sm text-white/70 uppercase flex items-center gap-1.5 font-bold">
+        <h3 className="font-sans text-base text-foreground/80 flex items-center gap-2 font-semibold">
           <Trophy className="w-4 h-4 text-brand-lime" />
           MODALIDAD DE JUEGO
         </h3>
@@ -64,17 +63,17 @@ export function Filters() {
               <button
                 key={mod.value}
                 onClick={() => updateFilter('modality', mod.value)}
-                className={`relative w-full text-left px-3.5 py-2.5 text-sm font-display tracking-wider uppercase transition-all duration-150 flex items-center justify-between border cursor-pointer ${
+                className={`ui-action relative w-full text-left px-3.5 py-2.5 text-base font-sans transition-all duration-150 flex items-center justify-between border cursor-pointer ${
                   isActive
                     ? 'bg-brand-lime text-brand-bg border-brand-lime font-bold'
-                    : 'bg-brand-secondary/40 text-white/80 hover:text-white border-brand-border hover:bg-brand-secondary'
+                    : 'bg-brand-secondary/40 text-foreground/80 hover:text-foreground border-brand-border hover:bg-brand-secondary'
                 }`}
               >
                 <span>{mod.label}</span>
                 {isActive ? (
                   <ChevronRight className="w-4 h-4 stroke-[3]" />
                 ) : (
-                  <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/20" />
                 )}
               </button>
             )
@@ -84,7 +83,7 @@ export function Filters() {
 
       {/* Status Section */}
       <div className="flex flex-col gap-3">
-        <h3 className="font-display tracking-wider text-sm text-white/70 uppercase flex items-center gap-1.5 font-bold">
+        <h3 className="font-sans text-base text-foreground/80 flex items-center gap-2 font-semibold">
           <Activity className="w-4 h-4 text-brand-lime" />
           ESTADO DE INSCRIPCIÓN
         </h3>
@@ -96,17 +95,17 @@ export function Filters() {
               <button
                 key={status.value}
                 onClick={() => updateFilter('status', status.value)}
-                className={`relative w-full text-left px-3.5 py-2.5 text-sm font-display tracking-wider uppercase transition-all duration-150 flex items-center justify-between border cursor-pointer ${
+                className={`ui-action relative w-full text-left px-3.5 py-2.5 text-base font-sans transition-all duration-150 flex items-center justify-between border cursor-pointer ${
                   isActive
                     ? 'bg-brand-lime text-brand-bg border-brand-lime font-bold'
-                    : 'bg-brand-secondary/40 text-white/80 hover:text-white border-brand-border hover:bg-brand-secondary'
+                    : 'bg-brand-secondary/40 text-foreground/80 hover:text-foreground border-brand-border hover:bg-brand-secondary'
                 }`}
               >
                 <span>{status.label}</span>
                 {isActive ? (
                   <ChevronRight className="w-4 h-4 stroke-[3]" />
                 ) : (
-                  <span className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/20" />
                 )}
               </button>
             )

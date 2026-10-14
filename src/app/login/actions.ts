@@ -2,15 +2,23 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
-import { safeNextPath } from '@/utils/safe-next-path'
+import { CATALOG_PATH, GUEST_COOKIE, guestCookieOptions, loginDestination } from '@/utils/entry-navigation'
+
+export async function enterAsGuest() {
+  const cookieStore = await cookies()
+  cookieStore.set(GUEST_COOKIE, '1', guestCookieOptions(process.env.NODE_ENV === 'production'))
+  // No se crea una cuenta ni una sesión anónima de Supabase.
+  redirect(CATALOG_PATH)
+}
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
-  const nextUrl = safeNextPath(formData.get('next'))
+  const nextUrl = loginDestination(formData.get('next'))
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -24,6 +32,8 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
+  const cookieStore = await cookies()
+  cookieStore.delete(GUEST_COOKIE)
   redirect(nextUrl)
 }
 
@@ -33,7 +43,7 @@ export async function signup(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const displayName = ((formData.get('display_name') as string) || '').trim()
-  const nextUrl = safeNextPath(formData.get('next'))
+  const nextUrl = loginDestination(formData.get('next'))
 
   // Same rule as the check on profiles.display_name. Validating here avoids
   // the generic "Database error saving new user" from the trigger.
@@ -56,12 +66,16 @@ export async function signup(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
+  const cookieStore = await cookies()
+  cookieStore.delete(GUEST_COOKIE)
   redirect(nextUrl)
 }
 
 export async function logout() {
   const supabase = await createClient()
   await supabase.auth.signOut({ scope: 'local' })
+  const cookieStore = await cookies()
+  cookieStore.delete(GUEST_COOKIE)
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect('/login')
 }

@@ -63,12 +63,12 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
         <div className="absolute inset-0 bg-gradient-to-t from-brand-surface via-transparent to-transparent opacity-90" />
         
         <div className="absolute top-3 left-3">
-          <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest border font-display rounded-sm ${statusStyles[tournament.status]}`}>
+          <span className={`px-2.5 py-1 text-sm font-bold uppercase tracking-widest border font-sans rounded-sm ${statusStyles[tournament.status]}`}>
             {statusLabels[tournament.status]}
           </span>
         </div>
 
-        <div className="absolute bottom-3 right-3 text-[10px] text-white/50 bg-brand-bg/80 px-2 py-0.5 border border-brand-border rounded-sm backdrop-blur-xs font-mono">
+        <div className="absolute bottom-3 right-3 text-sm text-foreground/70 bg-brand-bg/80 px-2 py-0.5 border border-brand-border rounded-sm backdrop-blur-xs font-mono">
           REF: #{tournament.id.slice(0, 5).toUpperCase()}
         </div>
       </div>
@@ -81,15 +81,15 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
           <span className="font-display text-4xl text-brand-lime/30 tracking-wider select-none leading-none mr-3 border-r border-brand-border/40 pr-3 font-bold">
             {scoreboardIndex}
           </span>
-          <h3 className="text-3xl tracking-wide text-white line-clamp-2 uppercase font-display leading-none flex-1">
+          <h3 className="text-3xl tracking-wide text-foreground line-clamp-2 uppercase font-display leading-none flex-1">
             {tournament.name}
           </h3>
         </div>
 
         {/* Tabular Sports Metrics Layout */}
-        <div className="grid grid-cols-2 gap-px bg-brand-border/60 border border-brand-border/60 mb-5 text-sm text-white/90">
+        <div className="grid grid-cols-2 gap-px bg-brand-border/60 border border-brand-border/60 mb-5 text-sm text-foreground/90">
           <div className="bg-brand-surface p-2.5 flex flex-col gap-1">
-            <span className="text-xs uppercase text-white/50 tracking-wider font-mono">Zona</span>
+            <span className="text-sm uppercase text-foreground/70 tracking-wider font-sans">Zona</span>
             {/* "Zona · Corredor" puede ser largo: que baje de línea en vez de cortarse */}
             <span className="font-semibold flex items-start gap-1 leading-snug">
               <MapPin className="w-3.5 h-3.5 mt-px text-brand-lime shrink-0" />
@@ -98,7 +98,7 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
           </div>
 
           <div className="bg-brand-surface p-2.5 flex flex-col gap-1">
-            <span className="text-xs uppercase text-white/50 tracking-wider font-mono">Modalidad</span>
+            <span className="text-sm uppercase text-foreground/70 tracking-wider font-sans">Modalidad</span>
             <span className="font-semibold flex items-center gap-1 truncate">
               <Users className="w-3.5 h-3.5 text-brand-lime shrink-0" />
               {modalityLabel(tournament.sport_modality)}
@@ -110,15 +110,15 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
         <div className="mt-auto pt-4 border-t border-brand-border flex items-center justify-between gap-2">
           <div className="flex flex-col items-start">
             {verification && (
-              <VerificationBadge age={verification} className="text-[10px] tracking-wider px-2 py-0.5" />
+              <VerificationBadge age={verification} className="text-sm tracking-wider px-2 py-0.5" />
             )}
-            <span className="text-lg font-bold text-white font-mono mt-1">
+            <span className="text-lg font-bold text-foreground font-mono mt-1">
               {priceLabel(tournament.price)}
             </span>
           </div>
 
           {/* Ya no es un link aparte (no se anidan links): se ilumina con el hover de la card */}
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand-border text-white text-sm font-bold uppercase tracking-wider rounded-sm transition-colors font-display group-hover:bg-brand-lime group-hover:text-brand-bg shadow-sm">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand-border text-foreground text-sm font-bold uppercase tracking-wider rounded-sm transition-colors font-sans group-hover:bg-brand-lime group-hover:text-brand-bg shadow-sm">
             Ficha
             <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
           </span>

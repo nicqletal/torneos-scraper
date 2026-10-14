@@ -27,6 +27,7 @@ export async function verifyTournament(formData: FormData) {
   }
 
   revalidatePath('/')
+  revalidatePath('/torneos')
   revalidatePath('/mis-torneos')
   revalidatePath(`/torneos/${id}`)
 }
@@ -62,6 +63,7 @@ export async function withdrawTournament(id: string): Promise<{ error: string } 
   await removeFlyer(supabase, id)
 
   revalidatePath('/')
+  revalidatePath('/torneos')
   revalidatePath('/mis-torneos')
   revalidatePath(`/torneos/${id}`)
 }

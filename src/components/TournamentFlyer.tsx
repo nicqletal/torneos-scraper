@@ -27,7 +27,7 @@ export function TournamentFlyer({ imageUrl, name, sizes, priority, className, fi
         className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-brand-secondary bg-[repeating-linear-gradient(135deg,transparent_0_18px,var(--color-brand-border)_18px_19px)]"
       >
         <Trophy className="w-10 h-10 text-brand-lime/40" aria-hidden />
-        <span className="font-display tracking-widest uppercase text-xs text-white/30">Sin flyer</span>
+        <span className="font-sans tracking-widest uppercase text-sm text-foreground/70">Sin flyer</span>
       </div>
     )
   }

@@ -33,12 +33,12 @@ export function WithdrawButton({
             if (result?.error) setError(result.error)
           })
         }}
-        className={`${className} hover:text-brand-red hover:border-brand-red cursor-pointer disabled:opacity-40 disabled:cursor-wait`}
+        className={`ui-action ${className} hover:text-brand-red hover:border-brand-red cursor-pointer disabled:opacity-40 disabled:cursor-wait`}
       >
         <Ban className="w-3.5 h-3.5" />
         {isPending ? 'Dando de baja…' : 'Dar de baja'}
       </button>
-      {error && <p role="alert" className="animate-enter text-[11px] font-mono uppercase text-brand-red">{error}</p>}
+      {error && <p role="alert" className="animate-enter text-sm font-sans uppercase text-brand-red">{error}</p>}
     </div>
   )
 }

@@ -40,7 +40,7 @@ export async function TournamentList({
     console.error('Error fetching tournaments:', error)
     return (
       <div className="p-8 border border-red-500/30 bg-red-950/20 text-center rounded-sm">
-        <p className="text-red-400 font-display text-sm tracking-wider uppercase">
+        <p className="text-brand-red font-sans text-sm tracking-wider uppercase">
           Hubo un error al cargar los torneos deportivos.
         </p>
       </div>
@@ -53,10 +53,10 @@ export async function TournamentList({
         <div className="w-12 h-12 bg-brand-secondary border border-brand-border flex items-center justify-center mb-4">
           <HelpCircle className="w-6 h-6 text-brand-lime" />
         </div>
-        <h3 className="text-xl font-bold font-display tracking-wider text-white mb-2 uppercase">
+        <h3 className="text-xl font-bold font-display tracking-wider text-foreground mb-2 uppercase">
           No hay torneos registrados
         </h3>
-        <p className="text-white/50 max-w-sm text-xs leading-relaxed">
+        <p className="text-foreground/70 max-w-sm text-sm leading-relaxed">
           No encontramos torneos que coincidan con tus filtros. Probá cambiando las opciones en el panel lateral o limpiando los filtros de búsqueda.
         </p>
       </div>

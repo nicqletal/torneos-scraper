@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
         port: supabaseUrl.port,
         pathname: '/storage/v1/object/public/avatars/**',
       },
+      {
+        protocol: supabaseUrl.protocol === 'http:' ? 'http' : 'https',
+        hostname: supabaseUrl.hostname,
+        port: supabaseUrl.port,
+        pathname: '/storage/v1/object/public/team-crests/**',
+      },
     ],
   },
   experimental: {
