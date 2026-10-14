@@ -6,14 +6,18 @@
 -- otro, editar y dar de baja torneos ajenos. Se borran todas y se vuelven a
 -- crear una por operación, con nombres que siguen la convención del resto del esquema.
 
-drop policy "Lectura publica de torneos"                    on public.tournaments;
-drop policy "Permitir lectura pública"                      on public.tournaments;
-drop policy "Solo usuarios logueados pueden crear torneos"  on public.tournaments;
-drop policy "Solo usuarios logueados pueden editar torneos" on public.tournaments;
-drop policy "Solo usuarios logueados pueden borrar torneos" on public.tournaments;
-drop policy "Usuarios autenticados insertan sus torneos"     on public.tournaments;
-drop policy "Usuarios pueden actualizar sus propios torneos" on public.tournaments;
-drop policy "Usuarios pueden borrar sus propios torneos"     on public.tournaments;
+drop policy if exists "Lectura publica de torneos"                    on public.tournaments;
+drop policy if exists "Permitir lectura pública"                      on public.tournaments;
+drop policy if exists "Solo usuarios logueados pueden crear torneos"  on public.tournaments;
+drop policy if exists "Solo usuarios logueados pueden editar torneos" on public.tournaments;
+drop policy if exists "Solo usuarios logueados pueden borrar torneos" on public.tournaments;
+drop policy if exists "Usuarios autenticados insertan sus torneos"     on public.tournaments;
+drop policy if exists "Usuarios pueden actualizar sus propios torneos" on public.tournaments;
+drop policy if exists "Usuarios pueden borrar sus propios torneos"     on public.tournaments;
+drop policy if exists "tournaments: lectura pública"                   on public.tournaments;
+drop policy if exists "tournaments: el organizador crea los suyos"     on public.tournaments;
+drop policy if exists "tournaments: el organizador edita los suyos"    on public.tournaments;
+drop policy if exists "tournaments: el organizador da de baja los suyos" on public.tournaments;
 
 create policy "tournaments: lectura pública"
   on public.tournaments for select to anon, authenticated

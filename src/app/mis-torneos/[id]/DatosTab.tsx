@@ -17,7 +17,7 @@ interface DatosTabProps {
 export async function DatosTab({ id, formColumns, inscriptionsCount, hasFlyer }: DatosTabProps) {
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-white/50 text-xs leading-relaxed">
+      <p className="text-foreground/70 text-xs leading-relaxed">
         Editar los datos no cuenta como confirmar que el torneo sigue vigente.
       </p>
 

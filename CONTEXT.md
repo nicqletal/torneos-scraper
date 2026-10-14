@@ -20,6 +20,10 @@ _Avoid_: barrio, localidad (como términos del sistema)
 
 ### Roles y vistas
 
+**Invitado**:
+Persona que navega sin iniciar sesión; puede consultar el catálogo y las fichas públicas, pero no gestionar equipos ni torneos.
+_Avoid_: cuenta de invitado, usuario anónimo registrado
+
 **Organizador**:
 Usuario que publicó al menos un torneo y lo gestiona desde su **Panel de organizador**.
 _Avoid_: dueño, admin

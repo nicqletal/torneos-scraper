@@ -38,7 +38,7 @@ export function verificationAge(
 }
 
 export const verificationStyles: Record<VerificationLevel, string> = {
-  al_dia: 'text-white/50 border-brand-border',
+  al_dia: 'text-foreground/70 border-brand-border',
   ambar: 'text-brand-amber border-brand-amber/40 bg-brand-amber/5',
   sin_confirmar: 'text-brand-red border-brand-red/40 bg-brand-red/5',
 }

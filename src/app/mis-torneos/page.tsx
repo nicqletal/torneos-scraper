@@ -31,7 +31,7 @@ export default async function MisTorneosPage() {
     console.error(error)
     return (
       <div className="max-w-4xl mx-auto p-8 border border-brand-red/40 bg-brand-red/5 text-center rounded-sm">
-        <p className="text-brand-red font-display text-sm tracking-wider uppercase">
+        <p className="text-brand-red font-sans text-sm tracking-wider uppercase">
           No pudimos cargar tus torneos. Probá de nuevo.
         </p>
       </div>
@@ -57,10 +57,10 @@ export default async function MisTorneosPage() {
 
       <div className="border-b border-brand-border pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="flex flex-col gap-2">
-          <h1 className="text-5xl font-display tracking-widest font-bold text-white uppercase leading-none">
+          <h1 className="text-5xl font-display tracking-widest font-bold text-foreground uppercase leading-none">
             Mis torneos
           </h1>
-          <p className="text-white/60 text-sm leading-relaxed max-w-xl">
+          <p className="text-foreground/60 text-sm leading-relaxed max-w-xl">
             Tocá “Sigue vigente” para confirmar que un torneo está en pie: a los 30 días sin
             confirmar se marca en ámbar y a los 60, en rojo como “sin confirmar”.
           </p>
@@ -68,7 +68,7 @@ export default async function MisTorneosPage() {
 
         <Link
           href="/crear-torneo"
-          className="press inline-flex items-center justify-center gap-2 px-4 py-3 bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm"
+          className="ui-action press inline-flex items-center justify-center gap-2 px-4 py-3 bg-brand-lime hover:bg-foreground text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm"
         >
           <Plus className="w-4 h-4" />
           Publicar torneo
@@ -89,10 +89,10 @@ export default async function MisTorneosPage() {
               >
                 <div className="flex-1 min-w-0 flex flex-col gap-3">
                   <div className="flex flex-col gap-1">
-                    <h2 className="text-2xl font-display font-bold tracking-wider text-white uppercase leading-tight">
+                    <h2 className="text-2xl font-display font-bold tracking-wider text-foreground uppercase leading-tight">
                       {tournament.name}
                     </h2>
-                    <p className="text-xs text-white/50 font-mono uppercase">
+                    <p className="text-xs text-foreground/70 font-mono uppercase">
                       {zoneLabel(tournament.zones)} · {modalityLabel(tournament.sport_modality)}
                     </p>
                   </div>
@@ -101,7 +101,7 @@ export default async function MisTorneosPage() {
                     <span className={`px-2.5 py-1 border font-display font-bold tracking-widest rounded-sm ${statusStyles[tournament.status]}`}>
                       {statusLabels[tournament.status]}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-brand-border text-white/70 rounded-sm">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-brand-border text-foreground/70 rounded-sm">
                       <Users className="w-3.5 h-3.5 text-brand-lime" />
                       {inscriptionsLabel(tournament.inscriptions_count, tournament.capacity)}
                     </span>
@@ -129,15 +129,15 @@ export default async function MisTorneosPage() {
       ) : (
         <div className="p-12 bg-brand-surface border border-dashed border-brand-border rounded-sm text-center flex flex-col items-center gap-4">
           <Trophy className="w-12 h-12 text-brand-lime/40 stroke-1" />
-          <h2 className="text-2xl font-display font-bold tracking-wider text-white uppercase">
+          <h2 className="text-2xl font-display font-bold tracking-wider text-foreground uppercase">
             Todavía no publicaste torneos
           </h2>
-          <p className="text-white/50 text-sm max-w-sm">
+          <p className="text-foreground/70 text-sm max-w-sm">
             Publicalo acá y los equipos te van a contactar por WhatsApp o Instagram.
           </p>
           <Link
             href="/crear-torneo"
-            className="press px-6 py-3 bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm"
+            className="ui-action press px-6 py-3 bg-brand-lime hover:bg-foreground text-brand-bg font-display font-bold uppercase tracking-wider rounded-sm"
           >
             Publicar mi primer torneo
           </Link>

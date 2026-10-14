@@ -5,7 +5,7 @@
 -- calculada: supabase.from('teams').select('id, name, player_count').
 -- security definer porque cuenta filas de team_members que quien consulta
 -- no puede ver; solo devuelve el número, nunca quiénes son.
-create function public.player_count(public.teams)
+create or replace function public.player_count(public.teams)
 returns integer
 language sql
 stable

@@ -3,7 +3,7 @@
 -- join_team, son la única forma de modificar team_members.
 
 -- Salir del equipo. El capitán primero tiene que pasar la capitanía.
-create function public.leave_team(p_team_id uuid)
+create or replace function public.leave_team(p_team_id uuid)
 returns void
 language plpgsql
 security definer
@@ -39,7 +39,7 @@ end;
 $$;
 
 -- Sacar a un jugador. Solo el capitán, y no a sí mismo.
-create function public.remove_team_member(p_team_id uuid, p_user_id uuid)
+create or replace function public.remove_team_member(p_team_id uuid, p_user_id uuid)
 returns void
 language plpgsql
 security definer
@@ -68,7 +68,7 @@ end;
 $$;
 
 -- Pasar la capitanía a otro integrante. El capitán anterior queda como jugador.
-create function public.transfer_captaincy(p_team_id uuid, p_user_id uuid)
+create or replace function public.transfer_captaincy(p_team_id uuid, p_user_id uuid)
 returns void
 language plpgsql
 security definer

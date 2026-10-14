@@ -18,10 +18,10 @@ export default async function CrearTorneoPage() {
       <BackLink href="/mis-torneos" label="Mis torneos" />
 
       <div className="border-b border-brand-border pb-6 flex flex-col gap-2">
-        <h1 className="text-5xl font-display tracking-widest font-bold text-white uppercase leading-none">
+        <h1 className="text-5xl font-display tracking-widest font-bold text-foreground uppercase leading-none">
           Publicar torneo
         </h1>
-        <p className="text-white/60 text-xs tracking-wider uppercase font-mono">
+        <p className="text-foreground/60 text-sm tracking-wider uppercase font-sans">
           Los equipos te contactan por WhatsApp o Instagram. La inscripción la arreglás vos.
         </p>
       </div>

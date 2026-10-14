@@ -15,10 +15,10 @@ export default async function Home(props: HomeProps) {
       
       {/* Editorial Title Block */}
       <div className="border-b border-brand-border pb-6 flex flex-col gap-2">
-        <h1 className="text-5xl md:text-6xl font-display tracking-widest font-bold text-white uppercase leading-none">
+        <h1 className="text-5xl md:text-6xl font-display tracking-widest font-bold text-foreground uppercase leading-none">
           Encontrá tu próximo torneo
         </h1>
-        <p className="text-white/60 text-xs md:text-sm tracking-wider uppercase font-mono flex items-center gap-2">
+        <p className="text-foreground/60 text-xs md:text-sm tracking-wider uppercase font-mono flex items-center gap-2">
           <span className="w-2 h-2 bg-brand-lime animate-pulse rounded-full" />
           Explorá torneos de fútbol amateur • Filtrá por zona • Armá tu plantel
         </p>
@@ -55,7 +55,7 @@ export default async function Home(props: HomeProps) {
 
       {/* Captación de organizadores: al pie del catálogo, no en la barra */}
       <div className="border-t border-brand-border pt-6 flex justify-center">
-        <PublishTournamentLink className="text-sm text-white/60 hover:text-brand-lime transition-colors" />
+        <PublishTournamentLink className="text-sm text-foreground/60 hover:text-brand-lime transition-colors" />
       </div>
     </div>
   )

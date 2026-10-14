@@ -2,7 +2,7 @@
 
 -- Una fila por equipo: la clave primaria hace que haya un solo link vigente,
 -- y regenerarlo pisa la fila, con lo que el anterior deja de valer.
-create table public.team_invites (
+create table if not exists public.team_invites (
   team_id    uuid primary key references public.teams (id) on delete cascade,
   token      text not null unique,
   expires_at timestamptz not null
@@ -13,7 +13,7 @@ create table public.team_invites (
 alter table public.team_invites enable row level security;
 
 -- Genera (o reemplaza) el link del equipo. Solo el capitán de un equipo activo.
-create function public.regenerate_team_invite(p_team_id uuid)
+create or replace function public.regenerate_team_invite(p_team_id uuid)
 returns table (token text, expires_at timestamptz)
 language plpgsql
 security definer
@@ -42,7 +42,7 @@ $$;
 
 -- Devuelve el link vigente, para que el capitán lo vea al volver a la página.
 -- Sin fila o vencido no devuelve nada.
-create function public.get_team_invite(p_team_id uuid)
+create or replace function public.get_team_invite(p_team_id uuid)
 returns table (token text, expires_at timestamptz)
 language plpgsql
 stable
@@ -66,7 +66,7 @@ $$;
 
 -- Unirse con el link. Devuelve el id del equipo para redirigir a su página.
 -- Un link inexistente, vencido o de un equipo disuelto da el mismo error.
-create function public.join_team(p_token text)
+create or replace function public.join_team(p_token text)
 returns uuid
 language plpgsql
 security definer

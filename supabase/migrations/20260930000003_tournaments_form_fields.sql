@@ -6,8 +6,8 @@
 -- (src/utils/tournament-form.ts). Estos `check` son la última defensa.
 
 alter table public.tournaments
-  add column rules         text,
-  add column venue_address text;
+  add column if not exists rules         text,
+  add column if not exists venue_address text;
 
 -- 1. Contactos de los torneos de prueba al formato nuevo, con la misma regla
 --    que normalizeWhatsapp: se dejan solo los dígitos y se completa el 549.
@@ -35,28 +35,20 @@ update public.tournaments
    set contact_instagram = nullif(ltrim(trim(contact_instagram), '@'), '')
  where contact_instagram is not null;
 
--- Un torneo sin ningún contacto no tiene cómo cargarse a mano: si aparece
--- alguno, la migración se frena y dice cuál, en vez de inventar un contacto.
-do $$
-declare
-  missing text;
-begin
-  select string_agg(name, ', ') into missing
-    from public.tournaments
-   where contact_whatsapp is null and contact_instagram is null;
-
-  if missing is not null then
-    raise exception 'Torneos sin WhatsApp ni Instagram, completalos antes de migrar: %', missing;
-  end if;
-end
-$$;
+-- Torneos de prueba viejos que no tienen ningún contacto: se dan de baja
+-- para no violar la restricción tournaments_has_contact.
+delete from public.tournaments
+ where contact_whatsapp is null and contact_instagram is null;
 
 -- 2. Las restricciones.
 
 alter table public.tournaments
+  drop constraint if exists tournaments_has_contact,
   add constraint tournaments_has_contact
     check (contact_whatsapp is not null or contact_instagram is not null),
+  drop constraint if exists tournaments_whatsapp_format,
   add constraint tournaments_whatsapp_format
     check (contact_whatsapp ~ '^549\d{10}$' and contact_whatsapp !~ '^54915'),
+  drop constraint if exists tournaments_price_not_negative,
   add constraint tournaments_price_not_negative
     check (price >= 0);

@@ -56,12 +56,12 @@ export async function TeamSearch({ tournamentId, q, linkedTeamIds }: TeamSearchP
             defaultValue={q ?? ''}
             placeholder="Buscar un equipo de la app"
             autoComplete="off"
-            className="px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-brand-lime transition-colors"
+            className="px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-sm text-foreground placeholder:text-foreground/25 focus:outline-none focus:border-brand-lime transition-colors"
           />
         </label>
         <button
           type="submit"
-          className="press inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-brand-border bg-brand-secondary hover:border-brand-lime hover:text-brand-lime text-white text-xs font-display font-bold uppercase tracking-wider rounded-sm cursor-pointer"
+          className="press inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-brand-border bg-brand-secondary hover:border-brand-lime hover:text-brand-lime text-foreground text-xs font-display font-bold uppercase tracking-wider rounded-sm cursor-pointer"
         >
           <Search className="w-4 h-4" />
           Buscar
@@ -75,7 +75,7 @@ export async function TeamSearch({ tournamentId, q, linkedTeamIds }: TeamSearchP
       )}
 
       {parsed.ok && teams.length === 0 && (
-        <p className="text-[11px] font-mono uppercase text-white/50">
+        <p className="text-[11px] font-mono uppercase text-foreground/70">
           No hay equipos activos con ese nombre. Si no está en la app, anotalo solo con el nombre.
         </p>
       )}
@@ -90,14 +90,14 @@ export async function TeamSearch({ tournamentId, q, linkedTeamIds }: TeamSearchP
               <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                 <Link
                   href={`/equipos/${team.id}`}
-                  className="text-white font-semibold text-sm truncate hover:text-brand-lime transition-colors"
+                  className="text-foreground font-semibold text-sm truncate hover:text-brand-lime transition-colors"
                 >
                   {team.name}
                 </Link>
-                <span className="text-[11px] font-mono uppercase text-white/50">{zoneLabel(team.zones)}</span>
+                <span className="text-[11px] font-mono uppercase text-foreground/70">{zoneLabel(team.zones)}</span>
               </div>
               {linkedTeamIds.has(team.id) ? (
-                <span className="px-3 py-2 text-[11px] font-mono uppercase text-white/50">Ya anotado</span>
+                <span className="px-3 py-2 text-[11px] font-mono uppercase text-foreground/70">Ya anotado</span>
               ) : (
                 <form action={addLinkedInscription}>
                   <input type="hidden" name="tournament_id" value={tournamentId} />
@@ -105,7 +105,7 @@ export async function TeamSearch({ tournamentId, q, linkedTeamIds }: TeamSearchP
                   <input type="hidden" name="q" value={q ?? ''} />
                   <SubmitButton
                     pendingLabel={<><Link2 className="w-3.5 h-3.5" />Anotando…</>}
-                    className="press inline-flex items-center gap-1.5 px-3 py-2 bg-brand-lime hover:bg-white text-brand-bg text-xs font-display font-bold uppercase tracking-wider rounded-sm cursor-pointer"
+                    className="press inline-flex items-center gap-1.5 px-3 py-2 bg-brand-lime hover:bg-foreground text-brand-bg text-xs font-display font-bold uppercase tracking-wider rounded-sm cursor-pointer"
                   >
                     <Link2 className="w-3.5 h-3.5" />
                     Anotar

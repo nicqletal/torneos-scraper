@@ -29,15 +29,15 @@ interface TournamentFormProps {
   hasFlyer?: boolean
 }
 
-const labelClass = 'font-display tracking-wider text-sm text-white/60 uppercase'
-const hintClass = 'text-[11px] text-white/40 font-mono'
+const labelClass = 'font-sans tracking-wider text-sm text-foreground/60 uppercase'
+const hintClass = 'text-sm text-foreground/70 font-sans'
 const inputClass =
-  'px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-brand-lime transition-colors'
+  'px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-sm text-foreground placeholder:text-foreground/25 focus:outline-none focus:border-brand-lime transition-colors'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <fieldset className="flex flex-col gap-4">
-      <legend className="w-full font-display tracking-wider text-lg text-white uppercase border-b border-brand-border pb-2 mb-2">
+      <legend className="w-full font-sans tracking-wider text-lg text-foreground uppercase border-b border-brand-border pb-2 mb-2">
         {title}
       </legend>
       {children}
@@ -47,7 +47,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1.5">
+    <label className="ui-label flex flex-col gap-1.5">
       <span className={labelClass}>{label}</span>
       {children}
       {hint && <span className={hintClass}>{hint}</span>}
@@ -74,12 +74,12 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
     >
       <Section title="El torneo">
         <Field label="Nombre">
-          <input name="name" type="text" required defaultValue={v.name} placeholder="Copa Amistad Sabatina" className={inputClass} />
+          <input name="name" type="text" required defaultValue={v.name} placeholder="Copa Amistad Sabatina" className={`ui-input ${inputClass}`} />
         </Field>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="Modalidad">
-            <select name="sport_modality" required defaultValue={v.sport_modality} className={inputClass}>
+            <select name="sport_modality" required defaultValue={v.sport_modality} className={`ui-input ${inputClass}`}>
               {SPORT_MODALITIES.map((m) => (
                 <option key={m.value} value={m.value}>{m.label}</option>
               ))}
@@ -87,7 +87,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
           </Field>
 
           <Field label="Zona">
-            <ZoneSelectField name="zone_id" groups={zoneGroups} required defaultValue={v.zone_id} className={inputClass} />
+            <ZoneSelectField name="zone_id" groups={zoneGroups} required defaultValue={v.zone_id} className={`ui-input ${inputClass}`} />
           </Field>
         </div>
 
@@ -106,7 +106,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
             placeholder="Av. Santa Fe 3000, CABA"
             onInvalid={(e) => e.currentTarget.setCustomValidity(VENUE_ADDRESS_REQUIRED)}
             onInput={(e) => e.currentTarget.setCustomValidity('')}
-            className={inputClass}
+            className={`ui-input ${inputClass}`}
           />
         </Field>
       </Section>
@@ -115,10 +115,10 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
         <p className={hintClass}>Dejá al menos uno: es por donde te van a escribir los equipos.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="WhatsApp" hint="Con código de área y sin el 15.">
-            <input name="contact_whatsapp" type="tel" defaultValue={v.contact_whatsapp} placeholder="11 1234 5678" className={inputClass} />
+            <input name="contact_whatsapp" type="tel" defaultValue={v.contact_whatsapp} placeholder="11 1234 5678" className={`ui-input ${inputClass}`} />
           </Field>
           <Field label="Instagram" hint="Solo el usuario.">
-            <input name="contact_instagram" type="text" defaultValue={v.contact_instagram} placeholder="copa.palermo" className={inputClass} />
+            <input name="contact_instagram" type="text" defaultValue={v.contact_instagram} placeholder="copa.palermo" className={`ui-input ${inputClass}`} />
           </Field>
         </div>
       </Section>
@@ -127,22 +127,22 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
       <Section title="Fechas y cupo">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Field label="Cierre de inscripción">
-            <input name="inscription_deadline" type="date" required defaultValue={v.inscription_deadline} className={inputClass} />
+            <input name="inscription_deadline" type="date" required defaultValue={v.inscription_deadline} className={`ui-input ${inputClass}`} />
           </Field>
           <Field label="Inicio">
-            <input name="start_date" type="date" required defaultValue={v.start_date} className={inputClass} />
+            <input name="start_date" type="date" required defaultValue={v.start_date} className={`ui-input ${inputClass}`} />
           </Field>
           <Field label="Fin">
-            <input name="end_date" type="date" required defaultValue={v.end_date} className={inputClass} />
+            <input name="end_date" type="date" required defaultValue={v.end_date} className={`ui-input ${inputClass}`} />
           </Field>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="Precio (opcional)" hint="Vacío: se muestra “Consultar”. 0: “Gratis”.">
-            <input name="price" type="number" min={0} defaultValue={v.price} placeholder="45000" className={inputClass} />
+            <input name="price" type="number" min={0} defaultValue={v.price} placeholder="45000" className={`ui-input ${inputClass}`} />
           </Field>
           <Field label="Cupo (opcional)" hint="Cantidad máxima de equipos.">
-            <input name="capacity" type="number" min={1} step={1} defaultValue={v.capacity} placeholder="16" className={inputClass} />
+            <input name="capacity" type="number" min={1} step={1} defaultValue={v.capacity} placeholder="16" className={`ui-input ${inputClass}`} />
           </Field>
         </div>
       </Section>
@@ -163,7 +163,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
               setFlyerError(flyer.ok ? null : flyer.error)
               if (!flyer.ok) e.target.value = ''
             }}
-            className={`${inputClass} file:mr-3 file:px-3 file:py-1 file:border-0 file:rounded-sm file:bg-brand-lime file:text-brand-bg file:font-display file:uppercase file:tracking-wider file:cursor-pointer`}
+            className={`ui-input ${`${inputClass} file:mr-3 file:px-3 file:py-1 file:border-0 file:rounded-sm file:bg-brand-lime file:text-brand-bg file:font-sans file:uppercase file:tracking-wider file:cursor-pointer`}`}
           />
         </Field>
         {flyerError && (
@@ -173,10 +173,10 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
 
       <Section title="Más información (opcional)">
         <Field label="Descripción">
-          <textarea name="description" rows={4} defaultValue={v.description} placeholder="Premios, horarios, tercer tiempo…" className={`${inputClass} resize-y`} />
+          <textarea name="description" rows={4} defaultValue={v.description} placeholder="Premios, horarios, tercer tiempo…" className={`ui-input ${`${inputClass} resize-y`}`} />
         </Field>
         <Field label="Reglamento">
-          <textarea name="rules" rows={4} defaultValue={v.rules} placeholder="Tarjetas, cambios, duración de los partidos…" className={`${inputClass} resize-y`} />
+          <textarea name="rules" rows={4} defaultValue={v.rules} placeholder="Tarjetas, cambios, duración de los partidos…" className={`ui-input ${`${inputClass} resize-y`}`} />
         </Field>
       </Section>
 
@@ -191,7 +191,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
       <button
         type="submit"
         disabled={pending}
-        className="press inline-flex items-center justify-center gap-2 py-4 bg-brand-lime hover:bg-white disabled:opacity-60 disabled:cursor-wait text-brand-bg font-display font-bold uppercase tracking-wider text-lg rounded-sm cursor-pointer"
+        className="ui-action press inline-flex items-center justify-center gap-2 py-4 bg-brand-lime hover:bg-foreground disabled:opacity-60 disabled:cursor-wait text-brand-bg font-display font-bold uppercase tracking-wider text-lg rounded-sm cursor-pointer"
       >
         <Save className="w-5 h-5" />
         {pending ? pendingLabel : submitLabel}

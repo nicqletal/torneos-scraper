@@ -18,6 +18,7 @@
   --color-brand-surface: #1e2922;
   --color-brand-border: #262626;
   --color-brand-lime: #CCFF00;
+  --color-brand-green: #38704a;
   /* Antigüedad de verificación: ámbar a los 30 días, rojo "sin confirmar" a los 60 */
   --color-brand-amber: #FFB020;
   --color-brand-red: #FF4D4D;
@@ -93,6 +94,122 @@ body {
   background-color: var(--color-brand-bg);
   color: var(--color-foreground);
   font-family: var(--font-plus-jakarta), sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-shell footer {
+  position: relative;
+  z-index: 10;
+}
+
+.app-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--color-brand-green) 16%, transparent), transparent 65%);
+}
+
+.atmosphere-light {
+  position: absolute;
+  width: clamp(22rem, 60vw, 64rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  animation: atmosphere-drift 32s ease-in-out infinite alternate;
+}
+
+.atmosphere-light-lime {
+  left: -25%;
+  top: -30%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-brand-lime) 9%, transparent), transparent 65%);
+}
+
+.atmosphere-light-green {
+  right: -20%;
+  bottom: -25%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-brand-green) 24%, transparent), transparent 65%);
+  animation-delay: -16s;
+}
+
+.atmosphere-lines {
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  background-image: linear-gradient(color-mix(in srgb, var(--color-brand-border) 50%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-brand-border) 50%, transparent) 1px, transparent 1px);
+  background-size: 96px 96px;
+  mask-image: linear-gradient(transparent, var(--color-foreground), transparent);
+}
+
+@keyframes atmosphere-drift {
+  to { transform: translate(8%, 6%) scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atmosphere-light { animation: none; }
+}
+
+/* Contrato compartido de legibilidad. Fuera de @layer para que los tamaños
+   antiguos de cada pantalla no achiquen los controles durante la transición. */
+.ui-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--font-plus-jakarta), sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.ui-label, .app-shell label, .app-shell .field-label {
+  font-family: var(--font-plus-jakarta), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.015em;
+  text-transform: none;
+}
+
+.ui-input {
+  min-height: 44px;
+  min-width: 0;
+  max-width: 100%;
+  font-family: var(--font-plus-jakarta), sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* El mínimo intrínseco de fieldset + input file puede ensanchar todo el
+   formulario en móvil, aunque sus otros campos sí se adapten al contenedor. */
+.app-shell fieldset {
+  min-inline-size: 0;
+}
+
+.app-shell input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-brand-border);
+  border-radius: 2px;
+  background: var(--color-brand-secondary);
+  color: var(--color-foreground);
+  font-family: var(--font-plus-jakarta), sans-serif;
+  font-size: 0.875rem;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.app-shell :is(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-brand-lime);
+  outline-offset: 4px;
 }
 
 /* Custom scrollbar matching our sports dark theme */
@@ -102,20 +219,20 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0c0f0d;
+  background: var(--color-brand-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: var(--color-brand-border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #CCFF00;
+  background: var(--color-brand-lime);
 }
 
 /* Highlight style selection */
 ::selection {
-  background-color: #CCFF00;
-  color: #0c0f0d;
+  background-color: var(--color-brand-lime);
+  color: var(--color-brand-bg);
 }

@@ -25,7 +25,7 @@ export function SubmitButton({
       formAction={formAction}
       disabled={pending}
       aria-busy={pending}
-      className={`${className} disabled:opacity-60 disabled:cursor-wait`}
+      className={`ui-action justify-center ${className} disabled:opacity-60 disabled:cursor-wait`}
     >
       {pending ? pendingLabel : children}
     </button>
