@@ -25,7 +25,6 @@ revoke update on public.tournaments from anon, authenticated;
 grant update (
   name,
   sport_modality,
-  zone,
   inscription_deadline,
   start_date,
   end_date,
@@ -37,3 +36,13 @@ grant update (
   contact_whatsapp,
   contact_instagram
 ) on public.tournaments to authenticated;
+
+do $$
+begin
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'tournaments' and column_name = 'zone') then
+    execute 'grant update (zone) on public.tournaments to authenticated';
+  end if;
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'tournaments' and column_name = 'zone_id') then
+    execute 'grant update (zone_id) on public.tournaments to authenticated';
+  end if;
+end $$;

@@ -1,6 +1,7 @@
 import { login, signup } from './actions'
 import Link from 'next/link'
 import { SubmitButton } from '@/components/SubmitButton'
+import { safeNextPath } from '@/utils/safe-next-path'
 
 // Los mismos estilos de campo que el formulario de torneo
 const labelClass = 'font-display tracking-wider text-sm text-white/60 uppercase'
@@ -13,9 +14,8 @@ export default async function LoginPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const awaitedParams = await searchParams
-  const error = awaitedParams.error as string | undefined
-  const nextParam = awaitedParams.next as string | undefined
-  const next = (nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')) ? nextParam : '/'
+  const error = typeof awaitedParams.error === 'string' ? awaitedParams.error : undefined
+  const next = safeNextPath(awaitedParams.next)
   // The mode lives in the URL (not in client state) so the page stays a Server Component
   const isSignup = awaitedParams.modo === 'registro'
   const toggleHref = isSignup

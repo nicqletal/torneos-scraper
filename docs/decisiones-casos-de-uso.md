@@ -37,6 +37,7 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 - **Registro:** pide email, contraseña y **nombre** (el nombre es público, así que no se deriva del email). Se entra directo, sin confirmar el email. El único mail que manda la app es el de "Olvidé mi contraseña". El SMTP gratis de Supabase manda muy pocos por hora: alcanza para la entrega, pero con usuarios reales hace falta un servicio aparte (por ejemplo, Resend).
 - **Portada:** `/` es siempre la vista de jugador (catálogo). La barra superior tiene "Soy organizador" (lleva al panel de organizador y pide sesión) y "Volver a jugador".
 - **Perfil:** nombre, foto (JPG/PNG/WebP, máx. 2 MB), zona y **WhatsApp**. El WhatsApp es opcional, pero obligatorio para crear un equipo o tomar la capitanía. Se guarda solo con dígitos, en formato argentino de celular (`549` + 10 dígitos), que es lo que pide `wa.me`.
+  - Cada foto nueva reemplaza a la anterior; no hay una galería. Se retira la anterior de Storage después de guardar la nueva URL. Si el guardado falla, se conserva la anterior y se intenta retirar la subida nueva.
 - **El rol de administrador no se puede editar desde la app.** Se asigna a mano en la base. El usuario edita nombre, foto, zona y WhatsApp, y nunca el rol.
 - **Cerrar sesión** cierra solo el dispositivo actual.
 - **Volver a la acción después del login (`next`):** solo se aceptan rutas internas. Ojo: `//sitio.com` empieza con `/` y es externa, así que hay que rechazarla también.
@@ -219,10 +220,9 @@ Esta tabla es la base de las reglas de acceso (RLS) de la base de datos.
 - **Estados de torneo y partido calculados, no guardados.** El prototipo guarda `status: 'abierto'` a mano en `crear-torneo`, y eso hay que cambiarlo.
 - **Todo lo de partidos va por funciones de Postgres (RPC).** RLS no puede expresar "cada capitán escribe solo su propia confirmación".
 - **La tabla de visibilidad necesita vistas públicas.** RLS filtra filas, no columnas.
-- **Bugs del prototipo:**
-  - `login/actions.ts` no valida `next` y manda a `/admin` por defecto
-  - `signOut()` cierra todas las sesiones: hay que pasarle `{ scope: 'local' }`
+- **Acceso corregido:** login y registro validan `next` con `safeNextPath`, incluyendo parámetros repetidos y barras invertidas; sin destino válido vuelven a `/`. Cerrar sesión usa `{ scope: 'local' }`.
+- **Panel de organizador:** la gestión vive en `/mis-torneos`; `/panel` conserva los links anteriores redirigiendo allí.
 - **Orden de subida del flyer:** el id del torneo no existe antes de insertarlo, y no tienen que quedar archivos huérfanos si el insert falla. Resuelto: el flyer se sube después del insert, como `flyers/<id del torneo>`. En la baja lo borra la Server Action por la API de Storage, después de la función de baja, porque Postgres no puede borrar archivos de Storage.
 - **Parámetros de URL del catálogo en español** (`modalidad`, `zona`, `precio_max`). El prototipo usa `modality` y `status`.
 - **Filtro de zona del catálogo:** el torneo guarda `zone_id` (FK a `zones`), ya no la zona como texto. `?zona=` recibe el id de una zona o de un corredor: una zona filtra por `zone_id` y un corredor, por `zones.corridor_id` con el embed `zones!inner(corridor_id)`. El filtro de `feat/dynamic-filters`, que compara el texto `zone`, deja de andar.
-- **Fotos de perfil:** `profiles.avatar_url` existe, pero todavía no hay bucket ni subida. La página del organizador la muestra con un `<img>` común (o la inicial del nombre si no hay foto); cuando exista el bucket, pasar a `next/image` y sumar su ruta a `remotePatterns` en `next.config.ts`.
+- **Fotos de perfil:** bucket público `avatars`, limitado a JPG/PNG/WebP de hasta 2 MB. Las policies de Storage permiten subir, ver las filas y retirar fotos solo en la carpeta del usuario autenticado (`<id del usuario>/<uuid>`). La acción valida el archivo, guarda la URL y retira la anterior; una actualización concurrente obliga a reintentar. Perfil y página del organizador usan `next/image` y solo muestran URLs de ese bucket de nuestro Supabase.

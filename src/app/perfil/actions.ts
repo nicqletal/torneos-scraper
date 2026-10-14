@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { normalizeWhatsapp } from '@/utils/whatsapp'
 import { safeNextPath } from '@/utils/safe-next-path'
+import { parseAvatar } from '@/utils/profile-avatar'
+import { saveProfile } from '@/utils/supabase/profile'
 
 function backWithError(message: string, next: string | null): never {
   const nextParam = next ? `&next=${encodeURIComponent(next)}` : ''
@@ -38,42 +40,17 @@ export async function updateProfile(formData: FormData) {
     }
   }
 
-  const avatar = formData.get('avatar') as File | null
-  let avatar_url: string | undefined = undefined
+  const avatar = parseAvatar(formData.get('avatar'))
+  if (!avatar.ok) backWithError(avatar.error, next)
 
-  if (avatar && avatar.size > 0) {
-    if (avatar.size > 2 * 1024 * 1024) {
-      backWithError('La foto no puede pesar más de 2 MB', next)
-    }
-    const ext = avatar.name.split('.').pop()
-    const filePath = `${user.id}-${Date.now()}.${ext}`
-    
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, avatar, { upsert: true })
-      
-    if (uploadError) {
-      console.error(uploadError)
-      backWithError('Error al subir la foto', next)
-    }
-    
-    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath)
-    avatar_url = publicUrl
-  }
+  const result = await saveProfile(supabase, user.id,
+    { display_name: displayName, zone_id: zoneId }, avatar.file,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!)
+  if (!result.ok) backWithError(result.error, next)
 
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({ 
-      display_name: displayName, 
-      zone_id: zoneId,
-      ...(avatar_url ? { avatar_url } : {})
-    })
-    .eq('id', user.id)
-
-  if (profileError) {
-    console.error(profileError)
-    backWithError('No se pudo guardar el perfil', next)
-  }
+  revalidatePath('/')
+  revalidatePath('/perfil')
+  revalidatePath(`/organizadores/${user.id}`)
 
   const { error: contactError } = await supabase
     .from('profile_contacts')
@@ -86,5 +63,8 @@ export async function updateProfile(formData: FormData) {
   }
 
   revalidatePath('/perfil')
+  if (result.cleanupFailed) {
+    backWithError('El perfil se guardó, pero no se pudo retirar la foto anterior.', next)
+  }
   redirect(next ?? '/perfil?ok=1')
 }

@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -8,6 +9,7 @@ import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament
 import { ZONE_LABEL_EMBED, zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import { organizesSince, splitTournaments } from '@/utils/organizer-page'
 import { modalityLabel, type SportModality } from '@/utils/modality'
+import { avatarSrc } from '@/utils/profile-avatar'
 
 // Página pública: la ve cualquiera, con o sin sesión. Por eso se piden solo
 // las columnas que se muestran: ni el WhatsApp del perfil (vive aparte, en
@@ -58,6 +60,7 @@ export default async function OrganizerPage({ params }: OrganizerPageProps) {
   // Sin tipos generados de la base, supabase-js tipa todo embed como lista;
   // `zones` es una sola porque perfil y torneo tienen una FK a `zones`.
   const zone = profile.zones as unknown as ZoneLabelFields | null
+  const avatarUrl = avatarSrc(profile.avatar_url, process.env.NEXT_PUBLIC_SUPABASE_URL!)
   const { current, finished } = splitTournaments(
     (data ?? []).map((t) => ({
       ...t,
@@ -79,11 +82,8 @@ export default async function OrganizerPage({ params }: OrganizerPageProps) {
 
       <div className="border-b border-brand-border pb-6 flex items-center gap-5">
         <div className="w-20 h-20 shrink-0 bg-brand-surface border border-brand-border rounded-sm overflow-hidden flex items-center justify-center">
-          {profile.avatar_url ? (
-            // Todavía no hay bucket de fotos de perfil: cuando exista, pasar a
-            // next/image y sumar su ruta a `remotePatterns` en next.config.ts.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+          {avatarUrl ? (
+            <Image src={avatarUrl} alt="" width={80} height={80} className="w-full h-full object-cover" />
           ) : (
             <span className="font-display text-4xl font-bold text-brand-lime uppercase">
               {profile.display_name.charAt(0)}

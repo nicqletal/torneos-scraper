@@ -9,7 +9,9 @@ export function safeNextPath(next: unknown, fallback = '/'): string {
 
   try {
     const url = new URL(next, BASE)
-    if (url.origin !== BASE) return fallback
+    // Normalizar /perfil/..//externo produce //externo: aunque el primer
+    // parseo tenga nuestro origen, devolver eso sería un destino externo.
+    if (url.origin !== BASE || url.pathname.startsWith('//')) return fallback
     return `${url.pathname}${url.search}${url.hash}`
   } catch {
     return fallback

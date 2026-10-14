@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/server'
 import { ZoneSelect } from '@/components/ZoneSelect'
 import { toNationalNumber } from '@/utils/whatsapp'
 import { safeNextPath } from '@/utils/safe-next-path'
+import { avatarSrc } from '@/utils/profile-avatar'
 import { updateProfile } from './actions'
 
 export default async function PerfilPage({
@@ -29,6 +30,7 @@ export default async function PerfilPage({
     supabase.from('profile_contacts').select('whatsapp').eq('user_id', user.id).single(),
   ])
 
+  const avatarUrl = avatarSrc(profile?.avatar_url ?? null, process.env.NEXT_PUBLIC_SUPABASE_URL!)
   const labelClass = 'text-xs font-semibold uppercase tracking-wider font-mono text-white/60'
   const inputClass =
     'px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-white text-sm focus:outline-none focus:border-brand-lime transition-colors'
@@ -66,13 +68,13 @@ export default async function PerfilPage({
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="avatar" className={labelClass}>Foto de perfil</label>
-          {profile?.avatar_url && (
-            <Image 
-              src={profile.avatar_url} 
-              alt="Tu avatar" 
-              width={64} 
-              height={64} 
-              className="w-16 h-16 rounded-sm object-cover border border-brand-border mb-2" 
+          {avatarUrl && (
+            <Image
+              src={avatarUrl}
+              alt="Tu foto de perfil"
+              width={64}
+              height={64}
+              className="w-16 h-16 rounded-sm object-cover border border-brand-border mb-2"
             />
           )}
           <input

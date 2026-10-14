@@ -12,7 +12,7 @@
 -- Por eso se saca la policy de delete y el privilegio de delete, igual que se
 -- hizo con `verified_at`: la única puerta es la función.
 
-drop policy "tournaments: el organizador da de baja los suyos" on public.tournaments;
+drop policy if exists "tournaments: el organizador da de baja los suyos" on public.tournaments;
 
 revoke delete on public.tournaments from anon, authenticated;
 
@@ -24,7 +24,7 @@ revoke delete on public.tournaments from anon, authenticated;
 -- para no confirmar que existe un torneo con ese id. Los torneos copiados (sin
 -- organizador) los va a dar de baja el administrador cuando exista ese rol.
 
-create function public.withdraw_tournament(tournament_id uuid)
+create or replace function public.withdraw_tournament(tournament_id uuid)
 returns void
 language plpgsql
 security definer

@@ -8,7 +8,7 @@
 -- Se usa desde el middleware (proxy.ts) y desde los Server Components de
 -- /admin para impedir el acceso a usuarios que no sean administradores.
 
-create function public.is_admin()
+create or replace function public.is_admin()
 returns boolean
 language sql
 stable
