@@ -38,10 +38,8 @@ export async function createTeam(formData: FormData) {
   })
 
   if (error) {
-    // P0001 = raise exception in create_team: the message is meant for the user
-    if (error.code === 'P0001') backWithError(error.message)
-    console.error(error)
-    backWithError('No se pudo crear el equipo')
+    console.error('Error al crear equipo:', error)
+    backWithError(error.message || 'No se pudo crear el equipo')
   }
 
   revalidatePath('/mis-equipos')
