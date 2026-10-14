@@ -1,10 +1,9 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowLeft, Shield, Plus } from 'lucide-react'
+import { ArrowLeft, Shield } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
-import { ZoneSelect } from '@/components/ZoneSelect'
-import { TEAM_LEVELS, MAX_CAPTAINCIES } from '@/utils/teams'
-import { SPORT_MODALITIES } from '@/utils/modality'
+import { TeamForm } from '@/components/TeamForm'
+import { MAX_CAPTAINCIES } from '@/utils/teams'
 import { createTeam } from './actions'
 
 export default async function CrearEquipoPage({
@@ -37,15 +36,11 @@ export default async function CrearEquipoPage({
   const hasWhatsapp = !!contact?.whatsapp
   const reachedLimit = (captaincies?.length ?? 0) >= MAX_CAPTAINCIES
 
-  const labelClass = 'text-[10px] uppercase tracking-wider font-mono text-white/50'
-  const inputClass =
-    'px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-white text-sm focus:outline-none focus:border-brand-lime transition-colors'
-
   return (
     <div className="max-w-xl w-full mx-auto flex flex-col gap-8">
       <Link
         href="/mis-equipos"
-        className="inline-flex items-center gap-2 text-xs font-display font-bold uppercase tracking-wider text-white/50 hover:text-brand-lime transition-colors w-fit group"
+        className="ui-action inline-flex items-center gap-2 text-sm font-display font-bold uppercase tracking-wider text-foreground/70 hover:text-brand-lime transition-colors w-fit group"
       >
         <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
         Mis equipos
@@ -56,8 +51,8 @@ export default async function CrearEquipoPage({
           <Shield className="w-5 h-5 stroke-[2.5]" />
         </div>
         <div>
-          <h1 className="text-4xl font-display tracking-wider text-white uppercase leading-none">Crear equipo</h1>
-          <p className="text-white/50 text-xs mt-1">Vas a quedar como capitán. El escudo lo podés subir después.</p>
+          <h1 className="text-4xl font-display tracking-wider text-foreground uppercase leading-none">Crear equipo</h1>
+          <p className="text-foreground/70 text-sm mt-1">Vas a quedar como capitán. Podés sumar un escudo para identificar a tu equipo.</p>
         </div>
       </div>
 
@@ -69,74 +64,24 @@ export default async function CrearEquipoPage({
 
       {!hasWhatsapp ? (
         <div className="p-6 bg-brand-surface border border-brand-border rounded-sm flex flex-col gap-4">
-          <p className="text-white/80 text-sm">
+          <p className="text-foreground/80 text-sm">
             Para crear un equipo necesitás tener tu WhatsApp en el perfil: es la forma en que los capitanes rivales
             coordinan los partidos con vos.
           </p>
           <Link
             href="/perfil?next=/crear-equipo"
-            className="inline-flex items-center justify-center py-3 bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider text-sm rounded-sm transition-colors"
+            className="ui-action inline-flex items-center justify-center py-3 bg-brand-lime hover:bg-foreground text-brand-bg font-display font-bold uppercase tracking-wider text-sm rounded-sm transition-colors"
           >
             Cargar mi WhatsApp
           </Link>
         </div>
       ) : reachedLimit ? (
-        <div className="p-6 bg-brand-surface border border-brand-border rounded-sm text-white/80 text-sm">
+        <div className="p-6 bg-brand-surface border border-brand-border rounded-sm text-foreground/80 text-sm">
           Ya sos capitán de {MAX_CAPTAINCIES} equipos, que es el máximo. Para crear otro, pasá la capitanía de alguno
           o disolvelo.
         </div>
       ) : (
-        <form action={createTeam} className="p-6 bg-brand-surface border border-brand-border rounded-sm flex flex-col gap-5">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="name" className={labelClass}>Nombre del equipo</label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              required
-              minLength={2}
-              maxLength={50}
-              placeholder="Ej: Los Pibes de Palermo"
-              className={inputClass}
-            />
-            <p className="text-[11px] text-white/40">Puede repetirse con otro equipo: se distinguen por la zona.</p>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="zone_id" className={labelClass}>Zona</label>
-            <ZoneSelect id="zone_id" name="zone_id" required />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="modality" className={labelClass}>Modalidad habitual</label>
-              <select id="modality" name="modality" required defaultValue="" className={inputClass}>
-                <option value="" disabled>Elegí una modalidad</option>
-                {SPORT_MODALITIES.map((m) => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="level" className={labelClass}>Nivel</label>
-              <select id="level" name="level" required defaultValue="" className={inputClass}>
-                <option value="" disabled>Elegí un nivel</option>
-                {TEAM_LEVELS.map((l) => (
-                  <option key={l.value} value={l.value}>{l.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="mt-2 inline-flex items-center justify-center gap-2 py-3 bg-brand-lime hover:bg-white text-brand-bg font-display font-bold uppercase tracking-wider text-sm rounded-sm transition-colors cursor-pointer"
-          >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            Crear equipo
-          </button>
-        </form>
+        <TeamForm action={createTeam} submitLabel="Crear equipo" />
       )}
     </div>
   )

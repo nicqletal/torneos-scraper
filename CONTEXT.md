@@ -20,6 +20,10 @@ _Avoid_: barrio, localidad (como términos del sistema)
 
 ### Roles y vistas
 
+**Invitado**:
+Persona que navega sin iniciar sesión; puede consultar el catálogo y las fichas públicas, pero no gestionar equipos ni torneos.
+_Avoid_: cuenta de invitado, usuario anónimo registrado
+
 **Organizador**:
 Usuario que publicó al menos un torneo y lo gestiona desde su **Panel de organizador**.
 _Avoid_: dueño, admin
@@ -36,7 +40,7 @@ _Avoid_: panel de admin
 Pantalla exclusiva del administrador para moderar la plataforma.
 
 **Vista de jugador**:
-Forma de navegar la app centrada en el catálogo, los equipos y la búsqueda de rival; es la que ve siempre cualquiera que entra a la portada.
+Forma de navegar la app centrada en el catálogo, los equipos y la búsqueda de rival; es la vista predeterminada después de entrar con sesión o como invitado.
 
 **Vista de organizador**:
 Forma de navegar la app centrada en el **Panel de organizador**; se entra con el botón "Soy organizador" de la barra superior y requiere sesión.
@@ -217,7 +221,7 @@ _Avoid_: notificación
 
 ## Flagged ambiguities
 
-- "Elegir perfil de entrada (Jugar / Organizar)" y "loguearse como organizador" sugerían dos tipos de cuenta — resuelto: hay una sola cuenta; la portada es siempre la **Vista de jugador** y a la **Vista de organizador** se entra con un botón.
+- "Elegir perfil de entrada (Jugar / Organizar)" y "loguearse como organizador" sugerían dos tipos de cuenta — resuelto: hay una sola cuenta; después de entrar se muestra la **Vista de jugador** y a la **Vista de organizador** se entra con un botón. Entrar como **Invitado** no crea otra cuenta.
 - "panel de admin" se usaba para el panel del organizador — resuelto: son el **Panel de organizador** y el **Panel de administración**, y cada uno tiene su propio rol.
 - "Anotar mi equipo" aparecía como una acción del capitán dentro de la app — resuelto: la **Inscripción** la hace solo el organizador; el capitán lo contacta por WhatsApp.
 - Los estados aparecían con dos listas distintas (con "En curso" y con "Últimos cupos") — resuelto: son 4 estados calculados, y "Últimos cupos" es solo una etiqueta.

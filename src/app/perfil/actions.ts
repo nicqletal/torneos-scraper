@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { normalizeWhatsapp } from '@/utils/whatsapp'
 import { safeNextPath } from '@/utils/safe-next-path'
+import { parseAvatar } from '@/utils/profile-avatar'
+import { saveProfile } from '@/utils/supabase/profile'
 
 function backWithError(message: string, next: string | null): never {
   const nextParam = next ? `&next=${encodeURIComponent(next)}` : ''
@@ -38,15 +40,18 @@ export async function updateProfile(formData: FormData) {
     }
   }
 
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({ display_name: displayName, zone_id: zoneId })
-    .eq('id', user.id)
+  const avatar = parseAvatar(formData.get('avatar'))
+  if (!avatar.ok) backWithError(avatar.error, next)
 
-  if (profileError) {
-    console.error(profileError)
-    backWithError('No se pudo guardar el perfil', next)
-  }
+  const result = await saveProfile(supabase, user.id,
+    { display_name: displayName, zone_id: zoneId }, avatar.file,
+    process.env.NEXT_PUBLIC_SUPABASE_URL!)
+  if (!result.ok) backWithError(result.error, next)
+
+  revalidatePath('/')
+  revalidatePath('/torneos')
+  revalidatePath('/perfil')
+  revalidatePath(`/organizadores/${user.id}`)
 
   const { error: contactError } = await supabase
     .from('profile_contacts')
@@ -59,5 +64,8 @@ export async function updateProfile(formData: FormData) {
   }
 
   revalidatePath('/perfil')
+  if (result.cleanupFailed) {
+    backWithError('El perfil se guardó, pero no se pudo retirar la foto anterior.', next)
+  }
   redirect(next ?? '/perfil?ok=1')
 }

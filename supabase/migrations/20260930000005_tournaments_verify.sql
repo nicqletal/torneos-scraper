@@ -33,7 +33,6 @@ revoke insert on public.tournaments from anon, authenticated;
 grant insert (
   name,
   sport_modality,
-  zone,
   inscription_deadline,
   start_date,
   end_date,
@@ -46,6 +45,16 @@ grant insert (
   contact_instagram,
   user_id
 ) on public.tournaments to authenticated;
+
+do $$
+begin
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'tournaments' and column_name = 'zone') then
+    execute 'grant insert (zone) on public.tournaments to authenticated';
+  end if;
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'tournaments' and column_name = 'zone_id') then
+    execute 'grant insert (zone_id) on public.tournaments to authenticated';
+  end if;
+end $$;
 
 -- 2. La verificación.
 --
@@ -64,7 +73,7 @@ grant insert (
 -- copiados (sin organizador) los va a verificar el administrador cuando
 -- exista ese rol; hoy `user_id` es null y nadie los puede verificar.
 
-create function public.verify_tournament(tournament_id uuid)
+create or replace function public.verify_tournament(tournament_id uuid)
 returns timestamptz
 language plpgsql
 security definer

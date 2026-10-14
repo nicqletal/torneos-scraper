@@ -43,8 +43,8 @@ export async function createTournament(
     .single()
 
   if (error) {
-    console.error(error)
-    return { error: 'No pudimos publicar el torneo. Probá de nuevo.', values }
+    console.error('Error al insertar torneo:', error)
+    return { error: `No pudimos publicar el torneo: ${error.message ?? error.details ?? 'Error desconocido'}`, values }
   }
 
   // El flyer va después del insert: el objeto se llama como el id del torneo,
@@ -54,6 +54,7 @@ export async function createTournament(
   const flyerFailed = flyer.file !== null && !(await uploadFlyer(supabase, data.id, flyer.file))
 
   revalidatePath('/')
+  revalidatePath('/torneos')
   revalidatePath('/mis-torneos')
   redirect(`/torneos/${data.id}?publicado=1${flyerFailed ? '&flyer=fallo' : ''}`)
 }

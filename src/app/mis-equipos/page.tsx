@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Plus, Users, Crown } from 'lucide-react'
+import { Plus, Users, Crown, ArrowLeft, Pencil, ArrowRight } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { TeamCrest } from '@/components/TeamCrest'
 import { levelLabel } from '@/utils/teams'
@@ -11,6 +11,7 @@ interface MembershipRow {
   teams: {
     id: string
     name: string
+    crest_url: string | null
     modality: string
     level: string
     dissolved_at: string | null
@@ -26,9 +27,9 @@ export default async function MisEquiposPage() {
     redirect('/login?next=/mis-equipos')
   }
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('team_members')
-    .select('is_captain, teams!inner(id, name, modality, level, dissolved_at, zones(name))')
+    .select('is_captain, teams!inner(id, name, crest_url, modality, level, dissolved_at, zones(name))')
     .eq('user_id', user.id)
     .order('joined_at', { ascending: false })
 
@@ -38,57 +39,74 @@ export default async function MisEquiposPage() {
 
   return (
     <div className="max-w-3xl w-full mx-auto flex flex-col gap-8">
+      <Link href="/torneos" className="ui-action inline-flex items-center gap-2 w-fit text-foreground/80 hover:text-brand-lime">
+        <ArrowLeft className="w-5 h-5" /> Inicio
+      </Link>
       <div className="border-b border-brand-border pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl md:text-5xl font-display tracking-wider text-white uppercase leading-none">Mis equipos</h1>
-          <p className="text-white/50 text-xs mt-2">Los equipos en los que jugás o sos capitán.</p>
+          <h1 className="text-4xl md:text-5xl font-display tracking-wider text-foreground uppercase leading-none">Mis equipos</h1>
+          <p className="text-foreground/70 text-sm mt-2">Los equipos en los que jugás o sos capitán.</p>
         </div>
         <Link
           href="/crear-equipo"
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-white text-brand-bg transition-colors font-display w-fit"
+          className="ui-action inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors font-display w-fit"
         >
           <Plus className="w-3.5 h-3.5 stroke-[3]" />
           Crear equipo
         </Link>
       </div>
 
-      {sorted.length === 0 ? (
+      {error ? (
+        <p role="alert" className="p-5 border border-brand-red/40 text-brand-red rounded-sm">
+          No pudimos cargar tus equipos. Probá de nuevo.
+        </p>
+      ) : sorted.length === 0 ? (
         <div className="p-12 border border-brand-border bg-brand-surface text-center flex flex-col items-center gap-3 rounded-sm">
           <Users className="w-10 h-10 text-brand-lime" />
-          <h2 className="text-xl font-display tracking-wider text-white uppercase">Todavía no estás en ningún equipo</h2>
-          <p className="text-white/50 text-sm max-w-sm">
+          <h2 className="text-xl font-display tracking-wider text-foreground uppercase">Todavía no estás en ningún equipo</h2>
+          <p className="text-foreground/70 text-sm max-w-sm">
             Creá uno, o pedile al capitán de tu equipo el link de invitación.
           </p>
         </div>
       ) : (
         <ul className="flex flex-col border border-brand-border divide-y divide-brand-border bg-brand-surface rounded-sm">
           {sorted.map(({ is_captain, teams: team }) => (
-            <li key={team.id}>
+            <li key={team.id} className="flex flex-col sm:flex-row sm:items-center gap-2 p-2">
               <Link
                 href={`/equipos/${team.id}`}
-                className="p-4 flex items-center gap-4 hover:bg-brand-secondary transition-colors"
+                className="p-3 flex flex-1 min-w-0 items-center gap-4 hover:bg-brand-secondary transition-colors rounded-sm"
               >
-                <TeamCrest name={team.name} />
+                <TeamCrest name={team.name} src={team.crest_url} />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-display text-xl tracking-wider text-white uppercase truncate">{team.name}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-display text-xl tracking-wider text-foreground uppercase truncate">{team.name}</span>
                     {is_captain && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-display tracking-wider uppercase border border-brand-lime text-brand-lime rounded-sm">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-sm font-sans tracking-wider uppercase border border-brand-lime text-brand-lime rounded-sm">
                         <Crown className="w-3 h-3" />
                         Capitán
                       </span>
                     )}
                     {team.dissolved_at && (
-                      <span className="px-2 py-0.5 text-[10px] font-display tracking-wider uppercase border border-brand-border text-white/50 rounded-sm">
+                      <span className="px-2 py-0.5 text-sm font-sans tracking-wider uppercase border border-brand-border text-foreground/70 rounded-sm">
                         Disuelto
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-white/50 font-mono uppercase mt-1">
+                  <p className="text-sm text-foreground/70 font-sans uppercase mt-1">
                     {team.zones.name} · {modalityLabel(team.modality)} · {levelLabel(team.level)}
                   </p>
                 </div>
               </Link>
+              <div className="flex flex-wrap gap-2 px-3 pb-3 sm:pb-0 sm:px-1">
+                <Link href={`/equipos/${team.id}`} className="ui-action inline-flex items-center gap-2 px-3 text-foreground/80 hover:text-brand-lime">
+                  Ver equipo <ArrowRight className="w-4 h-4" />
+                </Link>
+                {is_captain && !team.dissolved_at && (
+                  <Link href={`/equipos/${team.id}/editar`} className="ui-action inline-flex items-center gap-2 px-4 py-2 border border-brand-border text-brand-lime rounded-sm hover:border-brand-lime">
+                    <Pencil className="w-4 h-4" /> Editar equipo
+                  </Link>
+                )}
+              </div>
             </li>
           ))}
         </ul>

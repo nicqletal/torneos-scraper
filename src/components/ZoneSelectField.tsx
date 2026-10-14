@@ -23,7 +23,7 @@ export function ZoneSelectField({
   className = 'px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-white text-sm focus:outline-none focus:border-brand-lime transition-colors',
 }: ZoneSelectFieldProps) {
   return (
-    <select id={id} name={name} required={required} defaultValue={defaultValue ?? ''} className={className}>
+    <select id={id} name={name} required={required} defaultValue={defaultValue ?? ''} className={`ui-input ${className}`}>
       <option value="" disabled={required}>{placeholder}</option>
       {groups.map((group) => (
         <optgroup key={group.label} label={group.label}>

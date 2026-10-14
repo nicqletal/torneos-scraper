@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Plus_Jakarta_Sans } from "next/font/google";
-import Link from "next/link";
-import { Trophy, Plus } from "lucide-react";
+import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
-import { UserMenu } from "@/components/UserMenu";
+import { Navbar } from "@/components/Navbar";
+import { GUEST_COOKIE } from "@/utils/entry-navigation";
 import { Footer } from "@/components/Footer";
+import { Atmosphere } from "@/components/Atmosphere";
+import { AppFrame } from "@/components/AppFrame";
 import "./globals.css";
 
 const bebasNeue = Bebas_Neue({
@@ -33,60 +35,19 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If user is authenticated, click leads directly to /crear-torneo.
-  // Otherwise, it redirects to login and then forwards to /crear-torneo.
-  const loadTournamentPath = user ? "/crear-torneo" : "/login?next=/crear-torneo";
+  const { data: isAdmin } = user ? await supabase.rpc('is_admin') : { data: false };
+  const isGuest = !user && (await cookies()).get(GUEST_COOKIE)?.value === '1';
 
   return (
     <html 
       lang="es" 
       className={`${bebasNeue.variable} ${plusJakartaSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-brand-bg text-foreground">
-        {/* Sticky Header */}
-        <header className="sticky top-0 z-50 w-full border-b border-brand-border bg-brand-secondary/90 backdrop-blur-md">
-          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-sm bg-brand-lime flex items-center justify-center font-bold text-brand-bg shadow-sm transition-transform duration-200 group-hover:scale-105">
-                <Trophy className="w-4.5 h-4.5 stroke-[2.5]" />
-              </div>
-              <span className="font-display text-2xl tracking-wider uppercase text-white group-hover:text-brand-lime transition-colors">
-                Torneos Scraper
-              </span>
-            </Link>
-            
-            <div className="flex items-center gap-4">
-              {!user && (
-                <Link 
-                  href="/login" 
-                  className="text-xs font-semibold uppercase tracking-wider text-white/70 hover:text-brand-lime transition-colors font-display"
-                >
-                  Iniciar sesión
-                </Link>
-              )}
-
-              <Link 
-                href={loadTournamentPath} 
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-white text-brand-bg hover:text-brand-bg transition-all duration-200 font-display shadow-sm"
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                Cargar torneo
-              </Link>
-
-              {user && user.email && (
-                <UserMenu email={user.email} />
-              )}
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex-1 container mx-auto px-4 py-8 flex flex-col justify-start">
+      <body className="app-shell min-h-full flex flex-col bg-brand-bg text-foreground">
+        <Atmosphere />
+        <AppFrame navbar={<Navbar email={user?.email} isAdmin={isAdmin === true} isGuest={isGuest} />} footer={<Footer />}>
           {children}
-        </main>
-
-        {/* Footer */}
-        <Footer />
+        </AppFrame>
       </body>
     </html>
   );

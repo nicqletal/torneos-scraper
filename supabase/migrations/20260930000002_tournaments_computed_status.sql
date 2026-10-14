@@ -16,7 +16,7 @@
 --    semana antes del inicio. Todos se cargaron sin organizador, así que pasan
 --    a ser torneos copiados.
 
-alter table public.tournaments add column organizer_name text;
+alter table public.tournaments add column if not exists organizer_name text;
 
 update public.tournaments
    set end_date = start_date + 90
@@ -35,18 +35,23 @@ update public.tournaments
 alter table public.tournaments
   alter column inscription_deadline set not null,
   alter column end_date set not null,
-  add column capacity integer,
+  add column if not exists capacity integer;
+
+alter table public.tournaments
+  drop constraint if exists tournaments_dates_order,
   add constraint tournaments_dates_order
     check (inscription_deadline <= start_date and start_date <= end_date),
+  drop constraint if exists tournaments_capacity_positive,
   add constraint tournaments_capacity_positive
     check (capacity > 0),
+  drop constraint if exists tournaments_organizer_xor_copied,
   add constraint tournaments_organizer_xor_copied
     check ((user_id is null) <> (organizer_name is null));
 
 -- 3. Fuera la columna guardada.
 
-alter table public.tournaments drop column status;
-drop type public.tournament_status;
+alter table public.tournaments drop column if exists status;
+drop type if exists public.tournament_status;
 
 -- 4. El cálculo, como función pura: recibe "hoy" y la cantidad de
 --    inscripciones para poder testear cada frontera sin depender del reloj.
@@ -54,7 +59,7 @@ drop type public.tournament_status;
 --    Las fronteras son inclusivas: el día del cierre todavía se inscribe, y
 --    el día de inicio y el de fin el torneo está en curso.
 
-create function public.tournament_status(
+create or replace function public.tournament_status(
   inscription_deadline date,
   start_date           date,
   end_date             date,
@@ -79,7 +84,7 @@ $$;
 --    Aires, no en UTC: a las 22 h del cierre, todavía es el día del cierre.
 --    Hasta que exista la tabla de inscripciones, cuenta 0.
 
-create function public.status(t public.tournaments)
+create or replace function public.status(t public.tournaments)
 returns text
 language sql
 stable
