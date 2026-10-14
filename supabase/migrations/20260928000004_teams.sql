@@ -2,7 +2,15 @@
 
 -- Enum y no text: el orden de declaración es el orden del nivel, y la
 -- búsqueda de rival lo usa para no cruzar niveles a dos escalones.
-create type public.team_level as enum ('recreativo', 'intermedio', 'competitivo');
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'team_level') then
+    create type public.team_level as enum ('recreativo', 'intermedio', 'competitivo');
+  end if;
+end $$;
+
+drop table if exists public.team_members cascade;
+drop table if exists public.teams cascade;
 
 create table public.teams (
   id           uuid primary key default gen_random_uuid(),
@@ -39,7 +47,7 @@ create unique index team_members_one_captain
 
 -- Helpers para las policies. Son security definer porque una policy de
 -- team_members que consulte team_members se llamaría a sí misma sin fin.
-create function public.is_team_member(p_team_id uuid)
+create or replace function public.is_team_member(p_team_id uuid)
 returns boolean
 language sql
 stable
@@ -52,7 +60,7 @@ as $$
   );
 $$;
 
-create function public.is_team_captain(p_team_id uuid)
+create or replace function public.is_team_captain(p_team_id uuid)
 returns boolean
 language sql
 stable
@@ -67,7 +75,7 @@ $$;
 
 -- Crear equipo (UC-25): inserta el equipo y al creador como capitán,
 -- en una sola transacción.
-create function public.create_team(
+create or replace function public.create_team(
   p_name     text,
   p_zone_id  text,
   p_modality public.sport_modality,

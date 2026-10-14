@@ -55,21 +55,21 @@ export async function InscripcionesTab({ id, status, count, capacity, q, errorCo
   return (
     <div className="flex flex-col gap-8">
       <div className="bg-brand-surface border border-brand-border rounded-sm p-6 flex flex-col gap-4">
-        <h2 className="font-display tracking-wider text-lg text-white uppercase border-b border-brand-border pb-2">
+        <h2 className="font-display tracking-wider text-lg text-foreground uppercase border-b border-brand-border pb-2">
           Anotar un equipo
         </h2>
-        <p className="text-white/50 text-xs leading-relaxed">
+        <p className="text-foreground/70 text-xs leading-relaxed">
           Arreglá la inscripción con el capitán por WhatsApp y cargala acá buscando su equipo en la app.
         </p>
 
         {finished ? (
-          <p className="text-[11px] font-mono uppercase text-white/50">
+          <p className="text-[11px] font-mono uppercase text-foreground/70">
             Este torneo finalizó: sus inscripciones ya no cambian.
           </p>
         ) : full ? (
           <p className="text-[11px] font-mono uppercase text-brand-amber">
             Cupo completo.{' '}
-            <Link href={managePath(id, 'datos')} className="underline hover:text-white">
+            <Link href={managePath(id, 'datos')} className="underline hover:text-foreground">
               Subí el cupo desde Datos
             </Link>{' '}
             para anotar más equipos.
@@ -85,7 +85,7 @@ export async function InscripcionesTab({ id, status, count, capacity, q, errorCo
             {/* La inscripción por nombre es el camino secundario: un link que
                 despliega el campo. <details> lo hace sin JavaScript. */}
             <details className="group border-t border-brand-border pt-4">
-              <summary className="w-fit cursor-pointer list-none [&::-webkit-details-marker]:hidden text-xs text-white/50 underline underline-offset-4 hover:text-brand-lime transition-colors">
+              <summary className="w-fit cursor-pointer list-none [&::-webkit-details-marker]:hidden text-xs text-foreground/70 underline underline-offset-4 hover:text-brand-lime transition-colors">
                 ¿El equipo no está en la app? Anotalo solo con el nombre
               </summary>
               <div className="pt-3">
@@ -97,7 +97,7 @@ export async function InscripcionesTab({ id, status, count, capacity, q, errorCo
       </div>
 
       <div className="flex flex-col gap-3">
-        <h2 className="font-display tracking-wider text-lg text-white uppercase border-b border-brand-border pb-2">
+        <h2 className="font-display tracking-wider text-lg text-foreground uppercase border-b border-brand-border pb-2">
           Equipos anotados
         </h2>
 
@@ -121,17 +121,17 @@ export async function InscripcionesTab({ id, status, count, capacity, q, errorCo
                   <div className="flex-1 min-w-0 flex flex-col gap-0.5">
                     <Link
                       href={`/equipos/${inscription.team_id}`}
-                      className="inline-flex items-center gap-1.5 text-white font-semibold text-sm truncate hover:text-brand-lime transition-colors"
+                      className="inline-flex items-center gap-1.5 text-foreground font-semibold text-sm truncate hover:text-brand-lime transition-colors"
                     >
                       <Link2 className="w-3.5 h-3.5 text-brand-lime shrink-0" />
                       {inscription.teams.name}
                     </Link>
-                    <span className="text-[11px] font-mono uppercase text-white/50">
+                    <span className="text-[11px] font-mono uppercase text-foreground/70">
                       {zoneLabel(inscription.teams.zones)}
                     </span>
                   </div>
                 ) : (
-                  <span className="flex-1 text-white font-semibold text-sm">{inscription.team_name}</span>
+                  <span className="flex-1 text-foreground font-semibold text-sm">{inscription.team_name}</span>
                 )}
                 {!finished && (
                   <form action={removeInscription}>
@@ -150,7 +150,7 @@ export async function InscripcionesTab({ id, status, count, capacity, q, errorCo
             ))}
           </ol>
         ) : (
-          <p className="p-8 bg-brand-surface border border-dashed border-brand-border rounded-sm text-center text-white/50 text-sm">
+          <p className="p-8 bg-brand-surface border border-dashed border-brand-border rounded-sm text-center text-foreground/70 text-sm">
             Todavía no hay equipos anotados.
           </p>
         )}

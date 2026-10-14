@@ -20,7 +20,7 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 
 | Qué | Por qué |
 |---|---|
-| "Elegir perfil de entrada" (Jugar / Organizar) | Se reemplaza por una portada fija y el botón "Soy organizador" |
+| "Elegir perfil de entrada" (Jugar / Organizar) | Una sola cuenta, vista de jugador predeterminada y botón "Soy organizador" |
 | Botón "Anotar mi equipo" del capitán | La inscripción la carga el organizador |
 | El organizador ve el WhatsApp del capitán | Ya lo tiene: el capitán le escribió |
 | Grilla de disponibilidad del equipo (mañana/tarde/noche) | No se traducía a horas; la reemplaza "copiar horarios de la última búsqueda" |
@@ -35,12 +35,13 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 
 - **Una sola cuenta por persona.** Con ella se puede ser jugador, capitán y organizador a la vez.
 - **Registro:** pide email, contraseña y **nombre** (el nombre es público, así que no se deriva del email). Se entra directo, sin confirmar el email. Recuperar la contraseña ("Olvidé mi contraseña") **todavía no se hace**; cuando entre, va a ser el único mail que manda la app. El SMTP gratis de Supabase manda muy pocos por hora: alcanza para la entrega, pero con usuarios reales hace falta un servicio aparte (por ejemplo, Resend).
-- **Portada:** `/` es el catálogo, para cualquiera. No hay "vista de jugador" ni "vista de organizador": la app se navega de una sola forma (decidido el 07/10/2026; antes hubo un switch "Soy organizador" / "Volver a jugador" que se descartó porque no se entendía).
+- **Portada:** `/` es el catálogo, para cualquiera. No hay "vista de jugador" ni "vista de organizador": la app se navega de una sola forma (decidido el 07/10/2026; antes hubo un switch "Soy organizador" / "Volver a jugador" que se descartó porque no se entendía). El PR #26 propuso otra entrada (al visitar `/` sin sesión se mostraba `/login` con "entrar como invitado", el catálogo en `/torneos` y una navbar con "Soy organizador"); al integrarlo el 14/10/2026 se descartó por lo mismo, y `/torneos` quedó solo como redirección a `/`.
 - **Barra superior mínima.** Sin sesión: logo, "Iniciar sesión" (texto) y "Crear cuenta" (único botón destacado). Con sesión: logo y menú de usuario con Mi perfil, Mis equipos, Mis torneos y Cerrar sesión. Ningún botón destacado permanente.
 - **Captar organizadores:** el link "¿Organizás torneos? Publicalo" va al pie del catálogo y en el footer, no en la barra. Lleva a Crear cuenta con `next` al panel.
 - **Panel de organizador en tres niveles:** (1) la lista "Mis torneos", con una fila por torneo (nombre, zona, modalidad, cupo, estado, antigüedad de verificación) y solo dos acciones, "Sigue vigente" y "Gestionar"; (2) la **pantalla de gestión del torneo**, con cabecera (números clave, "Ver ficha pública", "Sigue vigente"), pestañas (Datos, Inscripciones, y las que se sumen) y "Dar de baja" al final, aparte; (3) la **ficha pública**, que para el dueño es idéntica a la de cualquiera más una barra arriba "Este torneo es tuyo · Gestionar". Editar, inscripciones y baja viven solo en la pantalla de gestión. Guardar en Datos vuelve a la pantalla de gestión; la ficha pública se abre con "Ver ficha pública".
 - **Una sola convención para volver:** un link arriba a la izquierda con el nombre del destino ("← Mis torneos", "← Volver al catálogo"). Nunca dos formas de volver en la misma pantalla.
 - **Perfil:** nombre, foto (JPG/PNG/WebP, máx. 2 MB), zona y **WhatsApp**. El WhatsApp es opcional, pero obligatorio para crear un equipo o tomar la capitanía. Se guarda solo con dígitos, en formato argentino de celular (`549` + 10 dígitos), que es lo que pide `wa.me`.
+  - Cada foto nueva reemplaza a la anterior; no hay una galería. Se retira la anterior de Storage después de guardar la nueva URL. Si el guardado falla, se conserva la anterior y se intenta retirar la subida nueva.
 - **El rol de administrador no se puede editar desde la app.** Se asigna a mano en la base. El usuario edita nombre, foto, zona y WhatsApp, y nunca el rol.
 - **Cerrar sesión** cierra solo el dispositivo actual.
 - **Llegar desde "¿Organizás torneos? Publicalo":** se abre **Crear cuenta** con un aviso ("Para publicar un torneo necesitás una cuenta") y el link a iniciar sesión conservando el `next`. Con cualquier otro `next` se abre Iniciar sesión, sin aviso. El copy de las dos pantallas es neutro: no habla solo de torneos.
@@ -118,9 +119,15 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
   - Si quien lo abre ya está en el plantel, no hay error: lo lleva a la página del equipo.
   - Un usuario suspendido puede sumarse a un equipo, pero no puede recibir la capitanía.
 - **Editar:** solo el capitán (nombre, escudo, zona, modalidad, nivel).
+- **Escudo:** se puede subir al crear, reemplazar o quitar al editar. Dejar
+  vacío el archivo conserva el actual. Un equipo disuelto conserva su escudo.
 - **Salir:** cualquier jugador. El capitán primero tiene que pasar la capitanía.
 - **Sacar a un jugador:** el capitán puede sacar a cualquiera.
 - **Disolver:** el equipo **no se borra**. Queda "disuelto", con su página pública y su historia. No puede buscar rival ni recibir inscripciones. No se puede disolver con un partido acordado pendiente. Las propuestas pendientes se cancelan. No se reactiva: si vuelven, crean un equipo nuevo.
+  - **Etapa actual (14/10/2026):** se implementa la disolución del módulo de
+    equipos, conservando plantel y escudo e invalidando invitaciones. Los
+    controles por partidos y la cancelación de propuestas se integrarán cuando
+    existan esas tablas; estas reglas siguen vigentes.
 
 ## Partidos
 
@@ -172,6 +179,8 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 
 ## Administración
 
+- **Acceso diferenciado (14/10/2026):** `/admin/login` usa la misma cuenta de Supabase; exige que `is_admin()` confirme el rol en el servidor. No hay registro de administradores ni selección de rol en el formulario. El rol sigue asignándose manualmente en `public.admins`, nunca desde la app. Una cuenta común que se autentica aquí conserva su sesión normal, pero recibe acceso denegado al backoffice. Si no se puede verificar el rol, también se deniega el acceso.
+- **Backoffice inicial:** `/admin` muestra el resumen y `/admin/seguridad` muestra el acceso de la cuenta actual, ambos con comprobación de sesión y rol junto a sus datos. Sidebar propia, desplegable en móvil, sin navbar ni footer del catálogo. Usuarios, contenido, reportes, actividad, soporte, avisos y configuración se señalan como etapas pendientes, sin enlaces ni acciones ficticias. Alcance y verificación en [acceso-administrador.md](acceso-administrador.md).
 - **Panel de administración** (solo para el rol administrador):
   - tablero con números
   - reportes pendientes
@@ -220,12 +229,18 @@ Esta tabla es la base de las reglas de acceso (RLS) de la base de datos.
 
 ## Pendientes técnicos (no son de producto, se resuelven al programar)
 
+- **Gestión de equipos y diseño (14/10/2026):** acuerdos de edición,
+  disolución, escudos, navegación y legibilidad en
+  [mejoras-equipos-ux.md](mejoras-equipos-ux.md). La disolución se integra con
+  partidos y propuestas cuando exista ese módulo.
+
 - **Migraciones versionadas en el repo** (`supabase/migrations/`). Hoy el esquema vive solo en el dashboard de Supabase.
 - **Estados de torneo y partido calculados, no guardados.** El prototipo guarda `status: 'abierto'` a mano en `crear-torneo`, y eso hay que cambiarlo.
 - **Todo lo de partidos va por funciones de Postgres (RPC).** RLS no puede expresar "cada capitán escribe solo su propia confirmación".
 - **La tabla de visibilidad necesita vistas públicas.** RLS filtra filas, no columnas.
 - **Bugs del prototipo** (resueltos en #8): `login/actions.ts` y `login/page.tsx` validan `next` con `safeNextPath` y vuelven a `/` por defecto; `signOut({ scope: 'local' })` cierra solo el dispositivo actual.
+- **Panel de organizador:** la gestión vive en `/mis-torneos`; `/panel` conserva los links anteriores redirigiendo allí.
 - **Orden de subida del flyer:** el id del torneo no existe antes de insertarlo, y no tienen que quedar archivos huérfanos si el insert falla. Resuelto: el flyer se sube después del insert, como `flyers/<id del torneo>`. En la baja lo borra la Server Action por la API de Storage, después de la función de baja, porque Postgres no puede borrar archivos de Storage.
 - **Parámetros de URL del catálogo en español** (`modalidad`, `zona`, `precio_max`). El prototipo usa `modality` y `status`.
 - **Filtro de zona del catálogo:** el torneo guarda `zone_id` (FK a `zones`), ya no la zona como texto. `?zona=` recibe el id de una zona o de un corredor: una zona filtra por `zone_id` y un corredor, por `zones.corridor_id` con el embed `zones!inner(corridor_id)`. El filtro de `feat/dynamic-filters`, que compara el texto `zone`, deja de andar.
-- **Fotos de perfil:** `profiles.avatar_url` existe, pero todavía no hay bucket ni subida. La página del organizador la muestra con un `<img>` común (o la inicial del nombre si no hay foto); cuando exista el bucket, pasar a `next/image` y sumar su ruta a `remotePatterns` en `next.config.ts`.
+- **Fotos de perfil:** bucket público `avatars`, limitado a JPG/PNG/WebP de hasta 2 MB. Las policies de Storage permiten subir, ver las filas y retirar fotos solo en la carpeta del usuario autenticado (`<id del usuario>/<uuid>`). La acción valida el archivo, guarda la URL y retira la anterior; una actualización concurrente obliga a reintentar. Perfil y página del organizador usan `next/image` y solo muestran URLs de ese bucket de nuestro Supabase.

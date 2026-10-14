@@ -23,8 +23,8 @@ interface GestionTorneoProps {
   searchParams: Promise<{ tab?: string | string[]; q?: string; error?: string }>
 }
 
-const keyLabelClass = 'text-white/40 text-[10px] uppercase tracking-wider font-mono'
-const keyValueClass = 'font-semibold text-white text-sm'
+const keyLabelClass = 'text-foreground/60 text-[10px] uppercase tracking-wider font-mono'
+const keyValueClass = 'font-semibold text-foreground text-sm'
 
 // Pantalla de gestión del torneo: el segundo nivel del panel de organizador
 // (ver "Cuenta y acceso" en docs/decisiones-casos-de-uso.md). Cabecera con los
@@ -77,7 +77,7 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
 
       <header className="flex flex-col gap-5">
         <div className="flex flex-col gap-3">
-          <h1 className="text-4xl md:text-5xl font-display tracking-widest font-bold text-white uppercase leading-none">
+          <h1 className="text-4xl md:text-5xl font-display tracking-widest font-bold text-foreground uppercase leading-none">
             {formColumns.name}
           </h1>
           <span className={`w-fit px-2.5 py-1 border text-[11px] uppercase font-display font-bold tracking-widest rounded-sm ${statusStyles[status]}`}>
@@ -107,7 +107,7 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
                 <VerificationBadge age={age} className="px-2 py-1" />
               ) : (
                 // Un Finalizado ya no tiene que confirmar que sigue en pie.
-                <span className="font-mono uppercase text-white/50">Finalizó: ya no se confirma</span>
+                <span className="font-mono uppercase text-foreground/70">Finalizó: ya no se confirma</span>
               )}
             </dd>
           </div>
@@ -135,7 +135,7 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
             className={`px-4 py-3 -mb-px border-b-2 font-display font-bold uppercase tracking-wider text-sm transition-colors ${
               value === tab
                 ? 'border-brand-lime text-brand-lime'
-                : 'border-transparent text-white/50 hover:text-white'
+                : 'border-transparent text-foreground/70 hover:text-foreground'
             }`}
           >
             {label}
@@ -165,8 +165,8 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
           se da de baja: queda como trayectoria. */}
       {status !== 'finalizado' && (
         <section className="mt-4 pt-6 border-t border-brand-border flex flex-col gap-3">
-          <h2 className="font-display tracking-wider text-lg text-white uppercase">Dar de baja</h2>
-          <p className="text-white/50 text-xs leading-relaxed max-w-xl">
+          <h2 className="font-display tracking-wider text-lg text-foreground uppercase">Dar de baja</h2>
+          <p className="text-foreground/70 text-xs leading-relaxed max-w-xl">
             El torneo desaparece del catálogo y su ficha deja de existir. No se puede deshacer.
           </p>
           <WithdrawButton

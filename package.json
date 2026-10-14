@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test --experimental-strip-types --no-warnings=ExperimentalWarning 'src/**/*.test.ts'"
+    "test": "node --test --experimental-strip-types --no-warnings=ExperimentalWarning \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

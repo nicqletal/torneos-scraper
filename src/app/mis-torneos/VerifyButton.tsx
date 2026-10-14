@@ -24,7 +24,7 @@ export function VerifyButton({ id, block }: { id: string; block: VerifyBlock | n
         type="button"
         disabled
         title={blockReasons[block]}
-        className={`${baseClass} border border-brand-border text-white/30 cursor-not-allowed`}
+        className={`${baseClass} border border-brand-border text-foreground/30 cursor-not-allowed`}
       >
         <CheckCircle2 className="w-3.5 h-3.5" />
         Sigue vigente
@@ -39,7 +39,7 @@ export function VerifyButton({ id, block }: { id: string; block: VerifyBlock | n
       <input type="hidden" name="id" value={id} />
       <SubmitButton
         pendingLabel={<><CheckCircle2 className="w-3.5 h-3.5" />Confirmando…</>}
-        className={`press ${baseClass} w-full bg-brand-lime hover:bg-white text-brand-bg cursor-pointer`}
+        className={`press ${baseClass} w-full bg-brand-lime hover:bg-foreground text-brand-bg cursor-pointer`}
       >
         <CheckCircle2 className="w-3.5 h-3.5" />
         Sigue vigente

@@ -12,7 +12,8 @@
 --    que da el mensaje; esto es la última defensa si alguien sube por la API.
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('flyers', 'flyers', true, 3 * 1024 * 1024, array['image/jpeg', 'image/png', 'image/webp']);
+values ('flyers', 'flyers', true, 3 * 1024 * 1024, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
 
 -- 2. `image_url` pasa a ser editable por el dueño (se la había dejado afuera
 --    del grant de update en 20260930000004 a la espera de este issue). La fila

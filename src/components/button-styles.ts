@@ -5,7 +5,7 @@
 
 // Botón secundario chico del panel: borde y fondo oscuros, texto apagado.
 const secondaryButtonBase =
-  'press inline-flex items-center gap-1.5 px-3 py-2 border border-brand-border bg-brand-secondary text-white/80 text-xs font-display font-bold uppercase tracking-wider rounded-sm'
+  'ui-action press inline-flex items-center gap-1.5 px-3 py-2 border border-brand-border bg-brand-secondary text-foreground/80 text-xs font-display font-bold uppercase tracking-wider rounded-sm'
 
 // Acción neutra ("Gestionar", "Ver ficha pública"): al pasar el mouse, lima.
 export const secondaryButtonClass = `${secondaryButtonBase} hover:text-brand-lime hover:border-brand-lime`

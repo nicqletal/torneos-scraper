@@ -28,14 +28,14 @@ export function InscriptionForm({
             maxLength={TEAM_NAME_MAX}
             required
             autoComplete="off"
-            className="px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-brand-lime transition-colors"
+            className="px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-sm text-foreground placeholder:text-foreground/25 focus:outline-none focus:border-brand-lime transition-colors"
           />
         </label>
         <button
           type="submit"
           disabled={pending}
           aria-busy={pending}
-          className="press inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-lime hover:bg-white text-brand-bg text-xs font-display font-bold uppercase tracking-wider rounded-sm cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+          className="press inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-lime hover:bg-foreground text-brand-bg text-xs font-display font-bold uppercase tracking-wider rounded-sm cursor-pointer disabled:opacity-60 disabled:cursor-wait"
         >
           <Plus className="w-4 h-4" />
           {pending ? 'Anotando…' : 'Anotar equipo'}

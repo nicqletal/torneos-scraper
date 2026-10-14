@@ -20,7 +20,7 @@ export function CopyLinkButton({ url }: { url: string }) {
     <button
       type="button"
       onClick={copy}
-      className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-white text-brand-bg transition-colors font-display"
+      className="ui-action inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors font-display"
     >
       {copied ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Copy className="w-3.5 h-3.5 stroke-[3]" />}
       {copied ? 'Copiado' : 'Copiar'}

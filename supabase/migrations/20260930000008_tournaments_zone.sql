@@ -10,19 +10,19 @@
 --    de prueba de 20260928000001; si la planilla real no la tuviera, la FK
 --    frena la migración en vez de dejar torneos con una zona inexistente.
 
-alter table public.tournaments add column zone_id text references public.zones (id);
+alter table public.tournaments add column if not exists zone_id text references public.zones (id);
 
-update public.tournaments set zone_id = 'palermo';
+update public.tournaments set zone_id = 'palermo' where zone_id is null;
 
 alter table public.tournaments alter column zone_id set not null;
 
 -- Postgres no indexa solo las FK; el catálogo va a filtrar por zona.
-create index on public.tournaments (zone_id);
+create index if not exists tournaments_zone_id_idx on public.tournaments (zone_id);
 
 -- 2. Fuera el texto libre. Borrar la columna borra también sus grants de
 --    insert y update (20260930000004 y 20260930000005).
 
-alter table public.tournaments drop column zone;
+alter table public.tournaments drop column if exists zone;
 
 -- 3. `zone_id` entra al formulario, así que se suma a los dos grants por
 --    columna (las de `TournamentInput` en src/utils/tournament-form.ts). Qué
