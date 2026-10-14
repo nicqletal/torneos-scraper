@@ -11,7 +11,7 @@
 -- Quedan afuera, entre otras:
 --   verified_at     la actualiza "Sigue vigente": editar no cuenta como verificar
 --   user_id         el dueño no se pasa el torneo a otro
---   organizer_name  era de los torneos copiados; se elimina en 20261007000002
+--   organizer_name  era de los torneos copiados; se elimina en 20261014000005
 --   created_at, updated_at, created_by, id
 --   image_url       el flyer entra con Storage, en su propio issue
 --
