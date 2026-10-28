@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
-import { MapPin, Users, Gauge, RefreshCw, Crown, Trophy, Pencil, Link as LinkIcon } from 'lucide-react'
+import { MapPin, Users, Gauge, RefreshCw, Crown, Trophy, Pencil, Swords, Link as LinkIcon } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { TeamCrest } from '@/components/TeamCrest'
 import { CopyLinkButton } from '@/components/CopyLinkButton'
@@ -12,6 +12,7 @@ import { levelLabel } from '@/utils/teams'
 import { modalityLabel } from '@/utils/modality'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { BackLink } from '@/components/BackLink'
+import { historyRow, ratingSummary, recordLine, type MatchHistory, type TeamRecord } from '@/utils/match-display'
 
 const rowButton =
   'px-3 py-1.5 text-sm font-bold uppercase tracking-wider rounded-sm border border-brand-border text-foreground hover:border-brand-lime hover:text-brand-lime transition-colors font-display'
@@ -44,6 +45,10 @@ interface TeamTournament {
   status: TournamentStatus
 }
 
+// Un partido cerrado del historial (vista pública `team_match_history`),
+// visto desde este equipo. Sin cancha ni hora.
+type HistoryRow = MatchHistory & { match_id: string; rival_team_id: string; rival_zone_name: string }
+
 interface RosterRow {
   user_id: string
   is_captain: boolean
@@ -51,7 +56,7 @@ interface RosterRow {
 }
 
 // Public team page (UC-29). The squad only shows up for its own members.
-// Attendance, rating and last matches come with the matches module.
+// The match history (record, stars and last 5 closed matches) is public.
 export default async function EquipoPage({
   params,
   searchParams,
@@ -112,6 +117,21 @@ export default async function EquipoPage({
     : { data: [] }
   const tournaments = (tournamentRows ?? []) as unknown as TeamTournament[]
 
+  // Historial de partidos: el contador y las estrellas de todo el historial, y
+  // los últimos 5 cerrados (sin "Ver todos"). Las dos vistas son públicas.
+  const { data: recordData } = await supabase
+    .from('team_record')
+    .select('played, faults, conflicts, conflict_rivals, rating_avg, rating_count')
+    .eq('team_id', id)
+    .maybeSingle()
+  const record = recordData as (TeamRecord & { rating_avg: number | null; rating_count: number }) | null
+  const { data: historyData } = await supabase
+    .from('team_match_history')
+    .select('match_id, played_on, phase, team_name, rival_team_id, rival_team_name, rival_zone_name, goals_for, goals_against, drop_reason, dropped_by_own, drop_mutual, drop_fault, own_said_no_show, rival_said_no_show, absent_own')
+    .eq('team_id', id)
+    .order('recency')
+  const history = (historyData ?? []) as HistoryRow[]
+
   const h = await headers()
   const origin = `${h.get('x-forwarded-proto') ?? 'http'}://${h.get('host')}`
 
@@ -167,6 +187,43 @@ export default async function EquipoPage({
           {error}
         </p>
       )}
+
+      <section className="border border-brand-border bg-brand-surface rounded-sm p-5 flex flex-col gap-3">
+        <h2 className="text-xl font-display tracking-wider text-foreground uppercase flex items-center gap-2">
+          <Swords className="w-5 h-5 text-brand-lime" />
+          Partidos
+        </h2>
+        {record && (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+            <p className="text-sm text-foreground font-semibold">{recordLine(record)}</p>
+            <p className={`text-sm ${record.rating_count > 0 ? 'text-brand-lime font-semibold' : 'text-foreground/70'}`}>
+              {ratingSummary(record.rating_avg === null ? null : Number(record.rating_avg), record.rating_count)}
+            </p>
+          </div>
+        )}
+        {history.length > 0 ? (
+          <ul className="flex flex-col divide-y divide-brand-border">
+            {history.map((match) => {
+              const row = historyRow(match)
+              return (
+                <li key={match.match_id} className="py-2.5 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
+                  <span className="text-[11px] font-mono text-foreground/60 shrink-0 sm:w-16">{row.date}</span>
+                  <span className="text-sm text-foreground shrink-0">
+                    vs{' '}
+                    <Link href={`/equipos/${match.rival_team_id}`} className="font-semibold hover:text-brand-lime transition-colors">
+                      {match.rival_team_name}
+                    </Link>
+                    <span className="text-foreground/60"> · {match.rival_zone_name}</span>
+                  </span>
+                  <span className="text-sm text-foreground/80 min-w-0 break-words">{row.outcome}</span>
+                </li>
+              )
+            })}
+          </ul>
+        ) : (
+          <p className="text-xs text-foreground/70">Todavía no tiene partidos cerrados.</p>
+        )}
+      </section>
 
       <section className="border border-brand-border bg-brand-surface rounded-sm p-5 flex flex-col gap-3">
         <h2 className="text-xl font-display tracking-wider text-foreground uppercase flex items-center gap-2">

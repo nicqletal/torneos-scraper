@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Trophy } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { UserMenu } from "@/components/UserMenu";
+import { NoticeBell, type BellNotice } from "@/components/NoticeBell";
+import { noticeDate, noticeLink, noticeText, type NoticeKind } from "@/utils/notices";
 import { Footer } from "@/components/Footer";
 import { Atmosphere } from "@/components/Atmosphere";
 import { AppFrame } from "@/components/AppFrame";
@@ -39,6 +41,32 @@ export default async function RootLayout({
   // real lo controlan el proxy y cada página de /admin con is_admin().
   const { data: isAdmin } = user ? await supabase.rpc('is_admin') : { data: false };
 
+  // Campanita: los últimos 30 avisos y el total de no leídos. RLS ya filtra
+  // a los del usuario; el texto se arma acá con `notices.ts`.
+  let notices: BellNotice[] = [];
+  let unreadCount = 0;
+  if (user) {
+    const [{ data: rows }, { count }] = await Promise.all([
+      supabase
+        .from('notices')
+        .select('id, kind, params, created_at, read_at')
+        .order('created_at', { ascending: false })
+        .limit(30),
+      supabase
+        .from('notices')
+        .select('id', { count: 'exact', head: true })
+        .is('read_at', null),
+    ]);
+    notices = (rows ?? []).map((n) => ({
+      id: n.id,
+      text: noticeText(n.kind as NoticeKind, n.params),
+      link: noticeLink(n.kind as NoticeKind, n.params),
+      date: noticeDate(n.created_at),
+      unread: n.read_at === null,
+    }));
+    unreadCount = count ?? 0;
+  }
+
   // Barra mínima: sin sesión, un solo botón destacado ("Crear cuenta"); con
   // sesión, solo el menú de usuario. Ver "Cuenta y acceso" en
   // docs/decisiones-casos-de-uso.md.
@@ -70,6 +98,8 @@ export default async function RootLayout({
             </Link>
           </>
         )}
+
+        {user && <NoticeBell notices={notices} unreadCount={unreadCount} />}
 
         {user && user.email && (
           <UserMenu email={user.email} isAdmin={isAdmin === true} />

@@ -99,7 +99,6 @@ RLS y auth son el punto crítico del proyecto:
 - El rol de administrador nunca se puede escribir desde el cliente.
 - Las transiciones de estado de partidos y propuestas van por funciones de Postgres, no por `update` directos.
 - Al cliente solo llega la `anon key`. La `service_role key` nunca sale de contexto server controlado.
-- **Toda policy de RLS se revisa línea por línea y se explica antes de aplicarla.** No delegar ciegamente.
 
 ## Quién publica torneos (resuelto)
 
@@ -110,7 +109,6 @@ Publican los **organizadores** (cualquier usuario con sesión). Todo torneo tien
 - Avanzar según los issues del repo, sin adelantar etapas. Si una regla no está en `docs/decisiones-casos-de-uso.md`, preguntar en vez de inventarla, y después agregarla a ese archivo.
 - Si aparece un término nuevo del dominio, agregarlo a `CONTEXT.md` en el mismo PR.
 - Explicar decisiones de arquitectura no pedidas **antes** de aplicarlas.
-- Frenar y esperar confirmación en todo lo que toque RLS o autenticación.
 - Preferir código simple y legible a abstracciones tempranas: el objetivo incluye aprender el stack.
 - Actuar como tutor: explicar el código, no solo producirlo.
 
