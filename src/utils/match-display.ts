@@ -2,7 +2,7 @@
 // base (`match_phase`, `match_deadline`); acá solo se traduce a texto y color.
 // Coordinado y Confirmado no son fases: son datos de `por_jugarse`.
 
-import type { Slot } from './rival-search-form.ts'
+import { dayLabel, type Slot } from './rival-search-form.ts'
 import { noticeDate } from './notices.ts'
 
 // Lo que devuelve `match_phase`.
@@ -126,7 +126,9 @@ export type MatchDrop = {
 // El dato del momento de un partido caído, con los nombres de los equipos
 // (nunca "nosotros"): `Se cayó · lo tiró Los Rivales: "lluvia" · falta para
 // Los Rivales`, o `Se cayó de común acuerdo: "lluvia"`.
-export function dropDetail(match: MatchDrop): string {
+export function dropDetail(
+  match: Pick<MatchDrop, 'team_name' | 'rival_team_name' | 'drop_reason' | 'dropped_by_own' | 'drop_mutual' | 'drop_fault'>
+): string {
   const reason = `"${match.drop_reason ?? ''}"`
   if (match.drop_mutual) return `Se cayó de común acuerdo: ${reason}`
   const by = match.dropped_by_own ? match.team_name : match.rival_team_name
@@ -306,4 +308,84 @@ export function ratingRow(match: MatchRating, now: Date): { canRate: boolean; no
   return match.rated_by_own
     ? { canRate: false, note: `Calificaste a ${rival}. La de ${match.team_name} se ve cuando califique ${rival} o el ${deadline}` }
     : { canRate: true, note: `Podés calificar a ${rival} hasta el ${deadline}` }
+}
+
+// Lo que la vista pública `team_match_history` trae de un partido cerrado,
+// visto desde el equipo dueño de la página. Nunca cancha ni hora.
+export type MatchHistory = {
+  team_name: string
+  played_on: string
+  phase: MatchPhase
+  rival_team_name: string
+  goals_for: number | null
+  goals_against: number | null
+  drop_reason: string | null
+  dropped_by_own: boolean | null
+  drop_mutual: boolean
+  drop_fault: boolean
+  own_said_no_show: boolean
+  rival_said_no_show: boolean
+  absent_own: boolean | null
+}
+
+// Una fila del historial en la página del equipo: la fecha sin hora y el
+// desenlace, con los nombres de los equipos (la página la mira otro, así que
+// nunca "nosotros"). Los resultados, desde el lado del dueño.
+export function historyRow(match: MatchHistory): { date: string; outcome: string } {
+  return { date: dayLabel(match.played_on), outcome: historyOutcome(match) }
+}
+
+function historyOutcome(match: MatchHistory): string {
+  const team = match.team_name
+  const rival = match.rival_team_name
+  switch (match.phase) {
+    case 'caido':
+      return dropDetail(match)
+    case 'en_conflicto': {
+      // Primero el que dijo "no vinieron"; el otro lo negó o acusó de vuelta.
+      const version = (noShow: boolean) => (noShow ? '"no vinieron"' : '"fuimos"')
+      const [first, firstNoShow, second, secondNoShow] = match.own_said_no_show
+        ? [team, match.own_said_no_show, rival, match.rival_said_no_show]
+        : [rival, match.rival_said_no_show, team, match.own_said_no_show]
+      return `En conflicto · ${first}: ${version(firstNoShow)} · ${second}: ${version(secondNoShow)}`
+    }
+    case 'no_presentado': {
+      const absent = match.absent_own ? team : rival
+      return `${absent} no se presentó · falta para ${absent}`
+    }
+    default: {
+      const { goals_for: own, goals_against: theirs } = match
+      if (own === null || theirs === null) return 'Jugado, sin resultado'
+      const verb = own > theirs ? 'Ganó' : own < theirs ? 'Perdió' : 'Empató'
+      return `${verb} ${own}–${theirs}`
+    }
+  }
+}
+
+// Lo que la vista pública `team_record` trae del contador de un equipo.
+export type TeamRecord = {
+  played: number
+  faults: number
+  conflicts: number
+  conflict_rivals: number
+}
+
+// "Jugó 12 · 1 falta · 2 conflictos (con 2 rivales distintos)", de todo el
+// historial. Las faltas van aunque sean 0; los conflictos y sus rivales
+// distintos, solo si hubo alguno (con uno solo, "con 1 rival").
+export function recordLine(record: TeamRecord): string {
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+  const parts = [`Jugó ${record.played}`, plural(record.faults, 'falta', 'faltas')]
+  if (record.conflicts > 0) {
+    const rivals = plural(record.conflict_rivals, 'rival', 'rivales distintos')
+    parts.push(`${plural(record.conflicts, 'conflicto', 'conflictos')} (con ${rivals})`)
+  }
+  return parts.join(' · ')
+}
+
+// "★ 4,3 (12)": el promedio de las calificaciones reveladas, con un decimal y
+// sin mínimo de calificaciones. Sin ninguna, "Sin calificaciones".
+export function ratingSummary(average: number | null, count: number): string {
+  if (average === null || count === 0) return 'Sin calificaciones'
+  return `★ ${average.toFixed(1).replace('.', ',')} (${count})`
 }

@@ -225,6 +225,10 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
     - Falta por no presentarse: "Barrio Unido no se presentó · falta para Barrio Unido".
   - Los equipos se nombran siempre por su nombre, nunca "Nosotros" (la página la mira otro). Se usa el **nombre y la zona actuales**, aunque el equipo los haya cambiado.
   - **Estrellas:** promedio con un decimal y cantidad, "★ 4,3 (12)", sin mínimo de calificaciones. Con 0: "Sin calificaciones".
+  - **Detalles del historial (28/10/2026, etapa 7):**
+    - Sin conflictos, el contador no los nombra: "Jugó 12 · 0 faltas". Con conflictos con un solo rival, "1 conflicto (con 1 rival)" o "2 conflictos (con 1 rival)", sin "distintos".
+    - Un partido caído entra al historial desde que se tira, aunque su fecha todavía no haya llegado; la fecha de la fila es la del partido.
+    - El promedio cuenta solo las calificaciones reveladas (las dos cargadas o 7 días vencidos).
 - **Cuándo cuenta una falta (28/10/2026):** la de tirar el partido con menos de 24 h, desde que lo tiró; la de no presentarse, desde que vencen las 48 h sin respuesta, porque recién ahí es firme. Esa fecha es la que entra en los 90 días y, si es la tercera, la que arranca los 30 días de bloqueo.
 - **Penalizaciones (cuentan solo faltas):**
   - 2 faltas en 90 días: el equipo va al final de la lista de compatibles.
