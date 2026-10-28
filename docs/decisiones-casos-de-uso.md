@@ -146,6 +146,9 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 - "Martes de 20 a 22, repetir" es un atajo del formulario que genera los martes de las próximas dos semanas como franjas sueltas.
 - **Cargar una franja (28/10/2026):** se toca el día en el calendario y se elige "de [20] a [23]" con dos selectores de hora entera; no hay bloques fijos. Dura al menos 1 h, va de 8 a 24 (no cruza la medianoche: es de una sola fecha) y, si es hoy, solo empieza en una hora que no pasó. "Repetir la semana que viene" es una casilla debajo.
 - **Franjas que chocan:** se rechaza una franja que se superpone con un partido acordado del equipo o con otra franja de la misma búsqueda. Entre búsquedas de distinta modalidad del mismo equipo sí se pueden superponer.
+- **Franja vigente (28/10/2026, etapa 1):** una franja cuenta (se muestra, se edita, da compatibles) mientras no empezó. Una franja en curso ya no se puede proponer, así que se ignora; la búsqueda deja de estar activa cuando ya no le queda ninguna por empezar.
+- **"Repetir" fuera de los 14 días (28/10/2026, etapa 1):** si la franja repetida cae después de los próximos 14 días, el formulario la rechaza con el mensaje de siempre en vez de cargar solo la primera.
+- **Empates en los compatibles (28/10/2026, etapa 1):** con la misma cercanía, nivel y presentismo, primero el horario en común más temprano.
 - La búsqueda vence cuando pasa su última franja. Que nazca un partido no la cierra: sigue con sus otras franjas.
 - **Editar:** se agregan y se sacan franjas; la modalidad no se cambia. Sacar una franja cancela sus propuestas pendientes (enviadas y recibidas), con aviso. Sacar la última cancela la búsqueda.
 - **Cancelar:** el capitán la cancela cuando quiera. Se cancelan sus propuestas pendientes (enviadas y recibidas), con aviso. Los partidos que ya nacieron de ella siguen en pie.

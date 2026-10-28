@@ -36,7 +36,7 @@ export async function proxy(request: NextRequest) {
   // Optimistic check only: each page and Server Action verifies the session again
   const pathname = request.nextUrl.pathname
   const adminRoute = isProtectedAdminPath(pathname)
-  const protectedPrefixes = ['/crear-torneo', '/mis-torneos', '/perfil', '/crear-equipo', '/mis-equipos']
+  const protectedPrefixes = ['/crear-torneo', '/mis-torneos', '/perfil', '/crear-equipo', '/mis-equipos', '/partidos']
   const isProtectedRoute = adminRoute || protectedPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
 
   function redirectWithCookies(url: URL) {
