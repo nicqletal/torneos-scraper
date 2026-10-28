@@ -1,13 +1,15 @@
 // PROTOTIPO descartable del ticket "Dónde vive Partidos en la app" (#41).
-// Tres maneras de navegar el módulo Partidos, en /prototype/partidos?variant=A|B|C.
+// Tres maneras de navegar el módulo Partidos, en /prototype/partidos?variant=A2|A|B|C.
 // Datos falsos en memoria; nada de esto va a main.
 
 import { PrototypeSwitcher } from '@/components/PrototypeSwitcher'
 import { VariantA } from './_proto/VariantA'
+import { VariantA2 } from './_proto/VariantA2'
 import { VariantB } from './_proto/VariantB'
 import { VariantC } from './_proto/VariantC'
 
 const variants = [
+  { key: 'A2', name: 'A minimalista' },
   { key: 'A', name: 'Sección Partidos con pestañas' },
   { key: 'B', name: 'Todo dentro del equipo' },
   { key: 'C', name: 'Bandeja de lo que te toca' },
@@ -19,10 +21,11 @@ export default async function PartidosPrototypePage({
   searchParams: Promise<{ variant?: string | string[] }>
 }) {
   const query = await searchParams
-  const variant = typeof query.variant === 'string' ? query.variant : 'A'
+  const variant = typeof query.variant === 'string' ? query.variant : 'A2'
 
   return (
     <div className="max-w-4xl w-full mx-auto pb-24">
+      {variant === 'A2' && <VariantA2 />}
       {variant === 'A' && <VariantA />}
       {variant === 'B' && <VariantB />}
       {variant === 'C' && <VariantC />}
