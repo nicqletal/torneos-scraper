@@ -35,11 +35,54 @@ export async function saveRivalSearch(formData: FormData) {
     p_slots: parsed.fields.slots,
   })
 
-  if (error) {
-    // P0001 = raise exception de la RPC: el mensaje es para el usuario.
-    if (error.code !== 'P0001') console.error(error)
-    backToPanel(teamId, modality, error.code === 'P0001' ? `${error.message}.` : 'No se pudo guardar la búsqueda. Probá de nuevo.')
-  }
+  if (error) backToPanel(teamId, modality, rpcErrorMessage(error, 'No se pudo guardar la búsqueda. Probá de nuevo.'))
+
+  revalidatePath('/partidos')
+  backToPanel(teamId, modality)
+}
+
+// Traduce el error de una RPC: P0001 = `raise exception` de la RPC, con un
+// mensaje para el usuario; cualquier otro se loguea y se muestra uno genérico.
+function rpcErrorMessage(error: { code: string; message: string }, fallback: string): string {
+  if (error.code !== 'P0001') console.error(error)
+  return error.code === 'P0001' ? `${error.message}.` : fallback
+}
+
+// "Proponer partido" en un compatible: la base calcula la parte en común de
+// las dos franjas y avisa al capitán rival.
+export async function sendProposal(formData: FormData) {
+  const teamId = formData.get('team_id')
+  const modality = formData.get('modality')
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+
+  const { error } = await supabase.rpc('send_proposal', {
+    p_slot_id: String(formData.get('slot_id') ?? ''),
+    p_rival_slot_id: String(formData.get('rival_slot_id') ?? ''),
+  })
+  if (error) backToPanel(teamId, modality, rpcErrorMessage(error, 'No se pudo mandar la propuesta. Probá de nuevo.'))
+
+  revalidatePath('/partidos')
+  backToPanel(teamId, modality)
+}
+
+// Rechazar (quien la recibe) o cancelar (quien la mandó) es la misma RPC con
+// `p_accept` false: la base sabe de qué lado está cada uno.
+export async function declineProposal(formData: FormData) {
+  const teamId = formData.get('team_id')
+  const modality = formData.get('modality')
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+
+  const { error } = await supabase.rpc('respond_proposal', {
+    p_proposal_id: String(formData.get('proposal_id') ?? ''),
+    p_accept: false,
+  })
+  if (error) backToPanel(teamId, modality, rpcErrorMessage(error, 'No se pudo responder la propuesta. Probá de nuevo.'))
 
   revalidatePath('/partidos')
   backToPanel(teamId, modality)
