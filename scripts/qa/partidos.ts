@@ -17,6 +17,7 @@
 //   node --experimental-strip-types scripts/qa/partidos.ts sin-cargas-vencido
 //   node --experimental-strip-types scripts/qa/partidos.ts vencimientos   (los cuatro juntos)
 //   node --experimental-strip-types scripts/qa/partidos.ts calificacion-vencida
+//   node --experimental-strip-types scripts/qa/partidos.ts historial
 //
 // Cada escenario empieza limpiando, así se puede correr las veces que haga
 // falta. Las etapas siguientes suman escenarios a `SCENARIOS`.
@@ -102,15 +103,24 @@ async function publish(teamId: string, slotRange: string, hoursAgo: number): Pro
 // Una falta de `teamId`: un partido contra el otro equipo QA que tiró solo
 // hace `daysAgo` días, 1 h antes de empezar.
 async function fault(teamId: string, daysAgo: number) {
+  await dropped(teamId, daysAgo, 1, 'No llegamos (escenario QA)')
+}
+
+// Un partido contra el otro equipo QA que `teamId` tiró hace `daysAgo` días,
+// `hoursBefore` horas antes de empezar (con menos de 24, suma falta salvo de
+// común acuerdo).
+async function dropped(teamId: string, daysAgo: number, hoursBefore: number, reason: string, mutual = false) {
   const droppedAt = Date.now() - daysAgo * 24 * HOUR
+  const start = droppedAt + hoursBefore * HOUR
   const match = check(
     await supabase
       .from('matches')
       .insert({
-        range: `[${new Date(droppedAt + HOUR).toISOString()},${new Date(droppedAt + 3 * HOUR).toISOString()})`,
+        range: `[${new Date(start).toISOString()},${new Date(start + 2 * HOUR).toISOString()})`,
         dropped_at: new Date(droppedAt).toISOString(),
-        drop_reason: 'No llegamos (escenario QA)',
+        drop_reason: reason,
         dropped_by_team_id: teamId,
+        drop_mutual: mutual,
       })
       .select('id')
       .single()
@@ -124,7 +134,7 @@ async function fault(teamId: string, daysAgo: number) {
 }
 
 // Lo que cargó un lado después del partido (las columnas de `match_sides`).
-type SideFacts = { goals_for?: number; goals_against?: number; result_at?: string; no_show_at?: string }
+type SideFacts = { goals_for?: number; goals_against?: number; result_at?: string; no_show_at?: string; went_at?: string }
 
 // Un partido ya jugado entre los dos equipos QA, de 2 h en horas enteras, que
 // terminó `daysBack` días antes del último fin de hora de hace 49 h. Con
@@ -258,6 +268,32 @@ const SCENARIOS: Record<string, () => Promise<string>> = {
     const matchId = await pastMatch(8, {}, {})
     check(await supabase.from('ratings').insert({ match_id: matchId, team_id: RIVAL_TEAM, stars: 4 }))
     return 'Partido Jugado hace 8 días; solo el rival calificó a Caro (4 estrellas): ya se revela.'
+  },
+
+  // Un partido cerrado de cada tipo, para el historial de la página del
+  // equipo. Del más nuevo al más viejo: caído de común acuerdo, caído con
+  // falta del rival, falta del rival por no presentarse, en conflicto, Jugado
+  // 3–1 (calificado por los dos) y, sexto, caído sin falta: no entra en los
+  // últimos 5.
+  historial: async () => {
+    await dropped(CARO_TEAM, 2, 3, 'lluvia', true)
+    await dropped(RIVAL_TEAM, 3, 2, 'nos faltan dos')
+    await pastMatch(3, { no_show_at: ago49() }, {}, 49)
+    await pastMatch(4, { no_show_at: ago49() }, { went_at: ago49() }, 49)
+    const played = await pastMatch(
+      5,
+      { goals_for: 3, goals_against: 1, result_at: ago49() },
+      { goals_for: 1, goals_against: 3, result_at: ago49() },
+      49
+    )
+    check(
+      await supabase.from('ratings').insert([
+        { match_id: played, team_id: RIVAL_TEAM, stars: 4 },
+        { match_id: played, team_id: CARO_TEAM, stars: 5 },
+      ])
+    )
+    await dropped(CARO_TEAM, 12, 48, 'cambio de planes')
+    return 'Seis partidos cerrados de Caro contra el rival: común acuerdo, caído con falta, no presentado, en conflicto, Jugado 3–1 (★4 para Caro) y caído sin falta.'
   },
 }
 

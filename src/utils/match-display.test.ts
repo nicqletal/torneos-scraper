@@ -5,6 +5,8 @@ import {
   dropDetail,
   dropMenu,
   goingNote,
+  historyRow,
+  recordLine,
   isOccupied,
   mapsLink,
   matchPhaseBadge,
@@ -13,6 +15,7 @@ import {
   mutualDropToAnswer,
   nextMatch,
   ratingRow,
+  ratingSummary,
   resultActions,
   resultDeadlineNote,
   resultDetail,
@@ -338,4 +341,93 @@ test('calificación: vencido el plazo sin calificar ni recibir, no hay nada que 
 test('calificación: ni el plantel ni un partido que no está Jugado muestran nada', () => {
   assert.equal(ratingRow({ ...played, is_captain: false, rated_by_own: null }, beforeDeadline), null)
   assert.equal(ratingRow({ ...played, phase: 'en_conflicto', rating_deadline: null }, beforeDeadline), null)
+})
+
+// Una fila del historial de Real Floresta, la dueña de la página.
+const history = {
+  team_name: 'Real Floresta',
+  played_on: '2026-10-24',
+  phase: 'jugado' as MatchPhase,
+  rival_team_name: 'La 12 FC',
+  goals_for: null,
+  goals_against: null,
+  drop_reason: null,
+  dropped_by_own: null,
+  drop_mutual: false,
+  drop_fault: false,
+  own_said_no_show: false,
+  rival_said_no_show: false,
+  absent_own: null,
+}
+
+test('historial: la fecha va sin hora', () => {
+  assert.equal(historyRow(history).date, 'sáb 24/10')
+})
+
+test('historial: un Jugado se cuenta desde el lado del dueño de la página', () => {
+  assert.equal(historyRow({ ...history, goals_for: 3, goals_against: 1 }).outcome, 'Ganó 3–1')
+  assert.equal(historyRow({ ...history, goals_for: 0, goals_against: 2 }).outcome, 'Perdió 0–2')
+  assert.equal(historyRow({ ...history, goals_for: 1, goals_against: 1 }).outcome, 'Empató 1–1')
+  assert.equal(historyRow(history).outcome, 'Jugado, sin resultado')
+})
+
+test('historial: un caído dice quién lo tiró, con su nombre, y si sumó falta', () => {
+  const dropped = { ...history, phase: 'caido' as MatchPhase, drop_reason: 'nos faltan dos' }
+  assert.equal(
+    historyRow({ ...dropped, dropped_by_own: false, drop_fault: true }).outcome,
+    'Se cayó · lo tiró La 12 FC: "nos faltan dos" · falta para La 12 FC'
+  )
+  assert.equal(historyRow({ ...dropped, dropped_by_own: true }).outcome, 'Se cayó · lo tiró Real Floresta: "nos faltan dos"')
+  assert.equal(
+    historyRow({ ...dropped, drop_reason: 'lluvia', dropped_by_own: true, drop_mutual: true }).outcome,
+    'Se cayó de común acuerdo: "lluvia"'
+  )
+})
+
+test('historial: un conflicto muestra las dos versiones, primero la de "no vinieron"', () => {
+  const conflict = { ...history, phase: 'en_conflicto' as MatchPhase }
+  assert.equal(
+    historyRow({ ...conflict, own_said_no_show: true }).outcome,
+    'En conflicto · Real Floresta: "no vinieron" · La 12 FC: "fuimos"'
+  )
+  assert.equal(
+    historyRow({ ...conflict, rival_said_no_show: true }).outcome,
+    'En conflicto · La 12 FC: "no vinieron" · Real Floresta: "fuimos"'
+  )
+  assert.equal(
+    historyRow({ ...conflict, own_said_no_show: true, rival_said_no_show: true }).outcome,
+    'En conflicto · Real Floresta: "no vinieron" · La 12 FC: "no vinieron"'
+  )
+})
+
+test('historial: la falta por no presentarse nombra al ausente', () => {
+  const noShow = { ...history, phase: 'no_presentado' as MatchPhase }
+  assert.equal(historyRow({ ...noShow, absent_own: false }).outcome, 'La 12 FC no se presentó · falta para La 12 FC')
+  assert.equal(historyRow({ ...noShow, absent_own: true }).outcome, 'Real Floresta no se presentó · falta para Real Floresta')
+})
+
+test('contador: jugados, faltas y conflictos con la cantidad de rivales distintos', () => {
+  assert.equal(
+    recordLine({ played: 12, faults: 1, conflicts: 2, conflict_rivals: 2 }),
+    'Jugó 12 · 1 falta · 2 conflictos (con 2 rivales distintos)'
+  )
+  assert.equal(
+    recordLine({ played: 5, faults: 3, conflicts: 2, conflict_rivals: 1 }),
+    'Jugó 5 · 3 faltas · 2 conflictos (con 1 rival)'
+  )
+  assert.equal(recordLine({ played: 1, faults: 2, conflicts: 1, conflict_rivals: 1 }), 'Jugó 1 · 2 faltas · 1 conflicto (con 1 rival)')
+})
+
+test('contador: las faltas se muestran aunque sean 0; los conflictos, solo si hay', () => {
+  assert.equal(recordLine({ played: 12, faults: 0, conflicts: 0, conflict_rivals: 0 }), 'Jugó 12 · 0 faltas')
+  assert.equal(recordLine({ played: 0, faults: 0, conflicts: 0, conflict_rivals: 0 }), 'Jugó 0 · 0 faltas')
+})
+
+test('estrellas: promedio con un decimal y coma, y la cantidad', () => {
+  assert.equal(ratingSummary(4.25, 12), '★ 4,3 (12)')
+  assert.equal(ratingSummary(4, 1), '★ 4,0 (1)')
+})
+
+test('estrellas: sin calificaciones reveladas', () => {
+  assert.equal(ratingSummary(null, 0), 'Sin calificaciones')
 })

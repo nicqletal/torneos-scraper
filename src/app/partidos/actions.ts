@@ -109,6 +109,14 @@ export async function acceptProposal(formData: FormData) {
   backToPanel(teamId, modality)
 }
 
+// Cuando un partido se puede haber cerrado (o se reveló una calificación),
+// también cambia el historial público de los dos equipos. La acción solo
+// conoce el partido, así que se revalidan todas las páginas de equipo.
+function revalidateMatchClosed() {
+  revalidatePath('/partidos')
+  revalidatePath('/equipos/[id]', 'page')
+}
+
 // Vuelve a /partidos con el error de una acción de la fila del partido, que se
 // muestra arriba de "Tus partidos" (no en el panel de Buscar rival).
 function backToMatches(error?: string): never {
@@ -165,7 +173,7 @@ export async function dropMatch(formData: FormData) {
   })
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo tirar el partido. Probá de nuevo.'))
 
-  revalidatePath('/partidos')
+  revalidateMatchClosed()
   backToMatches()
 }
 
@@ -201,7 +209,7 @@ export async function answerMutualDrop(formData: FormData) {
   })
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo responder. Probá de nuevo.'))
 
-  revalidatePath('/partidos')
+  revalidateMatchClosed()
   backToMatches()
 }
 
@@ -222,7 +230,7 @@ export async function reportResult(formData: FormData) {
   })
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo cargar el resultado. Probá de nuevo.'))
 
-  revalidatePath('/partidos')
+  revalidateMatchClosed()
   backToMatches()
 }
 
@@ -235,7 +243,7 @@ export async function reportNoShow(formData: FormData) {
   const { error } = await supabase.rpc('report_no_show', { p_match_id: String(formData.get('match_id') ?? '') })
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo reportar. Probá de nuevo.'))
 
-  revalidatePath('/partidos')
+  revalidateMatchClosed()
   backToMatches()
 }
 
@@ -248,7 +256,7 @@ export async function replyWent(formData: FormData) {
   const { error } = await supabase.rpc('reply_went', { p_match_id: String(formData.get('match_id') ?? '') })
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo responder. Probá de nuevo.'))
 
-  revalidatePath('/partidos')
+  revalidateMatchClosed()
   backToMatches()
 }
 
@@ -269,6 +277,6 @@ export async function rateRival(formData: FormData) {
   })
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo calificar. Probá de nuevo.'))
 
-  revalidatePath('/partidos')
+  revalidateMatchClosed()
   backToMatches()
 }
