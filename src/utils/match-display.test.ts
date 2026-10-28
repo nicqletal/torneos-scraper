@@ -2,13 +2,18 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   asksGoing,
+  dropDetail,
+  dropMenu,
   goingNote,
   isOccupied,
   mapsLink,
   matchPhaseBadge,
   matchRowDetail,
+  mutualDropNote,
+  mutualDropToAnswer,
   nextMatch,
   sortByStart,
+  type MatchPhase,
 } from './match-display.ts'
 
 test('partido: por jugarse se muestra en lima', () => {
@@ -91,4 +96,82 @@ test('partido: una franja se pisa con un partido si comparten alguna hora del mi
   assert.equal(isOccupied({ date: '2026-11-05', from: 18, to: 20 }, [match]), false, 'terminar a la hora en que empieza no es pisarse')
   assert.equal(isOccupied({ date: '2026-11-06', from: 20, to: 23 }, [match]), false)
   assert.equal(isOccupied({ date: '2026-11-05', from: 20, to: 23 }, []), false)
+})
+
+// Real Floresta (propio) vs Los Rivales, del jue 5/11 a las 20, sin caída ni
+// pedido de común acuerdo.
+const drop = {
+  phase: 'por_jugarse' as MatchPhase,
+  start_at: '2026-11-05T23:00:00+00:00',
+  is_captain: true,
+  team_name: 'Real Floresta',
+  rival_team_name: 'Los Rivales',
+  drop_reason: null as string | null,
+  dropped_by_own: null as boolean | null,
+  drop_mutual: false,
+  drop_fault: false,
+  mutual_drop_reason: null as string | null,
+  mutual_drop_by_own: null as boolean | null,
+  mutual_drop_answered_at: null as string | null,
+  mutual_drop_accepted: null as boolean | null,
+}
+const hoursBefore = (hours: number) => new Date(new Date(drop.start_at).getTime() - hours * 3_600_000)
+
+test('partido: caído se muestra apagado', () => {
+  assert.deepEqual(matchPhaseBadge('caido'), { text: 'Se cayó', tone: 'muted' })
+})
+
+test('caída: tirado solo, dice quién, el motivo y a quién le suma la falta', () => {
+  const dropped = { ...drop, phase: 'caido' as const, drop_reason: 'nos faltan dos', dropped_by_own: false, drop_fault: true }
+  assert.equal(dropDetail(dropped), 'Se cayó · lo tiró Los Rivales: "nos faltan dos" · falta para Los Rivales')
+  assert.equal(dropDetail({ ...dropped, dropped_by_own: true, drop_fault: false }), 'Se cayó · lo tiró Real Floresta: "nos faltan dos"')
+})
+
+test('caída: de común acuerdo, solo el motivo', () => {
+  const mutual = { ...drop, phase: 'caido' as const, drop_reason: 'lluvia', dropped_by_own: true, drop_mutual: true }
+  assert.equal(dropDetail(mutual), 'Se cayó de común acuerdo: "lluvia"')
+})
+
+test('caída: con más de 24 h, "Tirar el partido" sin falta y sin común acuerdo', () => {
+  assert.deepEqual(dropMenu(drop, hoursBefore(25)), { label: 'Tirar el partido', withFault: false, canAskMutual: false })
+  assert.deepEqual(dropMenu(drop, hoursBefore(24)), { label: 'Tirar el partido', withFault: false, canAskMutual: false })
+})
+
+test('caída: con menos de 24 h, suma falta y se puede pedir de común acuerdo', () => {
+  assert.deepEqual(dropMenu(drop, hoursBefore(23.99)), {
+    label: 'Tirar el partido (suma falta)',
+    withFault: true,
+    canAskMutual: true,
+  })
+})
+
+test('caída: con el pedido ya hecho, no se vuelve a pedir', () => {
+  const asked = { ...drop, mutual_drop_reason: 'lluvia', mutual_drop_by_own: true }
+  assert.equal(dropMenu(asked, hoursBefore(5))?.canAskMutual, false)
+})
+
+test('caída: sin menú desde la hora de inicio, si cayó o si no es el capitán', () => {
+  assert.equal(dropMenu(drop, hoursBefore(0)), null)
+  assert.equal(dropMenu({ ...drop, phase: 'caido' }, hoursBefore(5)), null)
+  assert.equal(dropMenu({ ...drop, is_captain: false }, hoursBefore(5)), null)
+})
+
+test('común acuerdo: el capitán rival responde un pedido sin responder, antes de la hora de inicio', () => {
+  const asked = { ...drop, mutual_drop_reason: 'lluvia', mutual_drop_by_own: false }
+  assert.equal(mutualDropToAnswer(asked, hoursBefore(5)), 'lluvia')
+  assert.equal(mutualDropToAnswer({ ...asked, mutual_drop_by_own: true }, hoursBefore(5)), null)
+  assert.equal(mutualDropToAnswer({ ...asked, mutual_drop_answered_at: '2026-11-05T10:00:00+00:00' }, hoursBefore(5)), null)
+  assert.equal(mutualDropToAnswer({ ...asked, is_captain: false }, hoursBefore(5)), null)
+  assert.equal(mutualDropToAnswer(asked, hoursBefore(0)), null)
+})
+
+test('común acuerdo: quien lo pidió ve si está esperando o si se lo rechazaron', () => {
+  const asked = { ...drop, mutual_drop_reason: 'lluvia', mutual_drop_by_own: true }
+  assert.equal(mutualDropNote(asked), 'Pediste tirarlo de común acuerdo: esperando a Los Rivales')
+  assert.equal(
+    mutualDropNote({ ...asked, mutual_drop_answered_at: '2026-11-05T10:00:00+00:00', mutual_drop_accepted: false }),
+    'Los Rivales rechazó tirarlo de común acuerdo: si lo tirás, suma falta'
+  )
+  assert.equal(mutualDropNote(drop), null)
+  assert.equal(mutualDropNote({ ...asked, phase: 'caido' }), null)
 })

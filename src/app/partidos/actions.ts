@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { buenosAiresToday, parseRivalSearchForm } from '@/utils/rival-search-form'
-import { parseCoordination } from '@/utils/match-forms'
+import { parseCoordination, parseDropReason } from '@/utils/match-forms'
 
 // Vuelve al panel con el mismo equipo y modalidad, y el error si lo hubo.
 function backToPanel(teamId: unknown, modality: unknown, error?: string): never {
@@ -144,6 +144,62 @@ export async function confirmGoing(formData: FormData) {
 
   const { error } = await supabase.rpc('confirm_going', { p_match_id: String(formData.get('match_id') ?? '') })
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo confirmar. Probá de nuevo.'))
+
+  revalidatePath('/partidos')
+  backToMatches()
+}
+
+// Tirar el partido (desde el menú ⋯ o "No vamos"). La base decide si suma
+// falta (menos de 24 h para la hora de inicio) y avisa a los dos planteles.
+export async function dropMatch(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+
+  const parsed = parseDropReason(formData)
+  if (!parsed.ok) backToMatches(parsed.error)
+
+  const { error } = await supabase.rpc('drop_match', {
+    p_match_id: parsed.fields.match_id,
+    p_reason: parsed.fields.reason,
+  })
+  if (error) backToMatches(rpcErrorMessage(error, 'No se pudo tirar el partido. Probá de nuevo.'))
+
+  revalidatePath('/partidos')
+  backToMatches()
+}
+
+// "Pedir tirarlo de común acuerdo": mismo formulario y motivo que tirarlo, con
+// otro botón. El partido sigue en pie hasta que el rival responda.
+export async function requestMutualDrop(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+
+  const parsed = parseDropReason(formData)
+  if (!parsed.ok) backToMatches(parsed.error)
+
+  const { error } = await supabase.rpc('request_mutual_drop', {
+    p_match_id: parsed.fields.match_id,
+    p_reason: parsed.fields.reason,
+  })
+  if (error) backToMatches(rpcErrorMessage(error, 'No se pudo pedir. Probá de nuevo.'))
+
+  revalidatePath('/partidos')
+  backToMatches()
+}
+
+// Aceptar o rechazar el pedido de común acuerdo del rival, en la fila.
+export async function answerMutualDrop(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+
+  const { error } = await supabase.rpc('answer_mutual_drop', {
+    p_match_id: String(formData.get('match_id') ?? ''),
+    p_accept: formData.get('accept') === 'true',
+  })
+  if (error) backToMatches(rpcErrorMessage(error, 'No se pudo responder. Probá de nuevo.'))
 
   revalidatePath('/partidos')
   backToMatches()

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { coordinationTimes, parseCoordination } from './match-forms.ts'
+import { coordinationTimes, parseCoordination, parseDropReason } from './match-forms.ts'
 
 function form(fields: Record<string, string>): FormData {
   const data = new FormData()
@@ -42,4 +42,18 @@ test('coordinación: la hora tiene que ser de a 15 min y caer en el rango, sin e
   assert.deepEqual(parseCoordination(form({ ...base, time: '22:00' })), error)
   assert.deepEqual(parseCoordination(form({ ...base, time: '19:45' })), error)
   assert.deepEqual(parseCoordination(form({ ...base, time: '' })), error)
+})
+
+test('caída: el motivo va sin espacios de más', () => {
+  assert.deepEqual(parseDropReason(form({ match_id: 'm1', reason: '  nos faltan dos  ' })), {
+    ok: true,
+    fields: { match_id: 'm1', reason: 'nos faltan dos' },
+  })
+})
+
+test('caída: el motivo es obligatorio y de hasta 140 caracteres', () => {
+  const error = { ok: false, error: 'El motivo va de 1 a 140 caracteres.' }
+  assert.deepEqual(parseDropReason(form({ match_id: 'm1', reason: '   ' })), error)
+  assert.deepEqual(parseDropReason(form({ match_id: 'm1', reason: 'x'.repeat(141) })), error)
+  assert.equal(parseDropReason(form({ match_id: 'm1', reason: 'x'.repeat(140) })).ok, true)
 })
