@@ -7,4 +7,3 @@ El documento original mandaba al administrador las disputas de "no presentado" p
 - Desaparece el caso de uso "Resolver disputa de no presentado" del panel de administración.
 - Un equipo honesto puede cargar con un conflicto injusto. Es el costo aceptado de no poder verificar, y queda acotado porque un conflicto aislado pesa poco frente al historial.
 - Las penalizaciones automáticas (bajar en las listas, bloquear búsquedas) cuentan solo faltas, nunca conflictos.
-- **Acusación cruzada (27/10/2026):** si los dos equipos reportan "no vinieron", el partido también queda en conflicto. Antes quedaba sin jugar y sin nada para nadie, y eso abría un agujero: el que faltaba respondía acusando de vuelta y se salvaba de la falta sin pagar ni siquiera el conflicto. Ahora acusar de vuelta cuesta lo mismo que negar.

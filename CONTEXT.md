@@ -111,11 +111,8 @@ Horario concreto de una búsqueda de rival: una fecha, con hora de inicio y de f
 _Avoid_: disponibilidad, horario recurrente
 
 **Propuesta**:
-Invitación que el capitán de un equipo le manda a un rival compatible para jugar en la parte en común de dos **Franjas**; vale hasta que el receptor la acepta o la descarta, el emisor la cancela o vence.
+Invitación que el capitán de un equipo le manda a un rival compatible para jugar en una franja concreta; vale hasta que el receptor la acepta o la descarta, el emisor la cancela o vence.
 _Avoid_: cruce, desafío
-
-**Franja ocupada**:
-**Franja** que se superpone con un **Partido** del equipo; sale de los compatibles y no recibe más **Propuestas**.
 
 **Partido**:
 Encuentro entre dos equipos que nace cuando se acepta una **Propuesta**.
@@ -124,23 +121,16 @@ Encuentro entre dos equipos que nace cuando se acepta una **Propuesta**.
 Partido que uno de los capitanes dio por no jugado antes de la hora de inicio, indicando un motivo.
 _Avoid_: partido suspendido, partido cancelado
 
-**Caída de común acuerdo**:
-**Partido caído** que un capitán pidió y el rival aceptó antes de la hora de inicio; no suma **Falta** para nadie.
-_Avoid_: cancelación mutua
-
 **Falta**:
 Incumplimiento que se suma al historial de un equipo por no presentarse a un partido o por tirarlo con menos de 24 h de anticipación.
 _Avoid_: ausencia, penalización
-
-**Presentismo**:
-Qué tan cumplidor es un equipo, medido por sus **Faltas** en los últimos 90 días; un equipo sin historial no tiene faltas.
 
 **Reporte de no presentado**:
 Declaración de un capitán de que el equipo rival no se presentó a un partido.
 _Avoid_: denuncia
 
 **Partido en conflicto**:
-Partido en el que un equipo reportó que el rival no se presentó y el rival respondió que sí fue o lo acusó de lo mismo; queda registrado con las dos versiones y sin falta para nadie.
+Partido en el que un equipo reportó que el rival no se presentó y el rival respondió que sí fue; queda registrado con las dos versiones y sin falta para nadie.
 _Avoid_: disputa (sugiere que alguien la resuelve)
 
 **Conflicto**:
@@ -159,7 +149,7 @@ _Avoid_: bloqueo, baneo
 ### Avisos
 
 **Aviso**:
-Mensaje que un usuario ve en la campanita al entrar a la app, que le cuenta algo que hizo otro y lo lleva a donde mirarlo o responder; no existe ningún envío por email ni push.
+Mensaje que un usuario ve en la campanita al entrar a la app; no existe ningún envío por email ni push.
 _Avoid_: notificación
 
 ## Relationships
@@ -179,7 +169,7 @@ _Avoid_: notificación
 - Un torneo **Abierto** pasa a **Cerrado** al vencer el cierre de inscripción o al completar su **Cupo**; si se da de baja una **Inscripción** antes del cierre, vuelve a **Abierto**
 - Todo **Torneo** tiene fecha de fin; al pasarla queda **Finalizado** y sale del catálogo
 - Un torneo **Finalizado** no admite **Baja**: queda para siempre como trayectoria de su organizador
-- La **Baja** la hace el organizador o el administrador, y genera un **Aviso** para el **Plantel** de cada equipo con **Inscripción vinculada** en ese torneo
+- La **Baja** la hace el organizador o el administrador, y genera un **Aviso** para cada capitán con **Inscripción vinculada** en ese torneo
 - Una **Inscripción** la crea siempre el organizador de ese torneo, y puede ser **vinculada** o **por nombre**; las dos cuentan igual para el **Cupo**
 - Solo una **Inscripción vinculada** genera **Avisos** y aparece en la historia del **Equipo**
 - Un **Equipo** tiene como mucho una **Inscripción vinculada** por torneo; el capitán no confirma la vinculación
@@ -191,21 +181,12 @@ _Avoid_: notificación
 
 ### Partidos
 
-- Todo lo de **Partidos** lo opera el **Capitán**; el resto del **Plantel** solo mira
-- Una **Búsqueda de rival** tiene una o más **Franjas** y vence cuando pasa la última; el capitán la puede cancelar antes, y con ella caen sus **Propuestas** pendientes
-- El **Presentismo** de un equipo se mide por sus **Faltas** en los últimos 90 días
+- Una **Búsqueda de rival** tiene una o más **Franjas** y vence cuando pasa la última
 - Dos búsquedas son compatibles si comparten modalidad y al menos una hora dentro de alguna **Franja** del mismo día
 - Un equipo nunca tiene dos **Partidos** superpuestos: al nacer un partido, se anulan todas las **Propuestas** pendientes de ambos equipos (enviadas y recibidas) que se superponen con ese horario
 - Un **Reporte de no presentado** sin respuesta en 48 h suma una **Falta** al ausente; si el acusado responde que fue, el partido queda **en conflicto** y ambos equipos suman un **Conflicto**
-- Si ambos equipos reportan que el otro no vino, el partido también queda **en conflicto**: acusar de vuelta cuesta lo mismo que negar
-- Tirar un partido con menos de 24 h suma una **Falta**, salvo que sea una **Caída de común acuerdo**
+- Si ambos equipos reportan que el otro no vino, el partido queda sin jugar, sin **Falta** ni **Conflicto** para nadie
 - Las penalizaciones automáticas se calculan solo con **Faltas**, nunca con **Conflictos**; el **Administrador** no interviene en partidos
-
-### Avisos
-
-- Todo **Aviso** nace de la acción de un usuario y nunca le llega a quien la hizo; lo que pasa solo por el paso del tiempo no genera avisos
-- Un **Aviso** que pide una acción le llega solo al **Capitán**; uno informativo, a todo el **Plantel**, tal como estaban en el momento del hecho
-- Un **Aviso** no es la fuente de verdad: lo pendiente se ve siempre en la pantalla de **Partidos**, haya o no aviso
 
 ### Moderación
 
