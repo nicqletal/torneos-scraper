@@ -6,10 +6,12 @@ import { PrototypeSwitcher } from '@/components/PrototypeSwitcher'
 import { VariantA } from './_proto/VariantA'
 import { VariantA2 } from './_proto/VariantA2'
 import { VariantD } from './_proto/VariantD'
+import { VariantE } from './_proto/VariantE'
 import { VariantB } from './_proto/VariantB'
 import { VariantC } from './_proto/VariantC'
 
 const variants = [
+  { key: 'E', name: 'Desktop, el silencio confirma' },
   { key: 'D', name: 'Celular, pocos toques' },
   { key: 'A2', name: 'A minimalista' },
   { key: 'A', name: 'Sección Partidos con pestañas' },
@@ -23,10 +25,11 @@ export default async function PartidosPrototypePage({
   searchParams: Promise<{ variant?: string | string[] }>
 }) {
   const query = await searchParams
-  const variant = typeof query.variant === 'string' ? query.variant : 'D'
+  const variant = typeof query.variant === 'string' ? query.variant : 'E'
 
   return (
-    <div className="max-w-4xl w-full mx-auto pb-24">
+    <div className={`${variant === 'E' ? 'max-w-6xl' : 'max-w-4xl'} w-full mx-auto pb-24`}>
+      {variant === 'E' && <VariantE />}
       {variant === 'D' && <VariantD />}
       {variant === 'A2' && <VariantA2 />}
       {variant === 'A' && <VariantA />}
