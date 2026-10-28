@@ -67,7 +67,10 @@ $$;
 -- Fase calculada -------------------------------------------------------------
 
 select is(
-  public.match_phase(row(gen_random_uuid(), '[2026-11-05 20:00-03, 2026-11-05 22:00-03)', now())::public.matches,
+  -- `jsonb_populate_record`: la fila sigue armándose igual cuando las etapas
+  -- le suman columnas a `matches`.
+  public.match_phase(jsonb_populate_record(null::public.matches,
+                       '{"range": "[2026-11-05 20:00-03, 2026-11-05 22:00-03)"}'),
                      '2026-11-05 19:59-03'),
   'por_jugarse',
   'un partido recién acordado está por jugarse'

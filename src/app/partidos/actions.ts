@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { buenosAiresToday, parseRivalSearchForm } from '@/utils/rival-search-form'
+import { parseCoordination } from '@/utils/match-forms'
 
 // Vuelve al panel con el mismo equipo y modalidad, y el error si lo hubo.
 function backToPanel(teamId: unknown, modality: unknown, error?: string): never {
@@ -106,4 +107,44 @@ export async function acceptProposal(formData: FormData) {
 
   revalidatePath('/partidos')
   backToPanel(teamId, modality)
+}
+
+// Vuelve a /partidos con el error de una acción de la fila del partido, que se
+// muestra arriba de "Tus partidos" (no en el panel de Buscar rival).
+function backToMatches(error?: string): never {
+  redirect(error ? `/partidos?${new URLSearchParams({ error_partido: error })}` : '/partidos')
+}
+
+// Cargar, corregir o confirmar cancha y hora es la misma RPC: mandar los
+// mismos valores que cargó el rival deja el partido Coordinado.
+export async function coordinateMatch(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+
+  const parsed = parseCoordination(formData)
+  if (!parsed.ok) backToMatches(parsed.error)
+
+  const { error } = await supabase.rpc('coordinate_match', {
+    p_match_id: parsed.fields.match_id,
+    p_venue: parsed.fields.venue,
+    p_start_at: parsed.fields.start_at,
+  })
+  if (error) backToMatches(rpcErrorMessage(error, 'No se pudo guardar la cancha y hora. Probá de nuevo.'))
+
+  revalidatePath('/partidos')
+  backToMatches()
+}
+
+// "Vamos" en el "¿Van?": sin aviso. Si los dos lo dicen, queda Confirmado.
+export async function confirmGoing(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+
+  const { error } = await supabase.rpc('confirm_going', { p_match_id: String(formData.get('match_id') ?? '') })
+  if (error) backToMatches(rpcErrorMessage(error, 'No se pudo confirmar. Probá de nuevo.'))
+
+  revalidatePath('/partidos')
+  backToMatches()
 }
