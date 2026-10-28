@@ -1,10 +1,9 @@
 'use client'
 
-// PROTOTIPO · Variante E: desktop, y el silencio confirma. Prueba un cambio
-// de reglas (sin decidir): cancha, hora y resultado los carga cualquiera y
-// quedan así; el otro solo actúa si está mal. Sin "¿Confirmás que van?". Lo
-// único que pide una respuesta es la propuesta recibida. Buscar rival vive en
-// la misma pantalla, a la derecha.
+// PROTOTIPO · La pantalla de Partidos, con dos juegos de reglas para comparar:
+// - 'hoy': las reglas de docs/decisiones-casos-de-uso.md (el otro capitán
+//   confirma cancha, hora y resultado; "¿Van?" 24 h antes).
+// - 'silencio': lo que carga un capitán queda; el otro solo actúa si está mal.
 
 import { useState } from 'react'
 import { MapPin, MessageCircle, Check } from 'lucide-react'
@@ -15,16 +14,18 @@ const yes = 'press px-4 min-h-10 rounded-sm bg-brand-lime text-brand-bg font-sem
 const no = 'press px-4 min-h-10 rounded-sm bg-brand-secondary text-foreground hover:bg-brand-border cursor-pointer'
 const quiet = 'press text-sm text-foreground/50 hover:text-foreground underline-offset-4 hover:underline cursor-pointer'
 
-export function VariantE() {
+export type Rules = 'hoy' | 'silencio'
+
+export function VariantE({ rules }: { rules: Rules }) {
   return (
     <div className="flex flex-col gap-6">
       <FakeUrl path="/partidos" />
       <h1 className="text-5xl font-display tracking-wider uppercase leading-none">Partidos</h1>
       <div className="grid lg:grid-cols-[1fr_380px] gap-10 items-start">
         <div className="flex flex-col gap-10">
-          <NextMatch />
+          <NextMatch rules={rules} />
           <Proposal />
-          <MatchList />
+          <MatchList rules={rules} />
         </div>
         <SearchPanel />
       </div>
@@ -32,8 +33,9 @@ export function VariantE() {
   )
 }
 
-function NextMatch() {
+function NextMatch({ rules }: { rules: Rules }) {
   const m = matches.find((x) => x.id === 'm2')!
+  const [going, setGoing] = useState(false)
   return (
     <section className="rounded-sm bg-brand-surface p-6 flex flex-col gap-4">
       <p className="text-sm text-foreground/50">Próximo partido · {teamById(m.teamId).name}</p>
@@ -45,7 +47,17 @@ function NextMatch() {
         <a className="press flex items-center gap-1.5 hover:text-foreground cursor-pointer"><MapPin className="w-4 h-4" /> {m.venue}</a>
         <a className="press flex items-center gap-1.5 hover:text-foreground cursor-pointer"><MessageCircle className="w-4 h-4" /> WhatsApp de su capitán</a>
       </div>
-      <button className={quiet + ' w-fit'}>No podemos ir</button>
+      {rules === 'hoy' && !going ? (
+        <div className="flex items-center gap-3">
+          <span className="font-semibold">¿Van?</span>
+          <button className={yes} onClick={() => setGoing(true)}>Vamos</button>
+          <button className={no}>No vamos</button>
+        </div>
+      ) : rules === 'hoy' ? (
+        <p className="animate-enter text-brand-lime flex items-center gap-1.5"><Check className="w-4 h-4" /> Van. Falta que confirme {m.rival}.</p>
+      ) : (
+        <button className={quiet + ' w-fit'}>No podemos ir</button>
+      )}
     </section>
   )
 }
@@ -73,20 +85,21 @@ function Proposal() {
 }
 
 // El resto son datos, no preguntas. Cada fila tiene a lo sumo un link.
-function MatchList() {
+function MatchList({ rules }: { rules: Rules }) {
   // Por fecha (en datos reales, por hora de inicio)
   const list = ['m3', 'm4', 'm5', 'm1'].map((id) => matches.find((m) => m.id === id)!)
   return (
     <section className="flex flex-col">
       <h2 className="text-sm text-foreground/50 mb-2">Tus partidos</h2>
       <ul className="flex flex-col divide-y divide-brand-border border-y border-brand-border">
-        {list.map((m) => <Row key={m.id} m={m} />)}
+        {list.map((m) => <Row key={m.id} m={m} rules={rules} />)}
       </ul>
     </section>
   )
 }
 
-function Row({ m }: { m: Match }) {
+function Row({ m, rules }: { m: Match; rules: Rules }) {
+  const [confirmed, setConfirmed] = useState(false)
   const [editing, setEditing] = useState(false)
   const [saved, setSaved] = useState(false)
   const [day] = m.range.split(' · ')
@@ -94,7 +107,18 @@ function Row({ m }: { m: Match }) {
 
   let detail: React.ReactNode
   let action: React.ReactNode = null
-  if (m.view === 'confirmar-resultado') {
+  const ask = (yesLabel: string, noLabel: string) =>
+    confirmed
+      ? <span className="animate-enter text-sm text-brand-lime">Listo</span>
+      : <div className="flex gap-2"><button className={yes + ' min-h-9 text-sm'} onClick={() => setConfirmed(true)}>{yesLabel}</button><button className={no + ' min-h-9 text-sm'}>{noLabel}</button></div>
+
+  if (rules === 'hoy' && m.view === 'confirmar-resultado') {
+    detail = <>{m.rival} cargó <b>1 a 2</b>. ¿Está bien?</>
+    action = ask('Sí', 'Corregir')
+  } else if (rules === 'hoy' && m.view === 'confirmar-cancha') {
+    detail = <>{m.rival} propuso {m.venue} · {m.time}</>
+    action = ask('Confirmar', 'Cambiar')
+  } else if (m.view === 'confirmar-resultado') {
     detail = <>Salió <b>1 a 2</b> <span className="text-foreground/50">(lo cargó {m.rival})</span></>
     action = <button className={quiet}>No fue así</button>
   } else if (!m.venue && !saved) {
