@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { buenosAiresToday, parseRivalSearchForm } from '@/utils/rival-search-form'
-import { parseCoordination, parseDropReason, parseResult } from '@/utils/match-forms'
+import { parseCoordination, parseDropReason, parseRating, parseResult } from '@/utils/match-forms'
 
 // Vuelve al panel con el mismo equipo y modalidad, y el error si lo hubo.
 function backToPanel(teamId: unknown, modality: unknown, error?: string): never {
@@ -247,6 +247,27 @@ export async function replyWent(formData: FormData) {
 
   const { error } = await supabase.rpc('reply_went', { p_match_id: String(formData.get('match_id') ?? '') })
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo responder. Probá de nuevo.'))
+
+  revalidatePath('/partidos')
+  backToMatches()
+}
+
+// Calificar al rival: una vez, durante 7 días desde que quedó Jugado. La base
+// avisa al que calificó primero cuando se revelan las dos.
+export async function rateRival(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+
+  const parsed = parseRating(formData)
+  if (!parsed.ok) backToMatches(parsed.error)
+
+  const { error } = await supabase.rpc('rate_rival', {
+    p_match_id: parsed.fields.match_id,
+    p_stars: parsed.fields.stars,
+    p_comment: parsed.fields.comment,
+  })
+  if (error) backToMatches(rpcErrorMessage(error, 'No se pudo calificar. Probá de nuevo.'))
 
   revalidatePath('/partidos')
   backToMatches()

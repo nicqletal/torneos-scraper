@@ -16,6 +16,7 @@
 //   node --experimental-strip-types scripts/qa/partidos.ts no-vinieron-vencido
 //   node --experimental-strip-types scripts/qa/partidos.ts sin-cargas-vencido
 //   node --experimental-strip-types scripts/qa/partidos.ts vencimientos   (los cuatro juntos)
+//   node --experimental-strip-types scripts/qa/partidos.ts calificacion-vencida
 //
 // Cada escenario empieza limpiando, así se puede correr las veces que haga
 // falta. Las etapas siguientes suman escenarios a `SCENARIOS`.
@@ -129,7 +130,7 @@ type SideFacts = { goals_for?: number; goals_against?: number; result_at?: strin
 // terminó `daysBack` días antes del último fin de hora de hace 49 h. Con
 // `lastActionHoursAgo`, la última carga fue hace esas horas (y los hechos de
 // cada lado llevan esa fecha); sin, nadie cargó nada.
-async function pastMatch(daysBack: number, caro: SideFacts, rival: SideFacts, lastActionHoursAgo?: number) {
+async function pastMatch(daysBack: number, caro: SideFacts, rival: SideFacts, lastActionHoursAgo?: number): Promise<string> {
   const end = Math.floor((Date.now() - 49 * HOUR) / HOUR) * HOUR - daysBack * 24 * HOUR
   const match = check(
     await supabase
@@ -147,6 +148,7 @@ async function pastMatch(daysBack: number, caro: SideFacts, rival: SideFacts, la
       { match_id: match.id, team_id: RIVAL_TEAM, ...rival },
     ])
   )
+  return match.id
 }
 
 const ago49 = () => new Date(Date.now() - 49 * HOUR).toISOString()
@@ -247,6 +249,15 @@ const SCENARIOS: Record<string, () => Promise<string>> = {
   vencimientos: async () => {
     for (const create of Object.values(pastResults)) await create()
     return 'Los cuatro vencimientos de 48 h: sin cargas, resultado cargado, resultados distintos y "no vinieron" sin respuesta.'
+  },
+
+  // Un partido sin cargas que quedó Jugado hace 8 días, y solo el rival
+  // calificó a Caro (4 estrellas): vencidos los 7 días, Caro ve su
+  // calificación sin haber calificado, y ya no puede calificar.
+  'calificacion-vencida': async () => {
+    const matchId = await pastMatch(8, {}, {})
+    check(await supabase.from('ratings').insert({ match_id: matchId, team_id: RIVAL_TEAM, stars: 4 }))
+    return 'Partido Jugado hace 8 días; solo el rival calificó a Caro (4 estrellas): ya se revela.'
   },
 }
 

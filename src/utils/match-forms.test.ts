@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { coordinationTimes, parseCoordination, parseDropReason, parseResult } from './match-forms.ts'
+import { coordinationTimes, parseCoordination, parseDropReason, parseRating, parseResult } from './match-forms.ts'
 
 function form(fields: Record<string, string>): FormData {
   const data = new FormData()
@@ -72,4 +72,33 @@ test('resultado: los goles van de 0 a 99, enteros y obligatorios', () => {
   assert.deepEqual(parseResult(form({ match_id: 'm1', goals_for: '1.5', goals_against: '0' })), error)
   assert.deepEqual(parseResult(form({ match_id: 'm1', goals_for: '', goals_against: '0' })), error)
   assert.equal(parseResult(form({ match_id: 'm1', goals_for: '99', goals_against: '0' })).ok, true)
+})
+
+test('calificación: las estrellas como número y el comentario sin espacios de más', () => {
+  assert.deepEqual(parseRating(form({ match_id: 'm1', stars: '4', comment: '  buena onda  ' })), {
+    ok: true,
+    fields: { match_id: 'm1', stars: 4, comment: 'buena onda' },
+  })
+})
+
+test('calificación: el comentario es opcional', () => {
+  assert.deepEqual(parseRating(form({ match_id: 'm1', stars: '1', comment: '   ' })), {
+    ok: true,
+    fields: { match_id: 'm1', stars: 1, comment: null },
+  })
+  assert.equal(parseRating(form({ match_id: 'm1', stars: '5' })).ok, true)
+})
+
+test('calificación: las estrellas van de 1 a 5 y son obligatorias', () => {
+  const error = { ok: false, error: 'Elegí de 1 a 5 estrellas.' }
+  assert.deepEqual(parseRating(form({ match_id: 'm1', stars: '0' })), error)
+  assert.deepEqual(parseRating(form({ match_id: 'm1', stars: '6' })), error)
+  assert.deepEqual(parseRating(form({ match_id: 'm1', stars: '4.5' })), error)
+  assert.deepEqual(parseRating(form({ match_id: 'm1' })), error)
+})
+
+test('calificación: el comentario va hasta 500 caracteres', () => {
+  const error = { ok: false, error: 'El comentario va hasta 500 caracteres.' }
+  assert.deepEqual(parseRating(form({ match_id: 'm1', stars: '3', comment: 'x'.repeat(501) })), error)
+  assert.equal(parseRating(form({ match_id: 'm1', stars: '3', comment: 'x'.repeat(500) })).ok, true)
 })
