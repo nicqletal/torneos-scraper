@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(18);
+select plan(19);
 
 -- Caro: capitana de A. Rafa: capitán de R. Xavi: capitán de X. Oscar: ajeno.
 insert into auth.users (id, email, raw_user_meta_data) values
@@ -131,17 +131,24 @@ select results_eq(
             (2, '33333333-0000-0000-0000-000000000000'::uuid, pg_temp.day(interval '4 days'),  'caido',         'Los Rivales'),
             (3, '22222222-0000-0000-0000-000000000000'::uuid, pg_temp.day(interval '5 days'),  'jugado',        'Los Rivales'),
             (4, '55555555-0000-0000-0000-000000000000'::uuid, pg_temp.day(interval '6 days'),  'en_conflicto',  'Deportivo X'),
-            (5, '66666666-0000-0000-0000-000000000000'::uuid, pg_temp.day(interval '7 days'),  'no_presentado', 'Los Rivales'),
-            (6, '77777777-0000-0000-0000-000000000000'::uuid, pg_temp.day(interval '8 days'),  'caido',         'Los Rivales'),
-            (7, '10101010-0000-0000-0000-000000000000'::uuid, pg_temp.day(interval '9 days'),  'en_conflicto',  'Deportivo X'),
-            (8, '11111111-0000-0000-0000-000000000000'::uuid, pg_temp.day(interval '10 days'), 'jugado',        'Los Rivales'),
-            (9, '12121212-0000-0000-0000-000000000000'::uuid, pg_temp.day(interval '11 days'), 'no_presentado', 'Los Rivales'),
-            (10, '13131313-0000-0000-0000-000000000000'::uuid, pg_temp.day(interval '12 days'), 'jugado',       'Los Rivales') $$,
-  'un anónimo ve solo los partidos cerrados de A, del más nuevo al más viejo, sin los por jugarse ni los que esperan resultado'
+            (5, '66666666-0000-0000-0000-000000000000'::uuid, pg_temp.day(interval '7 days'),  'no_presentado', 'Los Rivales') $$,
+  'un anónimo ve solo los últimos 5 partidos cerrados de A, del más nuevo al más viejo, sin los por jugarse ni los que esperan resultado'
 );
 
+select throws_ok(
+  $$ select * from public.team_match_history_rows('aaaaaaaa-0000-0000-0000-000000000000') $$,
+  '42501', null,
+  'un anónimo no puede pedir el historial completo por la función'
+);
+
+reset role;
+
+-- El detalle de cada fila, sobre el historial completo (interno) ------------------
+
 select results_eq(
-  $$ select match_id, goals_for, goals_against from public.team_match_history
+  $$ select match_id, goals_for, goals_against from (select * from public.team_match_history_rows('aaaaaaaa-0000-0000-0000-000000000000')
+            union all
+            select * from public.team_match_history_rows('eeeeeeee-0000-0000-0000-000000000000')) h
       where match_id in ('11111111-0000-0000-0000-000000000000', '13131313-0000-0000-0000-000000000000')
       order by team_id, match_id $$,
   $$ values ('11111111-0000-0000-0000-000000000000'::uuid, 3::smallint, 1::smallint),
@@ -152,8 +159,8 @@ select results_eq(
 );
 
 select results_eq(
-  $$ select match_id, drop_reason, dropped_by_own, drop_mutual, drop_fault from public.team_match_history
-      where team_id = 'aaaaaaaa-0000-0000-0000-000000000000' and phase = 'caido' order by recency $$,
+  $$ select match_id, drop_reason, dropped_by_own, drop_mutual, drop_fault from public.team_match_history_rows('aaaaaaaa-0000-0000-0000-000000000000')
+      where phase = 'caido' order by recency $$,
   $$ values ('44444444-0000-0000-0000-000000000000'::uuid, 'lluvia', true, true, false),
             ('33333333-0000-0000-0000-000000000000'::uuid, 'nos faltan dos', false, false, true),
             ('77777777-0000-0000-0000-000000000000'::uuid, 'cambio de planes', true, false, false) $$,
@@ -161,28 +168,26 @@ select results_eq(
 );
 
 select results_eq(
-  $$ select match_id, own_said_no_show, rival_said_no_show from public.team_match_history
-      where team_id = 'aaaaaaaa-0000-0000-0000-000000000000' and phase = 'en_conflicto' order by recency $$,
+  $$ select match_id, own_said_no_show, rival_said_no_show from public.team_match_history_rows('aaaaaaaa-0000-0000-0000-000000000000')
+      where phase = 'en_conflicto' order by recency $$,
   $$ values ('55555555-0000-0000-0000-000000000000'::uuid, true, false),
             ('10101010-0000-0000-0000-000000000000'::uuid, false, true) $$,
   'un conflicto trae las dos versiones: quién dijo "no vinieron"'
 );
 
 select results_eq(
-  $$ select match_id, absent_own from public.team_match_history
-      where team_id = 'aaaaaaaa-0000-0000-0000-000000000000' and phase = 'no_presentado' order by recency $$,
+  $$ select match_id, absent_own from public.team_match_history_rows('aaaaaaaa-0000-0000-0000-000000000000')
+      where phase = 'no_presentado' order by recency $$,
   $$ values ('66666666-0000-0000-0000-000000000000'::uuid, false),
             ('12121212-0000-0000-0000-000000000000'::uuid, true) $$,
   'una falta por no presentarse dice quién fue el ausente'
 );
 
 select is(
-  (select count(*) from public.team_match_history where team_id = 'eeeeeeee-0000-0000-0000-000000000000'),
+  (select count(*) from public.team_match_history_rows('eeeeeeee-0000-0000-0000-000000000000')),
   8::bigint,
   'el rival tiene su propio historial con los mismos partidos'
 );
-
-reset role;
 
 -- Nunca cancha ni hora -----------------------------------------------------------
 
@@ -231,8 +236,8 @@ set local role authenticated;
 select pg_temp.login('00000000-0000-0000-0000-0000000000f1');
 select is(
   (select count(*) from public.team_match_history where team_id = 'aaaaaaaa-0000-0000-0000-000000000000'),
-  10::bigint,
-  'un usuario ajeno con sesión lee el historial'
+  5::bigint,
+  'un usuario ajeno con sesión lee los últimos 5 del historial'
 );
 select is(
   (select played from public.team_record where team_id = 'aaaaaaaa-0000-0000-0000-000000000000'),

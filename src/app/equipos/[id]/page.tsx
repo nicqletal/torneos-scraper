@@ -129,7 +129,6 @@ export default async function EquipoPage({
     .from('team_match_history')
     .select('match_id, played_on, phase, team_name, rival_team_id, rival_team_name, rival_zone_name, goals_for, goals_against, drop_reason, dropped_by_own, drop_mutual, drop_fault, own_said_no_show, rival_said_no_show, absent_own')
     .eq('team_id', id)
-    .lte('recency', 5)
     .order('recency')
   const history = (historyData ?? []) as HistoryRow[]
 

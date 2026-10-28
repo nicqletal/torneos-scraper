@@ -164,8 +164,8 @@ delete from public.team_members
  where team_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
    and user_id = '00000000-0000-0000-0000-0000000000f1';
 
--- Copa de Ana con A anotado por vínculo y otro equipo anotado por nombre.
--- B no está anotado.
+-- Copa de Ana con A y B anotados por vínculo y otro equipo anotado por
+-- nombre. Juli está en A y en B.
 insert into public.tournaments
   (contact_instagram, id, name, sport_modality, zone_id, inscription_deadline, start_date, end_date, capacity, user_id)
 values
@@ -174,6 +174,7 @@ values
 
 insert into public.inscriptions (tournament_id, team_id, team_name) values
   ('22222222-2222-2222-2222-222222222222', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', null),
+  ('22222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', null),
   ('22222222-2222-2222-2222-222222222222', null, 'Deportivo Lugano');
 
 set local role authenticated;
@@ -186,9 +187,11 @@ select results_eq(
   $$ values
        ('00000000-0000-0000-0000-0000000000a1'::uuid,
         '{"tournament_name": "Copa Palermo", "team_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "team_name": "Real Floresta"}'::jsonb),
+       ('00000000-0000-0000-0000-0000000000b1'::uuid,
+        '{"tournament_name": "Copa Palermo", "team_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "team_name": "Los Pibes"}'::jsonb),
        ('00000000-0000-0000-0000-0000000000c1'::uuid,
         '{"tournament_name": "Copa Palermo", "team_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "team_name": "Real Floresta"}'::jsonb) $$,
-  'la baja avisa a todo el plantel del momento de cada equipo con inscripción vinculada, y a nadie más'
+  'la baja avisa una sola vez a cada jugador del plantel del momento de los equipos con inscripción vinculada (a Juli, que está en dos, con el primero), y a nadie más'
 );
 
 select * from finish();

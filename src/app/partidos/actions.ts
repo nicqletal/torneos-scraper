@@ -6,6 +6,15 @@ import { createClient } from '@/utils/supabase/server'
 import { buenosAiresToday, parseRivalSearchForm } from '@/utils/rival-search-form'
 import { parseCoordination, parseDropReason, parseRating, parseResult } from '@/utils/match-forms'
 
+// El cliente de Supabase de quien tiene sesión; sin sesión, al login (y de
+// vuelta a /partidos). Lo primero de cada acción.
+async function requireUser() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+  return supabase
+}
+
 // Vuelve al panel con el mismo equipo y modalidad, y el error si lo hubo.
 function backToPanel(teamId: unknown, modality: unknown, error?: string): never {
   const params = new URLSearchParams()
@@ -21,9 +30,7 @@ export async function saveRivalSearch(formData: FormData) {
   const teamId = formData.get('team_id')
   const modality = formData.get('modality')
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const parsed = parseRivalSearchForm(formData, buenosAiresToday(new Date()))
   if (!parsed.ok) backToPanel(teamId, modality, parsed.error)
@@ -55,9 +62,7 @@ export async function sendProposal(formData: FormData) {
   const teamId = formData.get('team_id')
   const modality = formData.get('modality')
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const { error } = await supabase.rpc('send_proposal', {
     p_slot_id: String(formData.get('slot_id') ?? ''),
@@ -75,9 +80,7 @@ export async function declineProposal(formData: FormData) {
   const teamId = formData.get('team_id')
   const modality = formData.get('modality')
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const { error } = await supabase.rpc('respond_proposal', {
     p_proposal_id: String(formData.get('proposal_id') ?? ''),
@@ -95,9 +98,7 @@ export async function acceptProposal(formData: FormData) {
   const teamId = formData.get('team_id')
   const modality = formData.get('modality')
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const { error } = await supabase.rpc('respond_proposal', {
     p_proposal_id: String(formData.get('proposal_id') ?? ''),
@@ -126,9 +127,7 @@ function backToMatches(error?: string): never {
 // Cargar, corregir o confirmar cancha y hora es la misma RPC: mandar los
 // mismos valores que cargó el rival deja el partido Coordinado.
 export async function coordinateMatch(formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const parsed = parseCoordination(formData)
   if (!parsed.ok) backToMatches(parsed.error)
@@ -146,9 +145,7 @@ export async function coordinateMatch(formData: FormData) {
 
 // "Vamos" en el "¿Van?": sin aviso. Si los dos lo dicen, queda Confirmado.
 export async function confirmGoing(formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const { error } = await supabase.rpc('confirm_going', { p_match_id: String(formData.get('match_id') ?? '') })
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo confirmar. Probá de nuevo.'))
@@ -160,9 +157,7 @@ export async function confirmGoing(formData: FormData) {
 // Tirar el partido (desde el menú ⋯ o "No vamos"). La base decide si suma
 // falta (menos de 24 h para la hora de inicio) y avisa a los dos planteles.
 export async function dropMatch(formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const parsed = parseDropReason(formData)
   if (!parsed.ok) backToMatches(parsed.error)
@@ -180,9 +175,7 @@ export async function dropMatch(formData: FormData) {
 // "Pedir tirarlo de común acuerdo": mismo formulario y motivo que tirarlo, con
 // otro botón. El partido sigue en pie hasta que el rival responda.
 export async function requestMutualDrop(formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const parsed = parseDropReason(formData)
   if (!parsed.ok) backToMatches(parsed.error)
@@ -199,9 +192,7 @@ export async function requestMutualDrop(formData: FormData) {
 
 // Aceptar o rechazar el pedido de común acuerdo del rival, en la fila.
 export async function answerMutualDrop(formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const { error } = await supabase.rpc('answer_mutual_drop', {
     p_match_id: String(formData.get('match_id') ?? ''),
@@ -216,9 +207,7 @@ export async function answerMutualDrop(formData: FormData) {
 // Cargar, corregir o confirmar el resultado ("Nosotros / Ellos"). Confirmar es
 // mandar el del rival espejado. La base decide si queda Jugado y avisa.
 export async function reportResult(formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const parsed = parseResult(formData)
   if (!parsed.ok) backToMatches(parsed.error)
@@ -236,9 +225,7 @@ export async function reportResult(formData: FormData) {
 
 // "No vinieron": el rival tiene 48 h para responder "fuimos".
 export async function reportNoShow(formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const { error } = await supabase.rpc('report_no_show', { p_match_id: String(formData.get('match_id') ?? '') })
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo reportar. Probá de nuevo.'))
@@ -249,9 +236,7 @@ export async function reportNoShow(formData: FormData) {
 
 // "Fuimos": la respuesta a un "no vinieron". El partido queda en conflicto.
 export async function replyWent(formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const { error } = await supabase.rpc('reply_went', { p_match_id: String(formData.get('match_id') ?? '') })
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo responder. Probá de nuevo.'))
@@ -263,9 +248,7 @@ export async function replyWent(formData: FormData) {
 // Calificar al rival: una vez, durante 7 días desde que quedó Jugado. La base
 // avisa al que calificó primero cuando se revelan las dos.
 export async function rateRival(formData: FormData) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/partidos')
+  const supabase = await requireUser()
 
   const parsed = parseRating(formData)
   if (!parsed.ok) backToMatches(parsed.error)

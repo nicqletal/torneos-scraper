@@ -2,7 +2,7 @@
 // base (`match_phase`, `match_deadline`); acá solo se traduce a texto y color.
 // Coordinado y Confirmado no son fases: son datos de `por_jugarse`.
 
-import { dayLabel, type Slot } from './rival-search-form.ts'
+import { dayLabel, slotFromRange, type Slot } from './rival-search-form.ts'
 import { noticeDate } from './notices.ts'
 
 // Lo que devuelve `match_phase`.
@@ -67,6 +67,16 @@ export function matchRowDetail(match: MatchCoordination): string {
 // "Ver en el mapa": la búsqueda de la cancha en Google Maps.
 export function mapsLink(venue: string): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue)}`
+}
+
+// Cargar, confirmar o corregir cancha y hora: el capitán, hasta el inicio del
+// horario del partido (no de la hora coordinada: corregir des-coordina, y la
+// hora de inicio volvería a ser el inicio del horario). La base hace la misma
+// cuenta en `coordinate_match`.
+export function canCoordinate(match: MatchCoordination & { range: string }, now: Date): boolean {
+  const { date, from } = slotFromRange(match.range)
+  const slotStart = new Date(`${date}T${String(from).padStart(2, '0')}:00:00-03:00`)
+  return match.is_captain && match.phase === 'por_jugarse' && now < slotStart
 }
 
 // "¿Van?": el capitán, mientras está abierta la confirmación previa (la base
@@ -199,6 +209,22 @@ function scoreLine(match: MatchResult, own: number, rival: number): string {
   return `${match.team_name} ${own}–${rival} ${match.rival_team_name}`
 }
 
+// Las dos versiones de un partido en conflicto, primero la del que dijo "no
+// vinieron"; el otro lo negó con "fuimos" (o cargando un resultado) o acusó
+// de vuelta. Lo comparten la fila de /partidos y el historial.
+function conflictLine(team: string, teamSaidNoShow: boolean, rival: string, rivalSaidNoShow: boolean): string {
+  const version = (noShow: boolean) => (noShow ? '"no vinieron"' : '"fuimos"')
+  const [first, firstNoShow, second, secondNoShow] = teamSaidNoShow
+    ? [team, teamSaidNoShow, rival, rivalSaidNoShow]
+    : [rival, rivalSaidNoShow, team, teamSaidNoShow]
+  return `En conflicto · ${first}: ${version(firstNoShow)} · ${second}: ${version(secondNoShow)}`
+}
+
+// Un partido con falta por no presentarse, nombrando al ausente.
+function noShowLine(absent: string): string {
+  return `${absent} no se presentó · falta para ${absent}`
+}
+
 // El dato del momento de un partido después de la hora de inicio, con los
 // nombres de los equipos (nunca "nosotros"): qué cargó cada lado mientras se
 // espera, o cómo terminó.
@@ -213,19 +239,10 @@ export function resultDetail(match: MatchResult): string {
       return match.score_for !== null && match.score_against !== null
         ? `Jugado · ${scoreLine(match, match.score_for, match.score_against)}`
         : 'Jugado, sin resultado'
-    case 'en_conflicto': {
-      // Primero el que dijo "no vinieron"; el otro lo negó con "fuimos" (o
-      // cargando un resultado) o acusando de vuelta.
-      const version = (noShow: string | null) => (noShow ? '"no vinieron"' : '"fuimos"')
-      const [first, firstNoShow, second, secondNoShow] = match.no_show_at
-        ? [team, match.no_show_at, rival, match.rival_no_show_at]
-        : [rival, match.rival_no_show_at, team, match.no_show_at]
-      return `En conflicto · ${first}: ${version(firstNoShow)} · ${second}: ${version(secondNoShow)}`
-    }
-    case 'no_presentado': {
-      const absent = match.no_show_at ? rival : team
-      return `${absent} no se presentó · falta para ${absent}`
-    }
+    case 'en_conflicto':
+      return conflictLine(team, match.no_show_at !== null, rival, match.rival_no_show_at !== null)
+    case 'no_presentado':
+      return noShowLine(match.no_show_at ? rival : team)
     default:
       if (match.no_show_at) return `${team} dice que ${rival} no vino · falta que responda`
       if (match.rival_no_show_at) return `${rival} dice que ${team} no fue`
@@ -341,18 +358,10 @@ function historyOutcome(match: MatchHistory): string {
   switch (match.phase) {
     case 'caido':
       return dropDetail(match)
-    case 'en_conflicto': {
-      // Primero el que dijo "no vinieron"; el otro lo negó o acusó de vuelta.
-      const version = (noShow: boolean) => (noShow ? '"no vinieron"' : '"fuimos"')
-      const [first, firstNoShow, second, secondNoShow] = match.own_said_no_show
-        ? [team, match.own_said_no_show, rival, match.rival_said_no_show]
-        : [rival, match.rival_said_no_show, team, match.own_said_no_show]
-      return `En conflicto · ${first}: ${version(firstNoShow)} · ${second}: ${version(secondNoShow)}`
-    }
-    case 'no_presentado': {
-      const absent = match.absent_own ? team : rival
-      return `${absent} no se presentó · falta para ${absent}`
-    }
+    case 'en_conflicto':
+      return conflictLine(team, match.own_said_no_show, rival, match.rival_said_no_show)
+    case 'no_presentado':
+      return noShowLine(match.absent_own ? team : rival)
     default: {
       const { goals_for: own, goals_against: theirs } = match
       if (own === null || theirs === null) return 'Jugado, sin resultado'

@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(26);
+select plan(28);
 
 -- Caro: capitana de A. Juli: plantel de A. Rafa: capitán de R. Oscar: ajeno.
 insert into auth.users (id, email, raw_user_meta_data) values
@@ -52,6 +52,15 @@ select pg_temp.match('11111111-0000-0000-0000-000000000000', tstzrange(pg_temp.a
 select pg_temp.match('00000000-1111-0000-0000-000000000000',
   tstzrange(date_trunc('hour', now()) - interval '1 hour', date_trunc('hour', now()) + interval '1 hour', '[)'));
 
+-- M4: su horario empezó hace 30 min, pero está coordinado para dentro de 30:
+-- todavía no empezó el partido.
+select pg_temp.match('44444444-0000-0000-0000-000000000000',
+  tstzrange(now() - interval '30 minutes', now() + interval '90 minutes', '[)'));
+update public.matches
+   set venue = 'Club Norte', venue_start_at = now() + interval '30 minutes',
+       venue_team_id = 'eeeeeeee-0000-0000-0000-000000000000', coordinated_at = now() - interval '1 day'
+ where id = '44444444-0000-0000-0000-000000000000';
+
 -- M2: empieza dentro de 24 h y 1 min. M3: dentro de 23 h 59 min.
 select pg_temp.match('22222222-0000-0000-0000-000000000000',
   tstzrange(now() + interval '24 hours 1 minute', now() + interval '26 hours 1 minute', '[)'));
@@ -81,6 +90,15 @@ select throws_ok(
 select throws_ok(
   $$ select public.coordinate_match('00000000-1111-0000-0000-000000000000', 'Club Parque', date_trunc('hour', now()) + interval '30 minutes') $$,
   'P0001', 'El partido ya empezó', 'después de la hora de inicio no se coordina');
+select throws_ok(
+  $$ select public.coordinate_match('44444444-0000-0000-0000-000000000000', 'Club Sur', now() + interval '15 minutes') $$,
+  'P0001', 'Ya empezó el horario del partido: la cancha y la hora no se cambian',
+  'desde el inicio del rango no se corrige, aunque la hora coordinada sea más tarde');
+select is(
+  (select coordinated_at is not null and venue = 'Club Norte' from public.matches where id = '44444444-0000-0000-0000-000000000000'),
+  true,
+  'y el partido sigue coordinado: no pasa a esperar el resultado antes de tiempo'
+);
 
 select pg_temp.login('00000000-0000-0000-0000-0000000000a1');
 select throws_ok(

@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(28);
+select plan(29);
 
 -- Caro: capitana de A y de G. Juli: plantel de A. Rafa: capitán de R.
 -- Beto: capitán de B. Oscar: ajeno.
@@ -162,6 +162,9 @@ select is_empty($$ select * from public.proposal_details $$, 'el plantel no ve l
 select pg_temp.login('00000000-0000-0000-0000-0000000000f1');
 select is_empty($$ select * from public.proposal_details $$, 'un ajeno no ve las propuestas');
 select is_empty($$ select * from public.proposals $$, 'ni la tabla');
+select throws_ok(
+  $$ select public.slot_team_id(pg_temp.slot_id('eeeeeeee-0000-0000-0000-000000000000', 2, 20)) $$,
+  '42501', null, 'ni averigua de qué equipo es una franja ajena');
 
 reset role;
 set local role anon;

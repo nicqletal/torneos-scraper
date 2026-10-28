@@ -95,7 +95,7 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 - Se llama **baja** (no "eliminar"). Se puede hacer en Abierto, Cerrado o En curso, **nunca en Finalizado**, porque los finalizados son la trayectoria del organizador.
 - El torneo desaparece del catálogo y su ficha devuelve 404.
 - Siempre pide confirmación con el nombre del torneo y cuántos equipos tiene anotados (también con 0): no se puede deshacer.
-- Genera un aviso a todo el plantel de cada equipo con una inscripción vinculada (el plantel del momento de la baja), con link a la página del equipo, porque la ficha ya devuelve 404: "Se dio de baja el torneo 'X', en el que estaba anotado tu equipo. Hablá con el organizador por lo que hayas pagado."
+- Genera un aviso a todo el plantel de cada equipo con una inscripción vinculada (el plantel del momento de la baja), uno solo por jugador aunque esté en dos equipos anotados (con el link al primero), con link a la página del equipo, porque la ficha ya devuelve 404: "Se dio de baja el torneo 'X', en el que estaba anotado tu equipo. Hablá con el organizador por lo que hayas pagado."
 - La hace el organizador o el administrador.
 
 ### Inscripciones
@@ -171,7 +171,8 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 - **Coordinación:** al aceptar la propuesta, el partido queda **A coordinar** y cada capitán ve el WhatsApp del otro (siempre el del capitán actual). Arreglan por WhatsApp. Cualquiera de los dos carga la cancha y la hora exacta, y el otro **confirma** (el partido queda **Coordinado**) o **corrige** (y le toca confirmar al primero).
   - **Cancha:** texto libre, obligatorio, hasta 120 caracteres. Se muestra con un link "Ver en el mapa" que busca ese texto en Google Maps.
   - **Hora exacta:** de a 15 minutos, desde el inicio del rango (incluido) hasta su fin (excluido). En un rango de 20 a 22: de 20:00 a 21:45.
-  - **Cambiar después de Coordinado (28/10/2026, etapa 3):** cualquiera de los dos capitanes puede volver a cargar cancha y hora hasta la hora de inicio; el partido deja de estar Coordinado y le toca confirmar al otro, igual que una corrección. Mientras no se confirme, la hora de inicio vuelve a ser el inicio del rango. Los "Vamos" ya dados no se borran.
+  - **Cambiar después de Coordinado (28/10/2026, etapa 3):** cualquiera de los dos capitanes puede volver a cargar cancha y hora hasta el inicio del rango (ver abajo); el partido deja de estar Coordinado y le toca confirmar al otro, igual que una corrección. Mientras no se confirme, la hora de inicio vuelve a ser el inicio del rango. Los "Vamos" ya dados no se borran.
+  - **Hasta el inicio del rango (28/10/2026, revisión):** cargar, confirmar o corregir cancha y hora se puede solo antes del inicio del rango, aunque la hora coordinada sea más tarde. Si no, corregir un partido de 20 a 22 coordinado a las 21 a las 20:30 lo des-coordinaría y la hora de inicio volvería a las 20: ya habría empezado.
   - Coordinar es una ayuda, no un requisito: un partido que llega a su hora sin coordinar sigue el flujo normal de "Después del partido".
 - **Hora de inicio:** la hora exacta o, si nunca se coordinó, el inicio del rango. Antes de la hora de inicio solo se puede tirar el partido; desde ahí, solo cargar el resultado o el "No vinieron".
 - **Confirmación previa:** desde 24 h antes, al entrar, cada capitán ve "¿Confirmás que van?" con dos botones, **Vamos** y **No vamos**.

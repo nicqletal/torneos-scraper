@@ -103,7 +103,7 @@ select public.drop_match('33333333-0000-0000-0000-000000000000', 'no llegamos');
 
 reset role;
 select results_eq(
-  $$ select team_id, match_id, occurred_at from public.team_faults order by match_id $$,
+  $$ select team_id, match_id, occurred_at from public.team_faults(now()) order by match_id $$,
   $$ values ('aaaaaaaa-0000-0000-0000-000000000000'::uuid, '33333333-0000-0000-0000-000000000000'::uuid, now()) $$,
   'con 24 h justas no suma falta; con 23:59 h suma una al equipo que lo tiró, fechada cuando lo tiró'
 );
@@ -215,7 +215,7 @@ select public.answer_mutual_drop('55555555-0000-0000-0000-000000000000', true);
 reset role;
 select is(pg_temp.phase('55555555-0000-0000-0000-000000000000'), 'caido',
   'si el rival acepta antes de la hora de inicio, se cae');
-select is((select count(*)::int from public.team_faults where match_id = '55555555-0000-0000-0000-000000000000'), 0,
+select is((select count(*)::int from public.team_faults(now()) where match_id = '55555555-0000-0000-0000-000000000000'), 0,
   'de común acuerdo no suma falta a nadie');
 select results_eq(
   $$ select n.user_id, n.params ->> 'team_a', n.params ->> 'team_b'
@@ -252,7 +252,7 @@ select public.drop_match('66666666-0000-0000-0000-000000000000', 'nos faltan dos
 
 reset role;
 select results_eq(
-  $$ select team_id from public.team_faults where match_id = '66666666-0000-0000-0000-000000000000' $$,
+  $$ select team_id from public.team_faults(now()) where match_id = '66666666-0000-0000-0000-000000000000' $$,
   $$ values ('eeeeeeee-0000-0000-0000-000000000000'::uuid) $$,
   'después del rechazo, el que lo pidió lo tira solo y suma la falta'
 );
