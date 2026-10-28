@@ -12,10 +12,12 @@ import {
   mutualDropNote,
   mutualDropToAnswer,
   nextMatch,
+  ratingRow,
   resultActions,
   resultDeadlineNote,
   resultDetail,
   sortByStart,
+  starsLabel,
   type MatchPhase,
 } from './match-display.ts'
 
@@ -283,4 +285,57 @@ test('resultado: si no coinciden, se puede confirmar el del rival (espejado) o c
     noShow: false,
     went: false,
   })
+})
+
+test('calificación: las estrellas se dibujan llenas y vacías, sobre 5', () => {
+  assert.equal(starsLabel(4), '★★★★☆')
+  assert.equal(starsLabel(1), '★☆☆☆☆')
+  assert.equal(starsLabel(5), '★★★★★')
+})
+
+// Un partido Jugado que se puede calificar hasta el jue 12/11 22:00.
+const played = {
+  phase: 'jugado' as MatchPhase,
+  is_captain: true,
+  team_name: 'Real Floresta',
+  rival_team_name: 'Los Rivales',
+  rating_deadline: '2026-11-13T01:00:00+00:00',
+  rated_by_own: false as boolean | null,
+  received_stars: null as number | null,
+}
+const beforeDeadline = new Date('2026-11-12T12:00:00Z')
+
+test('calificación: el capitán que no calificó ve "Calificar" con el plazo', () => {
+  assert.deepEqual(ratingRow(played, beforeDeadline), {
+    canRate: true,
+    note: 'Podés calificar a Los Rivales hasta el jue 12/11 22:00',
+  })
+})
+
+test('calificación: después de calificar, espera la del rival sin ver nada', () => {
+  assert.deepEqual(ratingRow({ ...played, rated_by_own: true }, beforeDeadline), {
+    canRate: false,
+    note: 'Calificaste a Los Rivales. La de Real Floresta se ve cuando califique Los Rivales o el jue 12/11 22:00',
+  })
+})
+
+test('calificación: la recibida aparece cuando se revela, haya calificado o no', () => {
+  assert.deepEqual(ratingRow({ ...played, rated_by_own: true, received_stars: 4 }, beforeDeadline), {
+    canRate: false,
+    note: 'Los Rivales calificó a Real Floresta: ★★★★☆',
+  })
+  const afterDeadline = new Date('2026-11-13T01:00:00Z')
+  assert.deepEqual(ratingRow({ ...played, received_stars: 2 }, afterDeadline), {
+    canRate: false,
+    note: 'Los Rivales calificó a Real Floresta: ★★☆☆☆',
+  })
+})
+
+test('calificación: vencido el plazo sin calificar ni recibir, no hay nada que mostrar', () => {
+  assert.equal(ratingRow(played, new Date('2026-11-13T01:00:00Z')), null)
+})
+
+test('calificación: ni el plantel ni un partido que no está Jugado muestran nada', () => {
+  assert.equal(ratingRow({ ...played, is_captain: false, rated_by_own: null }, beforeDeadline), null)
+  assert.equal(ratingRow({ ...played, phase: 'en_conflicto', rating_deadline: null }, beforeDeadline), null)
 })

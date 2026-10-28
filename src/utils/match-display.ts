@@ -273,3 +273,37 @@ export function resultActions(
     went: false,
   }
 }
+
+// "★★★★☆": las estrellas de una calificación, sobre 5.
+export function starsLabel(stars: number): string {
+  return '★'.repeat(stars) + '☆'.repeat(5 - stars)
+}
+
+// Lo que la vista `match_details` trae de la calificación. `rated_by_own` y
+// `received_stars` son null para el plantel; `received_stars` también hasta
+// que se revela (califican los dos o vence el plazo).
+export type MatchRating = {
+  phase: MatchPhase
+  is_captain: boolean
+  team_name: string
+  rival_team_name: string
+  rating_deadline: string | null
+  rated_by_own: boolean | null
+  received_stars: number | null
+}
+
+// La calificación en la fila de un partido Jugado, solo para el capitán: si
+// puede calificar y el texto del momento. Revelarse al vencer el plazo pasa
+// solo por el tiempo, así que no avisa: se ve acá.
+export function ratingRow(match: MatchRating, now: Date): { canRate: boolean; note: string } | null {
+  if (!match.is_captain || match.phase !== 'jugado' || !match.rating_deadline) return null
+  const rival = match.rival_team_name
+  if (match.received_stars !== null) {
+    return { canRate: false, note: `${rival} calificó a ${match.team_name}: ${starsLabel(match.received_stars)}` }
+  }
+  if (now.getTime() >= new Date(match.rating_deadline).getTime()) return null
+  const deadline = noticeDate(match.rating_deadline)
+  return match.rated_by_own
+    ? { canRate: false, note: `Calificaste a ${rival}. La de ${match.team_name} se ve cuando califique ${rival} o el ${deadline}` }
+    : { canRate: true, note: `Podés calificar a ${rival} hasta el ${deadline}` }
+}

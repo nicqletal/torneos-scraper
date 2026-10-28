@@ -62,3 +62,21 @@ export function parseResult(form: FormData): Parsed<ResultFields> {
   }
   return { ok: true, fields: { match_id: matchId, goals_for: Number(goals[0]), goals_against: Number(goals[1]) } }
 }
+
+export type RatingFields = { match_id: string; stars: number; comment: string | null }
+
+// La calificación al rival: de 1 a 5 estrellas y un comentario opcional de
+// hasta 500 caracteres, que solo lee el administrador.
+export function parseRating(form: FormData): Parsed<RatingFields> {
+  const matchId = String(form.get('match_id') ?? '')
+  const stars = String(form.get('stars') ?? '').trim()
+  const comment = String(form.get('comment') ?? '').trim()
+
+  if (!/^[1-5]$/.test(stars)) {
+    return { ok: false, error: 'Elegí de 1 a 5 estrellas.' }
+  }
+  if (comment.length > 500) {
+    return { ok: false, error: 'El comentario va hasta 500 caracteres.' }
+  }
+  return { ok: true, fields: { match_id: matchId, stars: Number(stars), comment: comment || null } }
+}

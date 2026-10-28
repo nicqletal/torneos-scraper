@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { CalendarDays, Check, MapPin, MessageCircle, MoreHorizontal, Search, X } from 'lucide-react'
+import { CalendarDays, Check, MapPin, MessageCircle, MoreHorizontal, Search, Star, X } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { TeamCrest } from '@/components/TeamCrest'
 import { SubmitButton } from '@/components/SubmitButton'
@@ -31,13 +31,16 @@ import {
   mutualDropNote,
   mutualDropToAnswer,
   nextMatch,
+  ratingRow,
   resultActions,
   resultDeadlineNote,
   resultDetail,
   sortByStart,
+  starsLabel,
   timeLabel,
   type MatchCoordination,
   type MatchDrop,
+  type MatchRating,
   type MatchResult,
   type MatchTone,
 } from '@/utils/match-display'
@@ -50,6 +53,7 @@ import {
   coordinateMatch,
   declineProposal,
   dropMatch,
+  rateRival,
   replyWent,
   reportNoShow,
   reportResult,
@@ -92,7 +96,7 @@ interface ProposalRow {
 
 // Una fila de la vista `match_details`: por RLS, los partidos de los equipos
 // del usuario (plantel actual), cada uno visto desde su equipo.
-interface MatchRow extends MatchCoordination, MatchDrop, MatchResult {
+interface MatchRow extends MatchCoordination, MatchDrop, MatchResult, MatchRating {
   id: string
   range: string
   venue_by_own: boolean | null
@@ -167,7 +171,7 @@ export default async function PartidosPage(props: {
   // Los partidos los ve todo el plantel, capitán o no.
   const { data: matchRows } = await supabase
     .from('match_details')
-    .select('id, range, start_at, phase, team_id, team_name, is_captain, rival_team_id, rival_team_name, rival_crest_url, venue, venue_start_at, venue_by_own, coordinated_at, going_at, rival_going_at, deadline, drop_reason, dropped_by_own, drop_mutual, drop_fault, mutual_drop_reason, mutual_drop_by_own, mutual_drop_answered_at, mutual_drop_accepted, goals_for, goals_against, rival_goals_for, rival_goals_against, no_show_at, rival_no_show_at, went_at, rival_went_at, score_for, score_against')
+    .select('id, range, start_at, phase, team_id, team_name, is_captain, rival_team_id, rival_team_name, rival_crest_url, venue, venue_start_at, venue_by_own, coordinated_at, going_at, rival_going_at, deadline, drop_reason, dropped_by_own, drop_mutual, drop_fault, mutual_drop_reason, mutual_drop_by_own, mutual_drop_answered_at, mutual_drop_accepted, goals_for, goals_against, rival_goals_for, rival_goals_against, no_show_at, rival_no_show_at, went_at, rival_went_at, score_for, score_against, rating_deadline, rated_by_own, received_stars')
   const matches = sortByStart((matchRows ?? []) as MatchRow[])
   const next = nextMatch(matches)
   const matchError = param(searchParams.error_partido)
@@ -281,6 +285,7 @@ export default async function PartidosPage(props: {
                     </div>
                     <MutualDropAnswer match={m} now={now} />
                     <ResultActions match={m} />
+                    <Rating match={m} now={now} />
                     {/* Menú ⋯: tirar el partido, y con menos de 24 h, pedirlo de común acuerdo. El motivo se escribe en la fila, que se despliega. */}
                     {menu && (
                       <details>
@@ -941,5 +946,50 @@ function ResultActions({ match }: { match: MatchRow }) {
         {noShow}
       </div>
     </div>
+  )
+}
+
+// En la fila de un partido Jugado, para el capitán: "Calificar" con el plazo,
+// la espera de la del rival o la que le pusieron, ya revelada. El comentario
+// es privado: solo lo lee el administrador.
+function Rating({ match, now }: { match: MatchRow; now: Date }) {
+  const row = ratingRow(match, now)
+  if (!row) return null
+  if (!row.canRate) return <p className="text-sm text-foreground/70">{row.note}</p>
+
+  return (
+    <details>
+      <summary className="cursor-pointer inline-flex items-center gap-1 text-sm text-brand-lime hover:text-foreground">
+        <Star className="w-4 h-4" /> Calificar
+      </summary>
+      <form action={rateRival} className="flex flex-col gap-3 mt-2 p-3 border border-brand-border rounded-sm bg-brand-bg">
+        <input type="hidden" name="match_id" value={match.id} />
+        <p className="text-xs text-foreground/70">{row.note}. Se califica una sola vez y no se edita.</p>
+        <fieldset className="flex flex-wrap gap-2">
+          <legend className="sr-only">Estrellas</legend>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <label key={n} className="flex items-center gap-1 text-sm text-foreground cursor-pointer">
+              <input type="radio" name="stars" value={n} required className="accent-brand-lime" />
+              {starsLabel(n)}
+            </label>
+          ))}
+        </fieldset>
+        <label className="flex flex-col gap-1 text-xs text-foreground/70 uppercase tracking-wider">
+          Comentario (opcional, solo lo ve el administrador)
+          <textarea
+            name="comment"
+            maxLength={500}
+            rows={2}
+            className="bg-brand-bg border border-brand-border rounded-sm px-2 py-1.5 text-sm text-foreground normal-case tracking-normal"
+          />
+        </label>
+        <SubmitButton
+          pendingLabel="Calificando…"
+          className="self-start inline-flex items-center px-3 py-1.5 text-sm font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors font-display"
+        >
+          Calificar
+        </SubmitButton>
+      </form>
+    </details>
   )
 }

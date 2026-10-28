@@ -232,6 +232,7 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 - **Calificación:** de 1 a 5 estrellas, con promedio público. Solo se califica en partidos **jugados** (con o sin resultado), nunca en uno caído o en conflicto. El comentario es privado y solo lo lee el administrador cuando revisa un equipo reportado.
   - Una por equipo y partido: el capitán califica al rival.
   - Se habilita cuando el partido queda **Jugado** y vence a los 7 días. No se edita.
+    - **Desde cuándo corren los 7 días (28/10/2026):** desde que el partido quedó Jugado: en el acto, con la segunda carga del mismo resultado, o al vencer las 48 h del resultado. Es la misma fecha que revela la calificación si uno solo calificó.
   - Comentario opcional, hasta 500 caracteres.
   - Cada uno ve la que le pusieron recién cuando los dos calificaron o venció el plazo, para que nadie califique en represalia. El promedio cuenta solo las calificaciones ya visibles.
 
