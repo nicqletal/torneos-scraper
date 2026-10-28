@@ -20,3 +20,7 @@ test('propuesta: cancelada por uno mismo o pendiente no deja nota', () => {
   assert.equal(proposalStatusLabel('cancelada'), null)
   assert.equal(proposalStatusLabel('pendiente'), null)
 })
+
+test('propuesta: con un equipo bloqueado por faltas, se ve cancelada', () => {
+  assert.equal(proposalStatusLabel('equipo_bloqueado'), 'Se canceló la propuesta: el equipo está bloqueado por faltas')
+})

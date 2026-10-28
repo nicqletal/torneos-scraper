@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { CalendarDays, Check, MapPin, MessageCircle, Search, X } from 'lucide-react'
+import { CalendarDays, Check, MapPin, MessageCircle, MoreHorizontal, Search, X } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { TeamCrest } from '@/components/TeamCrest'
 import { SubmitButton } from '@/components/SubmitButton'
@@ -21,20 +21,35 @@ import { noticeDate } from '@/utils/notices'
 import { proposalCardTitle, proposalStatusLabel, type ProposalStatus } from '@/utils/proposals'
 import {
   asksGoing,
+  dropDetail,
+  dropMenu,
   goingNote,
   isOccupied,
   mapsLink,
   matchPhaseBadge,
   matchRowDetail,
+  mutualDropNote,
+  mutualDropToAnswer,
   nextMatch,
   sortByStart,
   timeLabel,
   type MatchCoordination,
+  type MatchDrop,
   type MatchTone,
 } from '@/utils/match-display'
 import { coordinationTimes } from '@/utils/match-forms'
 import { whatsappLink } from '@/utils/whatsapp'
-import { acceptProposal, confirmGoing, coordinateMatch, declineProposal, saveRivalSearch, sendProposal } from './actions'
+import {
+  acceptProposal,
+  answerMutualDrop,
+  confirmGoing,
+  coordinateMatch,
+  declineProposal,
+  dropMatch,
+  requestMutualDrop,
+  saveRivalSearch,
+  sendProposal,
+} from './actions'
 
 interface CaptainRow {
   teams: { id: string; name: string; modality: SportModality }
@@ -70,7 +85,7 @@ interface ProposalRow {
 
 // Una fila de la vista `match_details`: por RLS, los partidos de los equipos
 // del usuario (plantel actual), cada uno visto desde su equipo.
-interface MatchRow extends MatchCoordination {
+interface MatchRow extends MatchCoordination, MatchDrop {
   id: string
   range: string
   venue_by_own: boolean | null
@@ -83,6 +98,7 @@ interface MatchRow extends MatchCoordination {
 
 const TONE_CLASS: Record<MatchTone, string> = {
   lime: 'border-brand-lime/40 text-brand-lime',
+  muted: 'border-foreground/20 text-foreground/70',
 }
 
 const HOURS_FROM = Array.from({ length: 16 }, (_, i) => i + 8) // 8 a 23
@@ -129,17 +145,23 @@ export default async function PartidosPage(props: {
     proposals = (proposalRows ?? []) as ProposalRow[]
   }
   const captainTeamIds = new Set(captainTeams.map((t) => t.id))
-  const received = proposals.filter((p) => p.status === 'pendiente' && captainTeamIds.has(p.to_team_id))
+  // Las recibidas pendientes, y las que un bloqueo por faltas canceló mientras
+  // no vencen: se ven canceladas, sin botones (el bloqueo no avisa).
+  const now = new Date()
+  const received = proposals.filter(
+    (p) =>
+      captainTeamIds.has(p.to_team_id) &&
+      (p.status === 'pendiente' || (p.status === 'equipo_bloqueado' && new Date(p.expires_at) > now))
+  )
   const teamParam = param(searchParams.equipo)
   const modalityParam = param(searchParams.modalidad)
 
   // Los partidos los ve todo el plantel, capitán o no.
   const { data: matchRows } = await supabase
     .from('match_details')
-    .select('id, range, start_at, phase, team_id, team_name, is_captain, rival_team_id, rival_team_name, rival_crest_url, venue, venue_start_at, venue_by_own, coordinated_at, going_at, rival_going_at, deadline')
+    .select('id, range, start_at, phase, team_id, team_name, is_captain, rival_team_id, rival_team_name, rival_crest_url, venue, venue_start_at, venue_by_own, coordinated_at, going_at, rival_going_at, deadline, drop_reason, dropped_by_own, drop_mutual, drop_fault, mutual_drop_reason, mutual_drop_by_own, mutual_drop_answered_at, mutual_drop_accepted')
   const matches = sortByStart((matchRows ?? []) as MatchRow[])
   const next = nextMatch(matches)
-  const now = new Date()
   const matchError = param(searchParams.error_partido)
 
   // El WhatsApp del capitán rival solo se le da al capitán: la función
@@ -171,9 +193,13 @@ export default async function PartidosPage(props: {
                     <div className="min-w-0 flex-1">
                       <p className="text-foreground">{proposalCardTitle(p.from_team_name, p.range)}</p>
                       <p className="text-xs text-foreground/70 mt-1">
-                        Para {p.to_team_name} · vence el {noticeDate(p.expires_at)}
+                        {p.status === 'pendiente'
+                          ? `Para ${p.to_team_name} · vence el ${noticeDate(p.expires_at)}`
+                          : `Para ${p.to_team_name} · ${proposalStatusLabel(p.status)}`}
                       </p>
                     </div>
+                    {p.status === 'pendiente' && (
+                    <>
                     <form action={acceptProposal}>
                       <input type="hidden" name="proposal_id" value={p.id} />
                       <input type="hidden" name="team_id" value={teamParam ?? ''} />
@@ -196,6 +222,8 @@ export default async function PartidosPage(props: {
                         <X className="w-4 h-4" /> Rechazar
                       </SubmitButton>
                     </form>
+                    </>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -216,6 +244,8 @@ export default async function PartidosPage(props: {
               {matches.map((m) => {
                 const badge = matchPhaseBadge(m.phase)
                 const note = goingNote(m, now)
+                const menu = dropMenu(m, now)
+                const mutualNote = mutualDropNote(m)
                 return (
                   <li key={m.id} className="flex flex-col gap-3 p-4 border border-brand-border bg-brand-surface rounded-sm">
                     <div className="flex items-center gap-3">
@@ -228,17 +258,28 @@ export default async function PartidosPage(props: {
                           </Link>
                         </p>
                         <p className="text-xs text-foreground/70 mt-1">
-                          Con {m.team_name} · {matchRowDetail(m)}
-                          {m.venue && <MapLink venue={m.venue} />}
+                          Con {m.team_name} · {m.phase === 'caido' ? dropDetail(m) : matchRowDetail(m)}
+                          {m.phase !== 'caido' && m.venue && <MapLink venue={m.venue} />}
                         </p>
                         {note && <p className="text-xs text-brand-red mt-1">{note}</p>}
+                        {mutualNote && <p className="text-xs text-foreground/70 mt-1">{mutualNote}</p>}
                       </div>
                       <span className={`shrink-0 px-2 py-0.5 text-xs font-display uppercase tracking-wider border rounded-sm ${TONE_CLASS[badge.tone]}`}>
                         {badge.text}
                       </span>
                     </div>
+                    <MutualDropAnswer match={m} now={now} />
+                    {/* Menú ⋯: tirar el partido, y con menos de 24 h, pedirlo de común acuerdo. El motivo se escribe en la fila, que se despliega. */}
+                    {menu && (
+                      <details>
+                        <summary className="cursor-pointer inline-flex items-center gap-1 text-sm text-foreground/70 hover:text-brand-lime" aria-label="Más acciones">
+                          <MoreHorizontal className="w-5 h-5" /> {menu.label}
+                        </summary>
+                        <DropForm match={m} menu={menu} />
+                      </details>
+                    )}
                     {/* El "¿Van?" del próximo partido va arriba; el de otro partido (capitán de dos equipos que juegan el mismo día), en su fila. */}
-                    {m.id !== next?.id && asksGoing(m) && <GoingPrompt match={m} />}
+                    {m.id !== next?.id && asksGoing(m) && <GoingPrompt match={m} now={now} />}
                     {m.is_captain && m.phase === 'por_jugarse' && new Date(m.start_at) > now && <Coordination match={m} />}
                   </li>
                 )
@@ -286,12 +327,12 @@ async function RivalSearchPanel({
   const now = new Date()
   const today = buenosAiresToday(now)
 
-  // Que la búsqueda esté activa lo calcula la base, igual que en la RPC.
-  const { data: searchId } = await supabase.rpc('active_rival_search', {
-    p_team_id: team.id,
-    p_modality: modality,
-    p_now: now.toISOString(),
-  })
+  // Que la búsqueda esté activa y que el equipo esté bloqueado por faltas lo
+  // calcula la base, igual que en las RPC.
+  const [{ data: searchId }, { data: blockedUntil }] = await Promise.all([
+    supabase.rpc('active_rival_search', { p_team_id: team.id, p_modality: modality, p_now: now.toISOString() }),
+    supabase.rpc('team_blocked_until', { p_team_id: team.id, p_now: now.toISOString() }),
+  ])
 
   let slots: Slot[] = []
   let compatibles: CompatibleRow[] = []
@@ -355,6 +396,13 @@ async function RivalSearchPanel({
         </p>
       )}
 
+      {blockedUntil && (
+        <p role="alert" className="p-3 border border-brand-red/40 text-brand-red rounded-sm text-sm">
+          {team.name} está bloqueado por faltas hasta el {noticeDate(blockedUntil)}: 3 faltas en 90 días. Hasta entonces no
+          puede publicar búsquedas. Los partidos ya acordados siguen en pie.
+        </p>
+      )}
+
       {searchId && (
         <div className="flex flex-col gap-2">
           <span className="text-sm text-foreground/70 uppercase tracking-wider">
@@ -388,6 +436,7 @@ async function RivalSearchPanel({
         </div>
       )}
 
+      {!blockedUntil && (
       <form action={saveRivalSearch} className="flex flex-col gap-4">
         {hiddenFields}
         {slots.map((slot) => (
@@ -440,6 +489,7 @@ async function RivalSearchPanel({
           {searchId ? 'Agregar franja' : 'Publicar búsqueda'}
         </SubmitButton>
       </form>
+      )}
 
       {searchId && (
         <form action={saveRivalSearch}>
@@ -543,7 +593,7 @@ function NextMatch({ match, whatsapp, now }: { match: MatchRow; whatsapp: string
           {note && <p className="text-sm text-brand-red mt-1">{note}</p>}
         </div>
       </div>
-      {asksGoing(match) && <GoingPrompt match={match} />}
+      {asksGoing(match) && <GoingPrompt match={match} now={now} />}
       {whatsapp && (
         <a
           href={whatsappLink(whatsapp, `Hola, somos ${match.team_name}. Arreglemos cancha y hora para el partido del ${when}.`)}
@@ -573,28 +623,110 @@ function MapLink({ venue }: { venue: string }) {
 }
 
 // "¿Van?": desde 24 h antes de la hora de inicio, para el capitán que todavía
-// no dijo "Vamos". "No vamos" tira el partido: llega con la etapa de caídas.
-function GoingPrompt({ match }: { match: MatchRow }) {
+// no dijo "Vamos". "No vamos" abre el formulario de tirar el partido, con el
+// aviso de la falta y la opción de pedirlo de común acuerdo.
+function GoingPrompt({ match, now }: { match: MatchRow; now: Date }) {
+  const menu = dropMenu(match, now)
   return (
-    <div className="flex flex-wrap items-center gap-3 p-3 border border-brand-lime/40 rounded-sm bg-brand-bg">
-      <span className="font-display text-lg tracking-wider uppercase text-foreground">¿Van?</span>
-      <form action={confirmGoing}>
-        <input type="hidden" name="match_id" value={match.id} />
+    <div className="flex flex-col gap-2 p-3 border border-brand-lime/40 rounded-sm bg-brand-bg">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="font-display text-lg tracking-wider uppercase text-foreground">¿Van?</span>
+        <form action={confirmGoing}>
+          <input type="hidden" name="match_id" value={match.id} />
+          <SubmitButton
+            pendingLabel="Confirmando…"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold font-display uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors"
+          >
+            <Check className="w-4 h-4" /> Vamos
+          </SubmitButton>
+        </form>
+      </div>
+      {menu && (
+        <details>
+          <summary className="cursor-pointer inline-flex items-center gap-1 px-3 py-1.5 text-sm font-display uppercase tracking-wider rounded-sm border border-foreground/20 text-foreground/80 hover:border-brand-red hover:text-brand-red">
+            <X className="w-4 h-4" /> No vamos
+          </summary>
+          <DropForm match={match} menu={menu} />
+        </details>
+      )}
+    </div>
+  )
+}
+
+// El formulario de tirar el partido: motivo, el aviso si suma falta y, con
+// menos de 24 h, el botón para pedirlo de común acuerdo con el mismo motivo.
+function DropForm({ match, menu }: { match: MatchRow; menu: NonNullable<ReturnType<typeof dropMenu>> }) {
+  return (
+    <form action={dropMatch} className="flex flex-col gap-2 mt-2">
+      <input type="hidden" name="match_id" value={match.id} />
+      <label className="flex flex-col gap-1 text-xs text-foreground/70 uppercase tracking-wider">
+        Motivo
+        <input
+          name="reason"
+          required
+          maxLength={140}
+          placeholder="Nos faltan dos"
+          className="bg-brand-bg border border-brand-border rounded-sm px-2 py-1.5 text-sm text-foreground normal-case tracking-normal"
+        />
+      </label>
+      <p className="text-xs text-foreground/70">El motivo queda en el historial público del equipo.</p>
+      {menu.withFault && <p className="text-sm text-brand-red">Suma una falta a tu equipo.</p>}
+      <div className="flex flex-wrap items-center gap-3">
         <SubmitButton
-          pendingLabel="Confirmando…"
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold font-display uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors"
+          pendingLabel="Tirando…"
+          className="inline-flex items-center px-3 py-1.5 text-sm font-bold uppercase tracking-wider rounded-sm border border-brand-red text-brand-red hover:bg-brand-red hover:text-brand-bg transition-colors font-display"
         >
-          <Check className="w-4 h-4" /> Vamos
+          {menu.label}
         </SubmitButton>
-      </form>
-      <button
-        type="button"
-        disabled
-        title="Tirar el partido llega con la próxima etapa"
-        className="ui-action inline-flex items-center gap-1 px-3 py-1.5 text-sm font-display uppercase tracking-wider rounded-sm border border-foreground/20 text-foreground/50 cursor-not-allowed"
-      >
-        <X className="w-4 h-4" /> No vamos
-      </button>
+        {menu.canAskMutual && (
+          <SubmitButton
+            formAction={requestMutualDrop}
+            pendingLabel="Pidiendo…"
+            className="inline-flex items-center px-3 py-1.5 text-sm font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors font-display"
+          >
+            Pedir tirarlo de común acuerdo
+          </SubmitButton>
+        )}
+      </div>
+      {menu.canAskMutual && (
+        <p className="text-xs text-foreground/70">De común acuerdo no suma falta, si el rival acepta antes de la hora de inicio.</p>
+      )}
+    </form>
+  )
+}
+
+// El pedido de común acuerdo del rival, para responder en la fila.
+function MutualDropAnswer({ match, now }: { match: MatchRow; now: Date }) {
+  const reason = mutualDropToAnswer(match, now)
+  if (!reason) return null
+  return (
+    <div className="flex flex-col gap-2 p-3 border border-brand-lime/40 rounded-sm bg-brand-bg">
+      <p className="text-sm text-foreground">
+        {match.rival_team_name} pide tirar el partido de común acuerdo: <span className="text-brand-lime">&ldquo;{reason}&rdquo;</span>
+      </p>
+      <p className="text-xs text-foreground/70">Si aceptás, se cae sin falta para nadie. Si no respondés, sigue en pie.</p>
+      <div className="flex items-center gap-3">
+        <form action={answerMutualDrop}>
+          <input type="hidden" name="match_id" value={match.id} />
+          <input type="hidden" name="accept" value="true" />
+          <SubmitButton
+            pendingLabel="Aceptando…"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold font-display uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors"
+          >
+            <Check className="w-4 h-4" /> Aceptar
+          </SubmitButton>
+        </form>
+        <form action={answerMutualDrop}>
+          <input type="hidden" name="match_id" value={match.id} />
+          <input type="hidden" name="accept" value="false" />
+          <SubmitButton
+            pendingLabel="Rechazando…"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-display uppercase tracking-wider rounded-sm border border-foreground/20 text-foreground/80 hover:border-brand-red hover:text-brand-red transition-colors"
+          >
+            <X className="w-4 h-4" /> Rechazar
+          </SubmitButton>
+        </form>
+      </div>
     </div>
   )
 }

@@ -35,3 +35,17 @@ export function parseCoordination(form: FormData): Parsed<CoordinationFields> {
   }
   return { ok: true, fields: { match_id: matchId, venue, start_at: `${date}T${time}:00-03:00` } }
 }
+
+export type DropFields = { match_id: string; reason: string }
+
+// El motivo para tirar el partido o pedir tirarlo de común acuerdo: texto
+// libre de 1 a 140 caracteres. Queda visible en el historial público.
+export function parseDropReason(form: FormData): Parsed<DropFields> {
+  const matchId = String(form.get('match_id') ?? '')
+  const reason = String(form.get('reason') ?? '').trim()
+
+  if (reason.length < 1 || reason.length > 140) {
+    return { ok: false, error: 'El motivo va de 1 a 140 caracteres.' }
+  }
+  return { ok: true, fields: { match_id: matchId, reason } }
+}

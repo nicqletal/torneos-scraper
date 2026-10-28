@@ -187,6 +187,12 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 - **Motivo:** texto libre, obligatorio, de 1 a 140 caracteres. Queda visible en el historial público. Nadie lo modera (riesgo aceptado, 27/10/2026). "Equipo suspendido" lo escribe el sistema en el mismo campo.
 - Con **menos de 24 h** de anticipación, suma una **falta** al equipo que lo tiró. Con más de 24 h, no.
 - **Caída de común acuerdo:** con menos de 24 h, el capitán puede pedir tirarlo de común acuerdo (con su motivo). Si el rival acepta antes de la hora de inicio, el partido se cae sin falta para nadie. Si rechaza o no responde, el partido sigue en pie, y el que lo pidió todavía puede tirarlo solo, con la falta.
+- **Detalles de la caída (28/10/2026, etapa 4):**
+  - Con 24 h justas para la hora de inicio todavía no suma falta; desde ahí, sí.
+  - El pedido de común acuerdo es **uno solo por partido**: si lo rechazan, no se vuelve a pedir (ninguno de los dos) y queda tirarlo solo. Con más de 24 h no se ofrece, porque tirarlo no suma falta.
+  - Aceptar el pedido tira el partido con el motivo del pedido; en el historial figura como tirado de común acuerdo.
+  - Un equipo bloqueado ve en el panel hasta cuándo dura el bloqueo, en vez del formulario de publicar; el mensaje de la RPC también dice la fecha.
+  - Las propuestas recibidas que canceló un bloqueo se siguen mostrando como tarjeta, sin botones y con la nota "el equipo está bloqueado por faltas", hasta que vencerían. Es la única forma de que el rival se entere, porque el bloqueo no avisa.
 
 ### Después del partido
 

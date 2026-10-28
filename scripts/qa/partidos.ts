@@ -9,6 +9,8 @@
 // Uso, desde la raíz del repo:
 //   node --experimental-strip-types scripts/qa/partidos.ts limpiar
 //   node --experimental-strip-types scripts/qa/partidos.ts propuesta-vencida
+//   node --experimental-strip-types scripts/qa/partidos.ts dos-faltas
+//   node --experimental-strip-types scripts/qa/partidos.ts bloqueado
 //
 // Cada escenario empieza limpiando, así se puede correr las veces que haga
 // falta. Las etapas siguientes suman escenarios a `SCENARIOS`.
@@ -91,6 +93,30 @@ async function publish(teamId: string, slotRange: string, hoursAgo: number): Pro
   return slot.id
 }
 
+// Una falta de `teamId`: un partido contra el otro equipo QA que tiró solo
+// hace `daysAgo` días, 1 h antes de empezar.
+async function fault(teamId: string, daysAgo: number) {
+  const droppedAt = Date.now() - daysAgo * 24 * HOUR
+  const match = check(
+    await supabase
+      .from('matches')
+      .insert({
+        range: `[${new Date(droppedAt + HOUR).toISOString()},${new Date(droppedAt + 3 * HOUR).toISOString()})`,
+        dropped_at: new Date(droppedAt).toISOString(),
+        drop_reason: 'No llegamos (escenario QA)',
+        dropped_by_team_id: teamId,
+      })
+      .select('id')
+      .single()
+  )!
+  check(
+    await supabase.from('match_sides').insert([
+      { match_id: match.id, team_id: CARO_TEAM },
+      { match_id: match.id, team_id: RIVAL_TEAM },
+    ])
+  )
+}
+
 const SCENARIOS: Record<string, () => Promise<string>> = {
   limpiar: async () => 'Sin datos de Partidos en las cuentas QA.',
 
@@ -110,6 +136,39 @@ const SCENARIOS: Record<string, () => Promise<string>> = {
       })
     )
     return `Caro (${day}, de 20 a 23) le propuso al rival (de 21 a 24) hace 73 h: vencida.`
+  },
+
+  // El rival tiene 2 faltas en 90 días (hace 30 y 3 días): no está bloqueado
+  // y aparece al final de los compatibles de Caro.
+  'dos-faltas': async () => {
+    const day = addDays(buenosAiresToday(new Date()).date, 3)
+    await publish(CARO_TEAM, range(day, 20, 23), 1)
+    await publish(RIVAL_TEAM, range(day, 21, 24), 1)
+    await fault(RIVAL_TEAM, 30)
+    await fault(RIVAL_TEAM, 3)
+    return `El rival tiene 2 faltas recientes; los dos buscan rival el ${day}.`
+  },
+
+  // El equipo de Caro tiene 3 faltas en 90 días (hace 40, 20 y 2 días):
+  // bloqueado hasta dentro de 28 días. No puede publicar, su búsqueda deja de
+  // estar activa y la propuesta que le mandó al rival hace 1 h se le ve
+  // cancelada al rival ("El equipo está bloqueado por faltas").
+  bloqueado: async () => {
+    const day = addDays(buenosAiresToday(new Date()).date, 3)
+    const caroSlot = await publish(CARO_TEAM, range(day, 20, 23), 2)
+    const rivalSlot = await publish(RIVAL_TEAM, range(day, 21, 24), 2)
+    check(
+      await supabase.from('proposals').insert({
+        from_slot_id: caroSlot,
+        to_slot_id: rivalSlot,
+        range: range(day, 21, 23),
+        created_at: new Date(Date.now() - HOUR).toISOString(),
+      })
+    )
+    await fault(CARO_TEAM, 40)
+    await fault(CARO_TEAM, 20)
+    await fault(CARO_TEAM, 2)
+    return `El equipo de Caro tiene 3 faltas recientes (bloqueado); le había propuesto al rival el ${day}, de 21 a 23.`
   },
 }
 

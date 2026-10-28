@@ -1,20 +1,22 @@
 // Cómo se muestra un partido en /partidos. La fase y el plazo los calcula la
 // base (`match_phase`, `match_deadline`); acá solo se traduce a texto y color.
-// Coordinado y Confirmado no son fases: son datos de `por_jugarse`. Las demás
-// fases y el resultado llegan con sus etapas.
+// Coordinado y Confirmado no son fases: son datos de `por_jugarse`. Las fases
+// del resultado llegan con su etapa.
 
 import type { Slot } from './rival-search-form.ts'
 
 // Lo que devuelve `match_phase` por ahora.
-export type MatchPhase = 'por_jugarse'
+export type MatchPhase = 'por_jugarse' | 'caido'
 
 // El color de la fase, como nombre: la pantalla lo pasa a sus tokens.
-export type MatchTone = 'lime'
+export type MatchTone = 'lime' | 'muted'
 
 export function matchPhaseBadge(phase: MatchPhase): { text: string; tone: MatchTone } {
   switch (phase) {
     case 'por_jugarse':
       return { text: 'Por jugarse', tone: 'lime' }
+    case 'caido':
+      return { text: 'Se cayó', tone: 'muted' }
   }
 }
 
@@ -91,4 +93,70 @@ export function nextMatch<T extends { start_at: string; phase: MatchPhase }>(row
 // solo se marca en el panel para que el capitán sepa por qué.
 export function isOccupied(slot: Slot, matches: Slot[]): boolean {
   return matches.some((m) => m.date === slot.date && slot.from < m.to && m.from < slot.to)
+}
+
+// Lo que la vista `match_details` trae de la caída y del pedido de común
+// acuerdo, visto desde el equipo propio.
+export type MatchDrop = {
+  phase: MatchPhase
+  start_at: string
+  is_captain: boolean
+  team_name: string
+  rival_team_name: string
+  drop_reason: string | null
+  dropped_by_own: boolean | null
+  drop_mutual: boolean
+  drop_fault: boolean
+  mutual_drop_reason: string | null
+  mutual_drop_by_own: boolean | null
+  mutual_drop_answered_at: string | null
+  mutual_drop_accepted: boolean | null
+}
+
+// El dato del momento de un partido caído, con los nombres de los equipos
+// (nunca "nosotros"): `Se cayó · lo tiró Los Rivales: "lluvia" · falta para
+// Los Rivales`, o `Se cayó de común acuerdo: "lluvia"`.
+export function dropDetail(match: MatchDrop): string {
+  const reason = `"${match.drop_reason ?? ''}"`
+  if (match.drop_mutual) return `Se cayó de común acuerdo: ${reason}`
+  const by = match.dropped_by_own ? match.team_name : match.rival_team_name
+  return `Se cayó · lo tiró ${by}: ${reason}${match.drop_fault ? ` · falta para ${by}` : ''}`
+}
+
+// Lo que ofrece el menú ⋯ de la fila: solo al capitán y antes de la hora de
+// inicio. Con menos de 24 h, tirarlo suma falta y se puede pedir de común
+// acuerdo (una sola vez por partido). La base decide la falta con la misma
+// regla al tirarlo.
+export function dropMenu(
+  match: MatchDrop,
+  now: Date
+): { label: string; withFault: boolean; canAskMutual: boolean } | null {
+  const start = new Date(match.start_at).getTime()
+  if (!match.is_captain || match.phase !== 'por_jugarse' || now.getTime() >= start) return null
+  const withFault = start - now.getTime() < 24 * HOUR
+  return {
+    label: withFault ? 'Tirar el partido (suma falta)' : 'Tirar el partido',
+    withFault,
+    canAskMutual: withFault && match.mutual_drop_reason === null,
+  }
+}
+
+// El motivo de un pedido de común acuerdo que le toca responder al capitán
+// (lo pidió el rival, nadie lo respondió y no llegó la hora de inicio), o null.
+export function mutualDropToAnswer(match: MatchDrop, now: Date): string | null {
+  const open = match.is_captain && match.phase === 'por_jugarse' && now.getTime() < new Date(match.start_at).getTime()
+  return open && match.mutual_drop_by_own === false && match.mutual_drop_answered_at === null
+    ? match.mutual_drop_reason
+    : null
+}
+
+// Para quien pidió tirarlo de común acuerdo, mientras el partido sigue en pie.
+export function mutualDropNote(match: MatchDrop): string | null {
+  if (match.phase !== 'por_jugarse' || match.mutual_drop_by_own !== true) return null
+  if (match.mutual_drop_answered_at === null) {
+    return `Pediste tirarlo de común acuerdo: esperando a ${match.rival_team_name}`
+  }
+  return match.mutual_drop_accepted === false
+    ? `${match.rival_team_name} rechazó tirarlo de común acuerdo: si lo tirás, suma falta`
+    : null
 }
