@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { buenosAiresToday, parseRivalSearchForm } from '@/utils/rival-search-form'
-import { parseCoordination, parseDropReason } from '@/utils/match-forms'
+import { parseCoordination, parseDropReason, parseResult } from '@/utils/match-forms'
 
 // Vuelve al panel con el mismo equipo y modalidad, y el error si lo hubo.
 function backToPanel(teamId: unknown, modality: unknown, error?: string): never {
@@ -199,6 +199,53 @@ export async function answerMutualDrop(formData: FormData) {
     p_match_id: String(formData.get('match_id') ?? ''),
     p_accept: formData.get('accept') === 'true',
   })
+  if (error) backToMatches(rpcErrorMessage(error, 'No se pudo responder. Probá de nuevo.'))
+
+  revalidatePath('/partidos')
+  backToMatches()
+}
+
+// Cargar, corregir o confirmar el resultado ("Nosotros / Ellos"). Confirmar es
+// mandar el del rival espejado. La base decide si queda Jugado y avisa.
+export async function reportResult(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+
+  const parsed = parseResult(formData)
+  if (!parsed.ok) backToMatches(parsed.error)
+
+  const { error } = await supabase.rpc('report_result', {
+    p_match_id: parsed.fields.match_id,
+    p_goals_for: parsed.fields.goals_for,
+    p_goals_against: parsed.fields.goals_against,
+  })
+  if (error) backToMatches(rpcErrorMessage(error, 'No se pudo cargar el resultado. Probá de nuevo.'))
+
+  revalidatePath('/partidos')
+  backToMatches()
+}
+
+// "No vinieron": el rival tiene 48 h para responder "fuimos".
+export async function reportNoShow(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+
+  const { error } = await supabase.rpc('report_no_show', { p_match_id: String(formData.get('match_id') ?? '') })
+  if (error) backToMatches(rpcErrorMessage(error, 'No se pudo reportar. Probá de nuevo.'))
+
+  revalidatePath('/partidos')
+  backToMatches()
+}
+
+// "Fuimos": la respuesta a un "no vinieron". El partido queda en conflicto.
+export async function replyWent(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+
+  const { error } = await supabase.rpc('reply_went', { p_match_id: String(formData.get('match_id') ?? '') })
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo responder. Probá de nuevo.'))
 
   revalidatePath('/partidos')

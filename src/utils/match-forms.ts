@@ -49,3 +49,16 @@ export function parseDropReason(form: FormData): Parsed<DropFields> {
   }
   return { ok: true, fields: { match_id: matchId, reason } }
 }
+
+export type ResultFields = { match_id: string; goals_for: number; goals_against: number }
+
+// El resultado desde el lado propio, "Nosotros / Ellos": goles enteros de 0 a 99.
+export function parseResult(form: FormData): Parsed<ResultFields> {
+  const matchId = String(form.get('match_id') ?? '')
+  const goals = ['goals_for', 'goals_against'].map((key) => String(form.get(key) ?? '').trim())
+
+  if (!goals.every((g) => /^\d{1,2}$/.test(g))) {
+    return { ok: false, error: 'Los goles van de 0 a 99.' }
+  }
+  return { ok: true, fields: { match_id: matchId, goals_for: Number(goals[0]), goals_against: Number(goals[1]) } }
+}

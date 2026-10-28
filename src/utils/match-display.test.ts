@@ -12,6 +12,9 @@ import {
   mutualDropNote,
   mutualDropToAnswer,
   nextMatch,
+  resultActions,
+  resultDeadlineNote,
+  resultDetail,
   sortByStart,
   type MatchPhase,
 } from './match-display.ts'
@@ -174,4 +177,110 @@ test('común acuerdo: quien lo pidió ve si está esperando o si se lo rechazaro
   )
   assert.equal(mutualDropNote(drop), null)
   assert.equal(mutualDropNote({ ...asked, phase: 'caido' }), null)
+})
+
+test('resultado: cada fase nueva tiene su cartel', () => {
+  assert.deepEqual(matchPhaseBadge('esperando_resultado'), { text: 'Esperando resultado', tone: 'lime' })
+  assert.deepEqual(matchPhaseBadge('jugado'), { text: 'Jugado', tone: 'muted' })
+  assert.deepEqual(matchPhaseBadge('en_conflicto'), { text: 'En conflicto', tone: 'red' })
+  assert.deepEqual(matchPhaseBadge('no_presentado'), { text: 'Falta', tone: 'red' })
+})
+
+// Real Floresta (el equipo propio) vs Los Rivales, esperando el resultado.
+const waiting = {
+  phase: 'esperando_resultado' as MatchPhase,
+  is_captain: true,
+  team_name: 'Real Floresta',
+  rival_team_name: 'Los Rivales',
+  goals_for: null as number | null,
+  goals_against: null as number | null,
+  rival_goals_for: null as number | null,
+  rival_goals_against: null as number | null,
+  no_show_at: null as string | null,
+  rival_no_show_at: null as string | null,
+  went_at: null as string | null,
+  rival_went_at: null as string | null,
+  score_for: null as number | null,
+  score_against: null as number | null,
+  deadline: '2026-11-08T01:00:00+00:00' as string | null,
+}
+const at = '2026-11-06T01:00:00+00:00'
+
+test('resultado: el dato de la fila dice qué cargó cada lado, siempre con el equipo propio primero', () => {
+  assert.equal(resultDetail(waiting), 'Falta cargar el resultado')
+  assert.equal(resultDetail({ ...waiting, goals_for: 3, goals_against: 1 }),
+    'Real Floresta cargó Real Floresta 3–1 Los Rivales · falta que Los Rivales confirme')
+  assert.equal(resultDetail({ ...waiting, rival_goals_for: 1, rival_goals_against: 3 }),
+    'Los Rivales cargó Real Floresta 3–1 Los Rivales')
+  assert.equal(resultDetail({ ...waiting, goals_for: 1, goals_against: 0, rival_goals_for: 2, rival_goals_against: 2 }),
+    'No coinciden: Real Floresta cargó 1–0, Los Rivales cargó 2–2 (Real Floresta–Los Rivales)')
+})
+
+test('resultado: "no vinieron" pendiente de respuesta, desde cada lado', () => {
+  assert.equal(resultDetail({ ...waiting, no_show_at: at }), 'Real Floresta dice que Los Rivales no vino · falta que responda')
+  assert.equal(resultDetail({ ...waiting, rival_no_show_at: at }), 'Los Rivales dice que Real Floresta no fue')
+})
+
+test('resultado: Jugado, con o sin resultado', () => {
+  assert.equal(resultDetail({ ...waiting, phase: 'jugado', score_for: 0, score_against: 2 }), 'Jugado · Real Floresta 0–2 Los Rivales')
+  assert.equal(resultDetail({ ...waiting, phase: 'jugado' }), 'Jugado, sin resultado')
+})
+
+test('resultado: en conflicto se ven las dos versiones; con falta, a quién', () => {
+  assert.equal(resultDetail({ ...waiting, phase: 'en_conflicto', no_show_at: at, rival_went_at: at }),
+    'En conflicto · Real Floresta: "no vinieron" · Los Rivales: "fuimos"')
+  assert.equal(resultDetail({ ...waiting, phase: 'en_conflicto', no_show_at: at, rival_no_show_at: at }),
+    'En conflicto · Real Floresta: "no vinieron" · Los Rivales: "no vinieron"')
+  assert.equal(resultDetail({ ...waiting, phase: 'en_conflicto', rival_no_show_at: at, goals_for: 2, goals_against: 0 }),
+    'En conflicto · Los Rivales: "no vinieron" · Real Floresta: "fuimos"')
+  assert.equal(resultDetail({ ...waiting, phase: 'no_presentado', no_show_at: at }),
+    'Los Rivales no se presentó · falta para Los Rivales')
+  assert.equal(resultDetail({ ...waiting, phase: 'no_presentado', rival_no_show_at: at }),
+    'Real Floresta no se presentó · falta para Real Floresta')
+})
+
+test('resultado: la fila dice cuándo vence el plazo y qué pasa si nadie hace nada', () => {
+  assert.equal(resultDeadlineNote(waiting), 'Hay tiempo hasta el sáb 7/11 22:00; si nadie carga nada, queda Jugado sin resultado')
+  assert.equal(resultDeadlineNote({ ...waiting, rival_goals_for: 1, rival_goals_against: 3 }),
+    'Hay tiempo hasta el sáb 7/11 22:00; si no lo corregís, queda ese resultado')
+  assert.equal(resultDeadlineNote({ ...waiting, rival_no_show_at: at }),
+    'Hay tiempo hasta el sáb 7/11 22:00; si no responden, suma una falta para Real Floresta')
+  assert.equal(resultDeadlineNote({ ...waiting, phase: 'jugado', deadline: null }), null)
+})
+
+test('resultado: sin nada cargado, el capitán carga o reporta "no vinieron"', () => {
+  assert.deepEqual(resultActions(waiting), { load: 'Cargar resultado', confirm: null, noShow: true, went: false })
+  assert.equal(resultActions({ ...waiting, is_captain: false }), null)
+  assert.equal(resultActions({ ...waiting, phase: 'jugado' }), null)
+})
+
+test('resultado: con el resultado del rival, se confirma espejado o se corrige', () => {
+  assert.deepEqual(resultActions({ ...waiting, rival_goals_for: 1, rival_goals_against: 3 }), {
+    load: 'Corregir',
+    confirm: { goals_for: 3, goals_against: 1 },
+    noShow: true,
+    went: false,
+  })
+})
+
+test('resultado: con el propio cargado, solo se corrige; con "no vinieron" propio, se espera', () => {
+  assert.deepEqual(resultActions({ ...waiting, goals_for: 3, goals_against: 1 }), { load: 'Corregir', confirm: null, noShow: false, went: false })
+  assert.equal(resultActions({ ...waiting, no_show_at: at }), null)
+})
+
+test('resultado: acusado de no ir, responde "fuimos" o acusa de vuelta', () => {
+  assert.deepEqual(resultActions({ ...waiting, rival_no_show_at: at }), { load: null, confirm: null, noShow: true, went: true })
+})
+
+test('partido: desde la hora de inicio ya no se pregunta "¿Van?", aunque haya plazo del resultado', () => {
+  assert.equal(asksGoing({ ...match, phase: 'esperando_resultado', deadline: '2026-11-08T01:00:00+00:00' }), false)
+})
+
+test('resultado: si no coinciden, se puede confirmar el del rival (espejado) o corregir', () => {
+  assert.deepEqual(resultActions({ ...waiting, goals_for: 2, goals_against: 0, rival_goals_for: 1, rival_goals_against: 1 }), {
+    load: 'Corregir',
+    confirm: { goals_for: 1, goals_against: 1 },
+    noShow: false,
+    went: false,
+  })
 })

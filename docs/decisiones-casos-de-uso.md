@@ -209,6 +209,12 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 - **Resultado:** goles de cada lado (0 a 99), que cada capitán carga como "Nosotros / Ellos". Coinciden si son el mismo resultado espejado.
 - **Plazos de 48 h:** corren desde la última carga de cualquiera de los dos (resultado, corrección, "no vinieron" o respuesta). Si nadie cargó nada, desde el fin del rango. Cada carga le da al otro 48 h enteras; no hay tope.
 - **Nadie arbitra.** El administrador no interviene en partidos ([ADR 0002](adr/0002-conflictos-sin-arbitro.md)).
+- **Detalles del resultado (28/10/2026, etapa 5):**
+  - Desde la hora de inicio el partido está **esperando resultado** hasta que coincidan los dos resultados, quede en conflicto o venza el plazo de 48 h.
+  - Cargar un resultado equivale a decir "fuimos": si el rival había reportado "no vinieron" (o lo reporta después), el partido queda en conflicto.
+  - Quien reportó "no vinieron" ya no carga resultado, y quien cargó un resultado ya no reporta "no vinieron" (solo lo corrige).
+  - Un partido Jugado, en conflicto o con falta queda cerrado: no se corrige más.
+  - El aviso "Jugado" sale solo cuando los dos resultados coinciden; quedar Jugado por vencimiento no avisa, como todo lo que pasa solo por el tiempo.
 - **Historial en la página del equipo (27/10/2026):**
   - **Contador** de todo el historial, no de 90 días: "Jugó 12 · 1 falta · 2 conflictos (con 2 rivales distintos)". "Jugó" suma solo los partidos **Jugados** (con o sin resultado); los caídos, en conflicto o con falta no. Dice "falta" y no "Faltó", porque tirar un partido con menos de 24 h también es una falta. Las faltas se muestran aunque sean 0; la aclaración de rivales distintos, solo si hay al menos un conflicto. Los 90 días quedan para las penalizaciones y el orden de compatibles.
   - **Últimos 5 partidos:** solo los cerrados (jugado, caído, en conflicto o con falta), del más nuevo al más viejo por hora de inicio. Los por jugarse y los que tienen plazos abiertos no aparecen. No hay "Ver todos".

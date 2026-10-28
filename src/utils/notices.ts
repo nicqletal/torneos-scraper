@@ -32,7 +32,8 @@ export type NoticeKind =
 //   range_start/_end     horario de la propuesta o del partido (ISO)
 //   start_at, venue      hora exacta y cancha coordinadas
 //   deadline             cuándo vence el plazo que abre el aviso (ISO)
-export type NoticeParams = Record<string, string | number | null | undefined>
+//   mismatch             el resultado cargado no coincide con el que ya cargó quien recibe el aviso
+export type NoticeParams = Record<string, string | number | boolean | null | undefined>
 
 const TIME_ZONE = 'America/Argentina/Buenos_Aires'
 const WEEKDAYS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
@@ -116,8 +117,12 @@ export function noticeText(kind: NoticeKind, params: NoticeParams): string {
       return `Se cayó de común acuerdo el partido ${teams}. No suma falta a nadie.`
     case 'mutual_drop_rejected':
       return `${rival} rechazó tirar el partido de común acuerdo.`
-    case 'result_to_confirm':
-      return `${rival} cargó el resultado: ustedes ${str(params, 'goals_for')}, ${rival} ${str(params, 'goals_against')}. Confirmá o corregí antes del ${deadline()}; si no, queda ese resultado.`
+    case 'result_to_confirm': {
+      const loaded = `${rival} cargó el resultado: ustedes ${str(params, 'goals_for')}, ${rival} ${str(params, 'goals_against')}.`
+      return params.mismatch
+        ? `${loaded} No coincide con el de ustedes: confirmá o corregí antes del ${deadline()}; si siguen distintos, queda Jugado sin resultado.`
+        : `${loaded} Confirmá o corregí antes del ${deadline()}; si no, queda ese resultado.`
+    }
     case 'match_played':
       return `Jugado: ${str(params, 'team_a')} ${str(params, 'goals_a')} - ${str(params, 'goals_b')} ${str(params, 'team_b')}.`
     case 'no_show_reported':
