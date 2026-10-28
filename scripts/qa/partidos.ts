@@ -57,7 +57,7 @@ function range(date: string, from: number, to: number): string {
   return `[${new Date(at(from)).toISOString()},${new Date(at(to)).toISOString()})`
 }
 
-// Borra búsquedas, franjas, propuestas y los avisos de Partidos de las
+// Borra búsquedas, franjas, propuestas, partidos y los avisos de Partidos de las
 // cuentas QA. La baja de torneo no es de Partidos: esos avisos quedan.
 async function clean() {
   const searches = check(await supabase.from('rival_searches').select('id').in('team_id', QA_TEAMS)) ?? []
@@ -67,6 +67,11 @@ async function clean() {
 
   check(await supabase.from('proposals').delete().in('from_slot_id', slotIds))
   check(await supabase.from('proposals').delete().in('to_slot_id', slotIds))
+
+  // Los partidos de los equipos QA, después de las propuestas que apuntan a
+  // ellos. Sus `match_sides` se borran en cascada.
+  const sides = check(await supabase.from('match_sides').select('match_id').in('team_id', QA_TEAMS)) ?? []
+  check(await supabase.from('matches').delete().in('id', sides.map((s) => s.match_id)))
   check(await supabase.from('search_slots').delete().in('id', slotIds))
   check(await supabase.from('rival_searches').delete().in('id', searchIds))
 
