@@ -120,6 +120,15 @@ _Avoid_: cruce, desafío
 **Partido**:
 Encuentro entre dos equipos que nace cuando se acepta una **Propuesta**.
 
+**Coordinado**:
+**Partido** con cancha y hora exacta cargadas por un capitán y confirmadas por el otro. No es una fase: el partido sigue por jugarse.
+
+**Hora de inicio**:
+La hora exacta de un partido **Coordinado** o, si no lo está, el inicio de su rango. Antes de ella solo se puede tirar el partido.
+
+**Confirmado**:
+**Partido** en el que los dos capitanes dijeron "Vamos" en la confirmación previa (desde 24 h antes de la **Hora de inicio**). Tampoco es una fase.
+
 **Partido caído**:
 Partido que uno de los capitanes dio por no jugado antes de la hora de inicio, indicando un motivo.
 _Avoid_: partido suspendido, partido cancelado

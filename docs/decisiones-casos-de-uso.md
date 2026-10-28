@@ -171,6 +171,7 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 - **Coordinación:** al aceptar la propuesta, el partido queda **A coordinar** y cada capitán ve el WhatsApp del otro (siempre el del capitán actual). Arreglan por WhatsApp. Cualquiera de los dos carga la cancha y la hora exacta, y el otro **confirma** (el partido queda **Coordinado**) o **corrige** (y le toca confirmar al primero).
   - **Cancha:** texto libre, obligatorio, hasta 120 caracteres. Se muestra con un link "Ver en el mapa" que busca ese texto en Google Maps.
   - **Hora exacta:** de a 15 minutos, desde el inicio del rango (incluido) hasta su fin (excluido). En un rango de 20 a 22: de 20:00 a 21:45.
+  - **Cambiar después de Coordinado (28/10/2026, etapa 3):** cualquiera de los dos capitanes puede volver a cargar cancha y hora hasta la hora de inicio; el partido deja de estar Coordinado y le toca confirmar al otro, igual que una corrección. Mientras no se confirme, la hora de inicio vuelve a ser el inicio del rango. Los "Vamos" ya dados no se borran.
   - Coordinar es una ayuda, no un requisito: un partido que llega a su hora sin coordinar sigue el flujo normal de "Después del partido".
 - **Hora de inicio:** la hora exacta o, si nunca se coordinó, el inicio del rango. Antes de la hora de inicio solo se puede tirar el partido; desde ahí, solo cargar el resultado o el "No vinieron".
 - **Confirmación previa:** desde 24 h antes, al entrar, cada capitán ve "¿Confirmás que van?" con dos botones, **Vamos** y **No vamos**.

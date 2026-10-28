@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { CalendarDays, Check, MessageCircle, Search, X } from 'lucide-react'
+import { CalendarDays, Check, MapPin, MessageCircle, Search, X } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { TeamCrest } from '@/components/TeamCrest'
 import { SubmitButton } from '@/components/SubmitButton'
@@ -20,16 +20,21 @@ import {
 import { noticeDate } from '@/utils/notices'
 import { proposalCardTitle, proposalStatusLabel, type ProposalStatus } from '@/utils/proposals'
 import {
+  asksGoing,
+  goingNote,
   isOccupied,
+  mapsLink,
   matchPhaseBadge,
   matchRowDetail,
   nextMatch,
   sortByStart,
-  type MatchPhase,
+  timeLabel,
+  type MatchCoordination,
   type MatchTone,
 } from '@/utils/match-display'
+import { coordinationTimes } from '@/utils/match-forms'
 import { whatsappLink } from '@/utils/whatsapp'
-import { acceptProposal, declineProposal, saveRivalSearch, sendProposal } from './actions'
+import { acceptProposal, confirmGoing, coordinateMatch, declineProposal, saveRivalSearch, sendProposal } from './actions'
 
 interface CaptainRow {
   teams: { id: string; name: string; modality: SportModality }
@@ -65,14 +70,12 @@ interface ProposalRow {
 
 // Una fila de la vista `match_details`: por RLS, los partidos de los equipos
 // del usuario (plantel actual), cada uno visto desde su equipo.
-interface MatchRow {
+interface MatchRow extends MatchCoordination {
   id: string
   range: string
-  start_at: string
-  phase: MatchPhase
+  venue_by_own: boolean | null
   team_id: string
   team_name: string
-  is_captain: boolean
   rival_team_id: string
   rival_team_name: string
   rival_crest_url: string | null
@@ -133,9 +136,11 @@ export default async function PartidosPage(props: {
   // Los partidos los ve todo el plantel, capitán o no.
   const { data: matchRows } = await supabase
     .from('match_details')
-    .select('id, range, start_at, phase, team_id, team_name, is_captain, rival_team_id, rival_team_name, rival_crest_url')
+    .select('id, range, start_at, phase, team_id, team_name, is_captain, rival_team_id, rival_team_name, rival_crest_url, venue, venue_start_at, venue_by_own, coordinated_at, going_at, rival_going_at, deadline')
   const matches = sortByStart((matchRows ?? []) as MatchRow[])
   const next = nextMatch(matches)
+  const now = new Date()
+  const matchError = param(searchParams.error_partido)
 
   // El WhatsApp del capitán rival solo se le da al capitán: la función
   // devuelve null a cualquier otro.
@@ -152,7 +157,7 @@ export default async function PartidosPage(props: {
         <p className="text-foreground/70 text-sm mt-2">Los partidos de tus equipos y la búsqueda de rival.</p>
       </div>
 
-      {next && <NextMatch match={next} whatsapp={rivalWhatsapp} />}
+      {next && <NextMatch match={next} whatsapp={rivalWhatsapp} now={now} />}
 
       <div className="grid gap-8 lg:grid-cols-[1fr_400px] items-start">
         <section className="flex flex-col gap-4">
@@ -197,6 +202,11 @@ export default async function PartidosPage(props: {
             </>
           )}
           <h2 className="text-2xl font-display tracking-wider uppercase text-foreground">Tus partidos</h2>
+          {matchError && (
+            <p role="alert" className="p-3 border border-brand-red/40 text-brand-red rounded-sm text-sm">
+              {matchError}
+            </p>
+          )}
           {matches.length === 0 ? (
             <p className="p-6 border border-brand-border bg-brand-surface rounded-sm text-foreground/70 text-sm">
               Todavía no hay partidos. Cuando un capitán acuerde uno, va a aparecer acá.
@@ -205,23 +215,31 @@ export default async function PartidosPage(props: {
             <ul className="flex flex-col gap-2">
               {matches.map((m) => {
                 const badge = matchPhaseBadge(m.phase)
+                const note = goingNote(m, now)
                 return (
-                  <li key={m.id} className="flex items-center gap-3 p-4 border border-brand-border bg-brand-surface rounded-sm">
-                    <TeamCrest name={m.rival_team_name} src={m.rival_crest_url} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-foreground">
-                        {slotLabel(slotFromRange(m.range))} · vs{' '}
-                        <Link href={`/equipos/${m.rival_team_id}`} className="font-display tracking-wider uppercase hover:text-brand-lime">
-                          {m.rival_team_name}
-                        </Link>
-                      </p>
-                      <p className="text-xs text-foreground/70 mt-1">
-                        Con {m.team_name} · {matchRowDetail(m)}
-                      </p>
+                  <li key={m.id} className="flex flex-col gap-3 p-4 border border-brand-border bg-brand-surface rounded-sm">
+                    <div className="flex items-center gap-3">
+                      <TeamCrest name={m.rival_team_name} src={m.rival_crest_url} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-foreground">
+                          {slotLabel(slotFromRange(m.range))} · vs{' '}
+                          <Link href={`/equipos/${m.rival_team_id}`} className="font-display tracking-wider uppercase hover:text-brand-lime">
+                            {m.rival_team_name}
+                          </Link>
+                        </p>
+                        <p className="text-xs text-foreground/70 mt-1">
+                          Con {m.team_name} · {matchRowDetail(m)}
+                          {m.venue && <MapLink venue={m.venue} />}
+                        </p>
+                        {note && <p className="text-xs text-brand-red mt-1">{note}</p>}
+                      </div>
+                      <span className={`shrink-0 px-2 py-0.5 text-xs font-display uppercase tracking-wider border rounded-sm ${TONE_CLASS[badge.tone]}`}>
+                        {badge.text}
+                      </span>
                     </div>
-                    <span className={`shrink-0 px-2 py-0.5 text-xs font-display uppercase tracking-wider border rounded-sm ${TONE_CLASS[badge.tone]}`}>
-                      {badge.text}
-                    </span>
+                    {/* El "¿Van?" del próximo partido va arriba; el de otro partido (capitán de dos equipos que juegan el mismo día), en su fila. */}
+                    {m.id !== next?.id && asksGoing(m) && <GoingPrompt match={m} />}
+                    {m.is_captain && m.phase === 'por_jugarse' && new Date(m.start_at) > now && <Coordination match={m} />}
                   </li>
                 )
               })}
@@ -502,8 +520,9 @@ async function RivalSearchPanel({
 
 // El próximo partido, arriba y en grande: rival, día y rango, y el WhatsApp del
 // capitán rival para arreglar cancha y hora (solo si el usuario es capitán).
-function NextMatch({ match, whatsapp }: { match: MatchRow; whatsapp: string | null }) {
+function NextMatch({ match, whatsapp, now }: { match: MatchRow; whatsapp: string | null; now: Date }) {
   const when = slotLabel(slotFromRange(match.range))
+  const note = goingNote(match, now)
   return (
     <section className="flex flex-col gap-4 p-6 border border-brand-lime/40 bg-brand-surface rounded-sm">
       <span className="text-sm text-brand-lime uppercase tracking-wider font-display">Próximo partido</span>
@@ -517,9 +536,14 @@ function NextMatch({ match, whatsapp }: { match: MatchRow; whatsapp: string | nu
             </Link>
           </p>
           <p className="text-foreground mt-2">{when}</p>
-          <p className="text-sm text-foreground/70">Con {match.team_name} · {matchRowDetail(match)}</p>
+          <p className="text-sm text-foreground/70">
+            Con {match.team_name} · {matchRowDetail(match)}
+            {match.venue && <MapLink venue={match.venue} />}
+          </p>
+          {note && <p className="text-sm text-brand-red mt-1">{note}</p>}
         </div>
       </div>
+      {asksGoing(match) && <GoingPrompt match={match} />}
       {whatsapp && (
         <a
           href={whatsappLink(whatsapp, `Hola, somos ${match.team_name}. Arreglemos cancha y hora para el partido del ${when}.`)}
@@ -531,5 +555,136 @@ function NextMatch({ match, whatsapp }: { match: MatchRow; whatsapp: string | nu
         </a>
       )}
     </section>
+  )
+}
+
+// "Ver en el mapa": busca la cancha en Google Maps.
+function MapLink({ venue }: { venue: string }) {
+  return (
+    <a
+      href={mapsLink(venue)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="ml-2 inline-flex items-center gap-1 text-brand-lime hover:underline underline-offset-4"
+    >
+      <MapPin className="w-3 h-3" /> Ver en el mapa
+    </a>
+  )
+}
+
+// "¿Van?": desde 24 h antes de la hora de inicio, para el capitán que todavía
+// no dijo "Vamos". "No vamos" tira el partido: llega con la etapa de caídas.
+function GoingPrompt({ match }: { match: MatchRow }) {
+  return (
+    <div className="flex flex-wrap items-center gap-3 p-3 border border-brand-lime/40 rounded-sm bg-brand-bg">
+      <span className="font-display text-lg tracking-wider uppercase text-foreground">¿Van?</span>
+      <form action={confirmGoing}>
+        <input type="hidden" name="match_id" value={match.id} />
+        <SubmitButton
+          pendingLabel="Confirmando…"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold font-display uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors"
+        >
+          <Check className="w-4 h-4" /> Vamos
+        </SubmitButton>
+      </form>
+      <button
+        type="button"
+        disabled
+        title="Tirar el partido llega con la próxima etapa"
+        className="ui-action inline-flex items-center gap-1 px-3 py-1.5 text-sm font-display uppercase tracking-wider rounded-sm border border-foreground/20 text-foreground/50 cursor-not-allowed"
+      >
+        <X className="w-4 h-4" /> No vamos
+      </button>
+    </div>
+  )
+}
+
+// Cancha y hora en la fila, solo para el capitán y antes de la hora de inicio.
+// Si el rival las cargó, se confirman (mandando los mismos valores) o se
+// corrigen; si no hay, se cargan; si ya están, se pueden cambiar.
+function Coordination({ match }: { match: MatchRow }) {
+  const slot = slotFromRange(match.range)
+  const loaded = match.venue && match.venue_start_at ? { venue: match.venue, time: timeLabel(match.venue_start_at) } : null
+  const toConfirm = loaded && !match.coordinated_at && !match.venue_by_own
+
+  const fields = (venue: string, time: string) => (
+    <>
+      <input type="hidden" name="match_id" value={match.id} />
+      <input type="hidden" name="slot" value={slotValue(slot)} />
+      <input type="hidden" name="venue" value={venue} />
+      <input type="hidden" name="time" value={time} />
+    </>
+  )
+
+  const form = (
+    <form action={coordinateMatch} className="flex flex-wrap items-end gap-2 mt-2">
+      <input type="hidden" name="match_id" value={match.id} />
+      <input type="hidden" name="slot" value={slotValue(slot)} />
+      <label className="flex flex-col gap-1 text-xs text-foreground/70 uppercase tracking-wider flex-1 min-w-48">
+        Cancha
+        <input
+          name="venue"
+          required
+          maxLength={120}
+          defaultValue={loaded?.venue}
+          placeholder="Club, dirección"
+          className="bg-brand-bg border border-brand-border rounded-sm px-2 py-1.5 text-sm text-foreground normal-case tracking-normal"
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-xs text-foreground/70 uppercase tracking-wider">
+        Hora
+        <select
+          name="time"
+          defaultValue={loaded?.time}
+          className="bg-brand-bg border border-brand-border rounded-sm px-2 py-1.5 text-sm text-foreground"
+        >
+          {coordinationTimes(slot).map((t) => <option key={t} value={t}>{t}</option>)}
+        </select>
+      </label>
+      <SubmitButton
+        pendingLabel="Guardando…"
+        className="inline-flex items-center px-3 py-1.5 text-sm font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors font-display"
+      >
+        {loaded ? 'Mandar cambio' : 'Cargar'}
+      </SubmitButton>
+    </form>
+  )
+
+  if (toConfirm) {
+    return (
+      <div className="flex flex-col gap-2 p-3 border border-brand-lime/40 rounded-sm bg-brand-bg">
+        <p className="text-sm text-foreground">
+          Confirmá cancha y hora: {match.rival_team_name} cargó <span className="text-brand-lime">{loaded.venue}, {loaded.time}</span>
+        </p>
+        <div className="flex items-center gap-3">
+          <form action={coordinateMatch}>
+            {fields(loaded.venue, loaded.time)}
+            <SubmitButton
+              pendingLabel="Confirmando…"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold font-display uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors"
+            >
+              <Check className="w-4 h-4" /> Confirmar
+            </SubmitButton>
+          </form>
+        </div>
+        <details>
+          <summary className="cursor-pointer text-sm text-foreground/70 hover:text-brand-lime">Corregir</summary>
+          {form}
+        </details>
+      </div>
+    )
+  }
+
+  return (
+    <details>
+      <summary className="cursor-pointer text-sm text-foreground/70 hover:text-brand-lime">
+        {!loaded
+          ? 'Cargar cancha y hora'
+          : match.coordinated_at
+            ? 'Cambiar cancha y hora'
+            : `Esperando que ${match.rival_team_name} confirme · Cambiar`}
+      </summary>
+      {form}
+    </details>
   )
 }
