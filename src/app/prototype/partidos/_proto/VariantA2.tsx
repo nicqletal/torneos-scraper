@@ -46,6 +46,16 @@ export function VariantA2() {
     <div className="flex flex-col gap-8">
       <FakeUrl path={`/partidos${teamId !== 'rf' ? `?equipo=${teamId}` : ''}${tab === 'buscar' ? (teamId !== 'rf' ? '&' : '?') + 'ver=buscar' : ''}`} />
 
+      {/* Solo del prototipo: cuenta quién sos en esta historia inventada */}
+      <details className="text-sm text-foreground/70 border border-dashed border-brand-border rounded-sm px-4 py-3 -mt-4">
+        <summary className="cursor-pointer text-foreground/80">Caso de prueba: quién sos acá (hoy es martes 27/10)</summary>
+        <ul className="mt-3 flex flex-col gap-2 list-disc pl-5">
+          <li><b>Real Floresta</b> (sos capitán, Fútbol 5): Sportivo Lugano les propuso jugar · Barrio Unido cargó el resultado del sábado · mañana juegan con La 12 FC y falta confirmar que van · con Deportivo Norte tienen partido acordado sin cancha. Tienen una búsqueda con 3 franjas.</li>
+          <li><b>Los Pibes del Jueves</b> (sos capitán, Fútbol 7): el rival cargó cancha y hora y te toca confirmar. No están buscando rival.</li>
+          <li><b>Atlético Boedo</b> (sos jugador, no capitán): solo mirás su partido del domingo.</li>
+        </ul>
+      </details>
+
       <header className="flex flex-col gap-1">
         <h1 className="text-5xl font-display tracking-wider uppercase leading-none">Partidos</h1>
         {/* Solo aparece si estás en más de un equipo */}
