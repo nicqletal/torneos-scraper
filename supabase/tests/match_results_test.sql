@@ -290,18 +290,18 @@ select results_eq(
 -- La falta por no presentarse --------------------------------------------------
 
 reset role;
-select is((select count(*)::int from public.team_faults where match_id = '77777777-0000-0000-0000-000000000000'), 0,
+select is((select count(*)::int from public.team_faults(now()) where match_id = '77777777-0000-0000-0000-000000000000'), 0,
   'mientras el acusado puede responder, no hay falta');
 -- M7 con los hechos llevados 49 h para atrás: venció hace 1 h.
 update public.matches set range = tstzrange(lower(range) - interval '49 hours', upper(range) - interval '49 hours', '[)'),
                           last_action_at = last_action_at - interval '49 hours'
  where id = '77777777-0000-0000-0000-000000000000';
 select results_eq(
-  $$ select team_id, occurred_at from public.team_faults where match_id = '77777777-0000-0000-0000-000000000000' $$,
+  $$ select team_id, occurred_at from public.team_faults(now()) where match_id = '77777777-0000-0000-0000-000000000000' $$,
   $$ values ('eeeeeeee-0000-0000-0000-000000000000'::uuid, now() - interval '1 hour') $$,
   'vencidas las 48 h, la falta es del ausente y cuenta desde que vencieron'
 );
-select is((select count(*)::int from public.team_faults where match_id in ('88888888-0000-0000-0000-000000000000', '99999999-0000-0000-0000-000000000000')), 0,
+select is((select count(*)::int from public.team_faults(now()) where match_id in ('88888888-0000-0000-0000-000000000000', '99999999-0000-0000-0000-000000000000')), 0,
   'un conflicto no suma falta a nadie');
 select is(public.team_recent_faults('eeeeeeee-0000-0000-0000-000000000000', now()), 1,
   'la falta por no presentarse entra en las faltas de 90 días');

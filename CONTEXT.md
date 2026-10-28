@@ -144,6 +144,10 @@ _Avoid_: ausencia, penalización
 **Presentismo**:
 Qué tan cumplidor es un equipo, medido por sus **Faltas** en los últimos 90 días; un equipo sin historial no tiene faltas.
 
+**Bloqueo por faltas**:
+Consecuencia automática de juntar 3 **Faltas** en 90 días: el equipo no puede publicar búsquedas de rival ni proponer durante 30 días desde la tercera. Lo calcula la app, no lo decide nadie; no es una **Suspensión**.
+_Avoid_: suspensión, sanción
+
 **Reporte de no presentado**:
 Declaración de un capitán de que el equipo rival no se presentó a un partido.
 _Avoid_: denuncia
@@ -162,8 +166,8 @@ Aviso que un usuario con sesión le hace al administrador sobre un torneo (datos
 _Avoid_: denuncia, queja
 
 **Suspensión**:
-Sanción del administrador sobre una cuenta, por 7 días, 30 días o indefinida, que le impide crear o publicar cosas nuevas pero no entrar ni mirar.
-_Avoid_: bloqueo, baneo
+Sanción del administrador sobre una cuenta, por 7 días, 30 días o indefinida, que le impide crear o publicar cosas nuevas pero no entrar ni mirar. No confundir con el **Bloqueo por faltas**, que es automático y recae sobre un equipo.
+_Avoid_: bloqueo (solo se dice del **Bloqueo por faltas**), baneo
 
 ### Avisos
 

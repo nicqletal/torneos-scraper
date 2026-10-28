@@ -7,7 +7,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(16);
 
 -- Caro: capitana de A. Beto: capitán de B, C y D.
 insert into auth.users (id, email, raw_user_meta_data) values
@@ -78,6 +78,21 @@ select pg_temp.fault('dddddddd-0000-0000-0000-000000000000', interval '10 days')
 select pg_temp.fault('dddddddd-0000-0000-0000-000000000000', interval '2 days');
 select is(pg_temp.blocked_until('dddddddd-0000-0000-0000-000000000000', now()), null,
   'las faltas de hace más de 90 días no cuentan');
+
+-- Y A dice que D no vino a un partido que terminó hace 1 h. Si D no responde,
+-- es su tercera falta al vencer las 48 h (en 47 h 30 min): las funciones que
+-- reciben `p_now` la cuentan desde ahí, aunque hoy todavía no sea firme.
+insert into public.matches (id, range, last_action_at)
+values ('d0d0d0d0-0000-0000-0000-000000000000',
+        tstzrange(now() - interval '3 hours', now() - interval '1 hour', '[)'), now() - interval '30 minutes');
+insert into public.match_sides (match_id, team_id, no_show_at) values
+  ('d0d0d0d0-0000-0000-0000-000000000000', 'aaaaaaaa-0000-0000-0000-000000000000', now() - interval '30 minutes'),
+  ('d0d0d0d0-0000-0000-0000-000000000000', 'dddddddd-0000-0000-0000-000000000000', null);
+select is(public.team_recent_faults('dddddddd-0000-0000-0000-000000000000', now() + interval '48 hours'), 3,
+  'una falta por no presentarse cuenta en un `p_now` futuro, después de vencer las 48 h');
+select is(pg_temp.blocked_until('dddddddd-0000-0000-0000-000000000000', now() + interval '48 hours'),
+  now() + interval '47 hours 30 minutes' + interval '30 days',
+  'y bloquea 30 días desde que venció el plazo');
 
 -- Un equipo bloqueado no publica ni propone ---------------------------------
 
@@ -156,6 +171,11 @@ select throws_ok(
        (select id from slot_d)) $$,
   'P0001', 'El equipo está bloqueado por faltas hasta el ' || to_char((now() + interval '30 days' - interval '1 minute') at time zone 'America/Argentina/Buenos_Aires', 'FMDD/FMMM'),
   'un equipo bloqueado no manda propuestas');
+
+set local role authenticated;
+select throws_ok($$ select * from public.team_faults(now()) $$, '42501', null,
+  'las faltas con el partido y la fecha no se leen por la API');
+reset role;
 
 select * from finish();
 rollback;

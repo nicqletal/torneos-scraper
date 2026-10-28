@@ -21,6 +21,7 @@ import { noticeDate } from '@/utils/notices'
 import { proposalCardTitle, proposalStatusLabel, type ProposalStatus } from '@/utils/proposals'
 import {
   asksGoing,
+  canCoordinate,
   dropDetail,
   dropMenu,
   goingNote,
@@ -297,7 +298,7 @@ export default async function PartidosPage(props: {
                     )}
                     {/* El "¿Van?" del próximo partido va arriba; el de otro partido (capitán de dos equipos que juegan el mismo día), en su fila. */}
                     {m.id !== next?.id && asksGoing(m) && <GoingPrompt match={m} now={now} />}
-                    {m.is_captain && m.phase === 'por_jugarse' && new Date(m.start_at) > now && <Coordination match={m} />}
+                    {canCoordinate(m, now) && <Coordination match={m} />}
                   </li>
                 )
               })}

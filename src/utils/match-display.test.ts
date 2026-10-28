@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   asksGoing,
+  canCoordinate,
   dropDetail,
   dropMenu,
   goingNote,
@@ -62,6 +63,20 @@ test('partido: si los dos dijeron Vamos, está Confirmado, con o sin cancha', ()
 
 test('partido: "Ver en el mapa" busca la cancha en Google Maps', () => {
   assert.equal(mapsLink('Club Parque, Av. Rivadavia 123'), 'https://www.google.com/maps/search/?api=1&query=Club%20Parque%2C%20Av.%20Rivadavia%20123')
+})
+
+test('partido: cancha y hora se cargan o corrigen hasta el inicio del horario, aunque la hora coordinada sea más tarde', () => {
+  // De 20 a 22 (23:00 a 01:00 UTC), coordinado a las 21.
+  const coordinated = {
+    ...loaded,
+    range: '["2026-11-05 23:00:00+00","2026-11-06 01:00:00+00")',
+    start_at: '2026-11-06T00:00:00+00:00',
+    coordinated_at: '2026-11-01T12:00:00+00:00',
+  }
+  assert.equal(canCoordinate(coordinated, new Date('2026-11-05T22:59:00Z')), true)
+  assert.equal(canCoordinate(coordinated, new Date('2026-11-05T23:30:00Z')), false, 'a las 20:30, ya no')
+  assert.equal(canCoordinate({ ...coordinated, is_captain: false }, new Date('2026-11-05T22:59:00Z')), false, 'el plantel no')
+  assert.equal(canCoordinate({ ...coordinated, phase: 'caido' }, new Date('2026-11-05T22:59:00Z')), false, 'un caído no')
 })
 
 test('partido: "¿Van?" lo ve el capitán mientras está abierta la confirmación previa y no dijo Vamos', () => {
