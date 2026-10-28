@@ -122,6 +122,14 @@ test('cargaron el resultado: desde el lado de quien lo recibe, con el plazo', ()
   assert.equal(noticeLink('result_to_confirm', params), '/partidos')
 })
 
+test('cargaron el resultado: si no coincide con el propio, sin resultado si siguen distintos', () => {
+  const params = { rival_name: 'Los Pibes', goals_for: 2, goals_against: 3, deadline: '2026-11-06T01:00:00+00:00', mismatch: true }
+  assert.equal(
+    noticeText('result_to_confirm', params),
+    'Los Pibes cargó el resultado: ustedes 2, Los Pibes 3. No coincide con el de ustedes: confirmá o corregí antes del jue 5/11 22:00; si siguen distintos, queda Jugado sin resultado.'
+  )
+})
+
 test('jugado: con el resultado', () => {
   const params = { team_a: 'Real Floresta', team_b: 'Los Pibes', goals_a: 3, goals_b: 2 }
   assert.equal(

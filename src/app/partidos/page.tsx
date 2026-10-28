@@ -31,10 +31,14 @@ import {
   mutualDropNote,
   mutualDropToAnswer,
   nextMatch,
+  resultActions,
+  resultDeadlineNote,
+  resultDetail,
   sortByStart,
   timeLabel,
   type MatchCoordination,
   type MatchDrop,
+  type MatchResult,
   type MatchTone,
 } from '@/utils/match-display'
 import { coordinationTimes } from '@/utils/match-forms'
@@ -46,6 +50,9 @@ import {
   coordinateMatch,
   declineProposal,
   dropMatch,
+  replyWent,
+  reportNoShow,
+  reportResult,
   requestMutualDrop,
   saveRivalSearch,
   sendProposal,
@@ -85,7 +92,7 @@ interface ProposalRow {
 
 // Una fila de la vista `match_details`: por RLS, los partidos de los equipos
 // del usuario (plantel actual), cada uno visto desde su equipo.
-interface MatchRow extends MatchCoordination, MatchDrop {
+interface MatchRow extends MatchCoordination, MatchDrop, MatchResult {
   id: string
   range: string
   venue_by_own: boolean | null
@@ -99,6 +106,7 @@ interface MatchRow extends MatchCoordination, MatchDrop {
 const TONE_CLASS: Record<MatchTone, string> = {
   lime: 'border-brand-lime/40 text-brand-lime',
   muted: 'border-foreground/20 text-foreground/70',
+  red: 'border-brand-red/40 text-brand-red',
 }
 
 const HOURS_FROM = Array.from({ length: 16 }, (_, i) => i + 8) // 8 a 23
@@ -159,7 +167,7 @@ export default async function PartidosPage(props: {
   // Los partidos los ve todo el plantel, capitán o no.
   const { data: matchRows } = await supabase
     .from('match_details')
-    .select('id, range, start_at, phase, team_id, team_name, is_captain, rival_team_id, rival_team_name, rival_crest_url, venue, venue_start_at, venue_by_own, coordinated_at, going_at, rival_going_at, deadline, drop_reason, dropped_by_own, drop_mutual, drop_fault, mutual_drop_reason, mutual_drop_by_own, mutual_drop_answered_at, mutual_drop_accepted')
+    .select('id, range, start_at, phase, team_id, team_name, is_captain, rival_team_id, rival_team_name, rival_crest_url, venue, venue_start_at, venue_by_own, coordinated_at, going_at, rival_going_at, deadline, drop_reason, dropped_by_own, drop_mutual, drop_fault, mutual_drop_reason, mutual_drop_by_own, mutual_drop_answered_at, mutual_drop_accepted, goals_for, goals_against, rival_goals_for, rival_goals_against, no_show_at, rival_no_show_at, went_at, rival_went_at, score_for, score_against')
   const matches = sortByStart((matchRows ?? []) as MatchRow[])
   const next = nextMatch(matches)
   const matchError = param(searchParams.error_partido)
@@ -246,6 +254,7 @@ export default async function PartidosPage(props: {
                 const note = goingNote(m, now)
                 const menu = dropMenu(m, now)
                 const mutualNote = mutualDropNote(m)
+                const deadlineNote = resultDeadlineNote(m)
                 return (
                   <li key={m.id} className="flex flex-col gap-3 p-4 border border-brand-border bg-brand-surface rounded-sm">
                     <div className="flex items-center gap-3">
@@ -258,9 +267,11 @@ export default async function PartidosPage(props: {
                           </Link>
                         </p>
                         <p className="text-xs text-foreground/70 mt-1">
-                          Con {m.team_name} · {m.phase === 'caido' ? dropDetail(m) : matchRowDetail(m)}
-                          {m.phase !== 'caido' && m.venue && <MapLink venue={m.venue} />}
+                          Con {m.team_name} ·{' '}
+                          {m.phase === 'por_jugarse' ? matchRowDetail(m) : m.phase === 'caido' ? dropDetail(m) : resultDetail(m)}
+                          {m.phase === 'por_jugarse' && m.venue && <MapLink venue={m.venue} />}
                         </p>
+                        {deadlineNote && <p className="text-xs text-foreground/70 mt-1">{deadlineNote}</p>}
                         {note && <p className="text-xs text-brand-red mt-1">{note}</p>}
                         {mutualNote && <p className="text-xs text-foreground/70 mt-1">{mutualNote}</p>}
                       </div>
@@ -269,6 +280,7 @@ export default async function PartidosPage(props: {
                       </span>
                     </div>
                     <MutualDropAnswer match={m} now={now} />
+                    <ResultActions match={m} />
                     {/* Menú ⋯: tirar el partido, y con menos de 24 h, pedirlo de común acuerdo. El motivo se escribe en la fila, que se despliega. */}
                     {menu && (
                       <details>
@@ -818,5 +830,116 @@ function Coordination({ match }: { match: MatchRow }) {
       </summary>
       {form}
     </details>
+  )
+}
+
+// Después de la hora de inicio, en la fila del capitán: cargar o corregir el
+// resultado ("Nosotros / Ellos") con el link chico "No vinieron" al lado,
+// confirmar el que cargó el rival, o responder "fuimos" si dicen que no fueron.
+function ResultActions({ match }: { match: MatchRow }) {
+  const actions = resultActions(match)
+  if (!actions) return null
+
+  const noShow = actions.noShow && (
+    <form action={reportNoShow}>
+      <input type="hidden" name="match_id" value={match.id} />
+      <SubmitButton pendingLabel="Reportando…" className="text-xs text-foreground/70 underline underline-offset-4 hover:text-brand-red">
+        {actions.went ? 'Ellos tampoco vinieron' : 'No vinieron'}
+      </SubmitButton>
+    </form>
+  )
+
+  if (actions.went) {
+    return (
+      <div className="flex flex-col gap-2 p-3 border border-brand-lime/40 rounded-sm bg-brand-bg">
+        <p className="text-sm text-foreground">{match.rival_team_name} dice que no fueron: respondé.</p>
+        <p className="text-xs text-foreground/70">Si respondés &ldquo;fuimos&rdquo;, el partido queda en conflicto, sin falta para nadie.</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <form action={replyWent}>
+            <input type="hidden" name="match_id" value={match.id} />
+            <SubmitButton
+              pendingLabel="Respondiendo…"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold font-display uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors"
+            >
+              <Check className="w-4 h-4" /> Fuimos
+            </SubmitButton>
+          </form>
+          {noShow}
+        </div>
+      </div>
+    )
+  }
+
+  const form = (
+    <form action={reportResult} className="flex flex-wrap items-end gap-2 mt-2">
+      <input type="hidden" name="match_id" value={match.id} />
+      {[
+        { name: 'goals_for', label: 'Nosotros', value: match.goals_for },
+        { name: 'goals_against', label: 'Ellos', value: match.goals_against },
+      ].map((field) => (
+        <label key={field.name} className="flex flex-col gap-1 text-xs text-foreground/70 uppercase tracking-wider">
+          {field.label}
+          <input
+            name={field.name}
+            type="number"
+            required
+            min={0}
+            max={99}
+            step={1}
+            defaultValue={field.value ?? undefined}
+            className="w-20 bg-brand-bg border border-brand-border rounded-sm px-2 py-1.5 text-sm text-foreground"
+          />
+        </label>
+      ))}
+      <SubmitButton
+        pendingLabel="Guardando…"
+        className="inline-flex items-center px-3 py-1.5 text-sm font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors font-display"
+      >
+        {actions.load === 'Corregir' ? 'Mandar corrección' : 'Cargar'}
+      </SubmitButton>
+    </form>
+  )
+
+  if (actions.confirm) {
+    return (
+      <div className="flex flex-col gap-2 p-3 border border-brand-lime/40 rounded-sm bg-brand-bg">
+        <p className="text-sm text-foreground">
+          Cargaron el resultado: confirmá o corregí.{' '}
+          <span className="text-brand-lime">
+            {match.team_name} {actions.confirm.goals_for}–{actions.confirm.goals_against} {match.rival_team_name}
+          </span>
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <form action={reportResult}>
+            <input type="hidden" name="match_id" value={match.id} />
+            <input type="hidden" name="goals_for" value={actions.confirm.goals_for} />
+            <input type="hidden" name="goals_against" value={actions.confirm.goals_against} />
+            <SubmitButton
+              pendingLabel="Confirmando…"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold font-display uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors"
+            >
+              <Check className="w-4 h-4" /> Confirmar
+            </SubmitButton>
+          </form>
+          {noShow}
+        </div>
+        <details>
+          <summary className="cursor-pointer text-sm text-foreground/70 hover:text-brand-lime">Corregir</summary>
+          {form}
+        </details>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex flex-wrap items-baseline gap-3">
+        <details className="flex-1">
+          <summary className="cursor-pointer text-sm text-foreground/70 hover:text-brand-lime">{actions.load}</summary>
+          {form}
+        </details>
+        {noShow}
+      </div>
+    </div>
   )
 }

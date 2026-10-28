@@ -11,6 +11,11 @@
 //   node --experimental-strip-types scripts/qa/partidos.ts propuesta-vencida
 //   node --experimental-strip-types scripts/qa/partidos.ts dos-faltas
 //   node --experimental-strip-types scripts/qa/partidos.ts bloqueado
+//   node --experimental-strip-types scripts/qa/partidos.ts resultado-vencido
+//   node --experimental-strip-types scripts/qa/partidos.ts resultados-distintos-vencidos
+//   node --experimental-strip-types scripts/qa/partidos.ts no-vinieron-vencido
+//   node --experimental-strip-types scripts/qa/partidos.ts sin-cargas-vencido
+//   node --experimental-strip-types scripts/qa/partidos.ts vencimientos   (los cuatro juntos)
 //
 // Cada escenario empieza limpiando, así se puede correr las veces que haga
 // falta. Las etapas siguientes suman escenarios a `SCENARIOS`.
@@ -117,6 +122,54 @@ async function fault(teamId: string, daysAgo: number) {
   )
 }
 
+// Lo que cargó un lado después del partido (las columnas de `match_sides`).
+type SideFacts = { goals_for?: number; goals_against?: number; result_at?: string; no_show_at?: string }
+
+// Un partido ya jugado entre los dos equipos QA, de 2 h en horas enteras, que
+// terminó `daysBack` días antes del último fin de hora de hace 49 h. Con
+// `lastActionHoursAgo`, la última carga fue hace esas horas (y los hechos de
+// cada lado llevan esa fecha); sin, nadie cargó nada.
+async function pastMatch(daysBack: number, caro: SideFacts, rival: SideFacts, lastActionHoursAgo?: number) {
+  const end = Math.floor((Date.now() - 49 * HOUR) / HOUR) * HOUR - daysBack * 24 * HOUR
+  const match = check(
+    await supabase
+      .from('matches')
+      .insert({
+        range: `[${new Date(end - 2 * HOUR).toISOString()},${new Date(end).toISOString()})`,
+        last_action_at: lastActionHoursAgo === undefined ? null : new Date(Date.now() - lastActionHoursAgo * HOUR).toISOString(),
+      })
+      .select('id')
+      .single()
+  )!
+  check(
+    await supabase.from('match_sides').insert([
+      { match_id: match.id, team_id: CARO_TEAM, ...caro },
+      { match_id: match.id, team_id: RIVAL_TEAM, ...rival },
+    ])
+  )
+}
+
+const ago49 = () => new Date(Date.now() - 49 * HOUR).toISOString()
+
+// Los cuatro vencimientos de 48 h del resultado. Cada uno en otro día, para
+// verlos juntos en "Tus partidos".
+const pastResults = {
+  // Nadie cargó nada y el partido terminó hace más de 49 h: Jugado sin resultado.
+  sinCargas: () => pastMatch(0, {}, {}),
+  // Caro cargó 3–1 hace 49 h y el rival no hizo nada: Jugado 3–1.
+  resultado: () => pastMatch(1, { goals_for: 3, goals_against: 1, result_at: ago49() }, {}, 49),
+  // Cargaron distinto (2–0 y 1–1) y la última carga fue hace 49 h: Jugado sin resultado.
+  distintos: () =>
+    pastMatch(
+      2,
+      { goals_for: 2, goals_against: 0, result_at: ago49() },
+      { goals_for: 1, goals_against: 1, result_at: ago49() },
+      49
+    ),
+  // Caro reportó "no vinieron" hace 49 h y el rival no respondió: falta del rival.
+  noVinieron: () => pastMatch(3, { no_show_at: ago49() }, {}, 49),
+}
+
 const SCENARIOS: Record<string, () => Promise<string>> = {
   limpiar: async () => 'Sin datos de Partidos en las cuentas QA.',
 
@@ -169,6 +222,31 @@ const SCENARIOS: Record<string, () => Promise<string>> = {
     await fault(CARO_TEAM, 20)
     await fault(CARO_TEAM, 2)
     return `El equipo de Caro tiene 3 faltas recientes (bloqueado); le había propuesto al rival el ${day}, de 21 a 23.`
+  },
+
+  'resultado-vencido': async () => {
+    await pastResults.resultado()
+    return 'Caro cargó 3–1 hace 49 h y el rival no hizo nada: Jugado 3–1.'
+  },
+
+  'resultados-distintos-vencidos': async () => {
+    await pastResults.distintos()
+    return 'Cargaron 2–0 y 1–1 (desde cada lado) hace 49 h: Jugado sin resultado.'
+  },
+
+  'no-vinieron-vencido': async () => {
+    await pastResults.noVinieron()
+    return 'Caro reportó "no vinieron" hace 49 h y el rival no respondió: falta para el rival.'
+  },
+
+  'sin-cargas-vencido': async () => {
+    await pastResults.sinCargas()
+    return 'Partido sin cargas que terminó hace más de 49 h: Jugado sin resultado.'
+  },
+
+  vencimientos: async () => {
+    for (const create of Object.values(pastResults)) await create()
+    return 'Los cuatro vencimientos de 48 h: sin cargas, resultado cargado, resultados distintos y "no vinieron" sin respuesta.'
   },
 }
 

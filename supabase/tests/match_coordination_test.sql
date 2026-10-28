@@ -178,8 +178,8 @@ select is(
 select is(
   (select public.match_deadline(m, pg_temp.at(3, '21:00')) from public.matches m
     where id = '11111111-0000-0000-0000-000000000000'),
-  null,
-  'y a la hora de inicio ya se cerró'
+  (select upper(range) + interval '48 hours' from public.matches where id = '11111111-0000-0000-0000-000000000000'),
+  'y a la hora de inicio ya se cerró: el plazo pasa a ser el del resultado'
 );
 
 -- Vamos ----------------------------------------------------------------------

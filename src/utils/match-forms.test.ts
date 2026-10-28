@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { coordinationTimes, parseCoordination, parseDropReason } from './match-forms.ts'
+import { coordinationTimes, parseCoordination, parseDropReason, parseResult } from './match-forms.ts'
 
 function form(fields: Record<string, string>): FormData {
   const data = new FormData()
@@ -56,4 +56,20 @@ test('caída: el motivo es obligatorio y de hasta 140 caracteres', () => {
   assert.deepEqual(parseDropReason(form({ match_id: 'm1', reason: '   ' })), error)
   assert.deepEqual(parseDropReason(form({ match_id: 'm1', reason: 'x'.repeat(141) })), error)
   assert.equal(parseDropReason(form({ match_id: 'm1', reason: 'x'.repeat(140) })).ok, true)
+})
+
+test('resultado: los goles de cada lado, "Nosotros / Ellos", como números', () => {
+  assert.deepEqual(parseResult(form({ match_id: 'm1', goals_for: ' 3 ', goals_against: '0' })), {
+    ok: true,
+    fields: { match_id: 'm1', goals_for: 3, goals_against: 0 },
+  })
+})
+
+test('resultado: los goles van de 0 a 99, enteros y obligatorios', () => {
+  const error = { ok: false, error: 'Los goles van de 0 a 99.' }
+  assert.deepEqual(parseResult(form({ match_id: 'm1', goals_for: '100', goals_against: '0' })), error)
+  assert.deepEqual(parseResult(form({ match_id: 'm1', goals_for: '-1', goals_against: '0' })), error)
+  assert.deepEqual(parseResult(form({ match_id: 'm1', goals_for: '1.5', goals_against: '0' })), error)
+  assert.deepEqual(parseResult(form({ match_id: 'm1', goals_for: '', goals_against: '0' })), error)
+  assert.equal(parseResult(form({ match_id: 'm1', goals_for: '99', goals_against: '0' })).ok, true)
 })
