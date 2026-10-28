@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { CalendarDays, Check, Search, X } from 'lucide-react'
+import { CalendarDays, Check, MessageCircle, Search, X } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { TeamCrest } from '@/components/TeamCrest'
 import { SubmitButton } from '@/components/SubmitButton'
@@ -19,7 +19,17 @@ import {
 } from '@/utils/rival-search-form'
 import { noticeDate } from '@/utils/notices'
 import { proposalCardTitle, proposalStatusLabel, type ProposalStatus } from '@/utils/proposals'
-import { declineProposal, saveRivalSearch, sendProposal } from './actions'
+import {
+  isOccupied,
+  matchPhaseBadge,
+  matchRowDetail,
+  nextMatch,
+  sortByStart,
+  type MatchPhase,
+  type MatchTone,
+} from '@/utils/match-display'
+import { whatsappLink } from '@/utils/whatsapp'
+import { acceptProposal, declineProposal, saveRivalSearch, sendProposal } from './actions'
 
 interface CaptainRow {
   teams: { id: string; name: string; modality: SportModality }
@@ -51,6 +61,25 @@ interface ProposalRow {
   to_team_name: string
   status: ProposalStatus
   expires_at: string
+}
+
+// Una fila de la vista `match_details`: por RLS, los partidos de los equipos
+// del usuario (plantel actual), cada uno visto desde su equipo.
+interface MatchRow {
+  id: string
+  range: string
+  start_at: string
+  phase: MatchPhase
+  team_id: string
+  team_name: string
+  is_captain: boolean
+  rival_team_id: string
+  rival_team_name: string
+  rival_crest_url: string | null
+}
+
+const TONE_CLASS: Record<MatchTone, string> = {
+  lime: 'border-brand-lime/40 text-brand-lime',
 }
 
 const HOURS_FROM = Array.from({ length: 16 }, (_, i) => i + 8) // 8 a 23
@@ -101,12 +130,29 @@ export default async function PartidosPage(props: {
   const teamParam = param(searchParams.equipo)
   const modalityParam = param(searchParams.modalidad)
 
+  // Los partidos los ve todo el plantel, capitán o no.
+  const { data: matchRows } = await supabase
+    .from('match_details')
+    .select('id, range, start_at, phase, team_id, team_name, is_captain, rival_team_id, rival_team_name, rival_crest_url')
+  const matches = sortByStart((matchRows ?? []) as MatchRow[])
+  const next = nextMatch(matches)
+
+  // El WhatsApp del capitán rival solo se le da al capitán: la función
+  // devuelve null a cualquier otro.
+  let rivalWhatsapp: string | null = null
+  if (next?.is_captain) {
+    const { data: whatsapp } = await supabase.rpc('rival_captain_whatsapp', { p_match_id: next.id })
+    rivalWhatsapp = whatsapp
+  }
+
   return (
     <div className="max-w-6xl w-full mx-auto flex flex-col gap-8">
       <div className="border-b border-brand-border pb-6">
         <h1 className="text-4xl md:text-5xl font-display tracking-wider text-foreground uppercase leading-none">Partidos</h1>
         <p className="text-foreground/70 text-sm mt-2">Los partidos de tus equipos y la búsqueda de rival.</p>
       </div>
+
+      {next && <NextMatch match={next} whatsapp={rivalWhatsapp} />}
 
       <div className="grid gap-8 lg:grid-cols-[1fr_400px] items-start">
         <section className="flex flex-col gap-4">
@@ -123,6 +169,17 @@ export default async function PartidosPage(props: {
                         Para {p.to_team_name} · vence el {noticeDate(p.expires_at)}
                       </p>
                     </div>
+                    <form action={acceptProposal}>
+                      <input type="hidden" name="proposal_id" value={p.id} />
+                      <input type="hidden" name="team_id" value={teamParam ?? ''} />
+                      <input type="hidden" name="modality" value={modalityParam ?? ''} />
+                      <SubmitButton
+                        pendingLabel="Aceptando…"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-bold font-display uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors"
+                      >
+                        <Check className="w-4 h-4" /> Aceptar
+                      </SubmitButton>
+                    </form>
                     <form action={declineProposal}>
                       <input type="hidden" name="proposal_id" value={p.id} />
                       <input type="hidden" name="team_id" value={teamParam ?? ''} />
@@ -140,9 +197,36 @@ export default async function PartidosPage(props: {
             </>
           )}
           <h2 className="text-2xl font-display tracking-wider uppercase text-foreground">Tus partidos</h2>
-          <p className="p-6 border border-brand-border bg-brand-surface rounded-sm text-foreground/70 text-sm">
-            Todavía no hay partidos. Cuando un capitán acuerde uno, va a aparecer acá.
-          </p>
+          {matches.length === 0 ? (
+            <p className="p-6 border border-brand-border bg-brand-surface rounded-sm text-foreground/70 text-sm">
+              Todavía no hay partidos. Cuando un capitán acuerde uno, va a aparecer acá.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {matches.map((m) => {
+                const badge = matchPhaseBadge(m.phase)
+                return (
+                  <li key={m.id} className="flex items-center gap-3 p-4 border border-brand-border bg-brand-surface rounded-sm">
+                    <TeamCrest name={m.rival_team_name} src={m.rival_crest_url} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-foreground">
+                        {slotLabel(slotFromRange(m.range))} · vs{' '}
+                        <Link href={`/equipos/${m.rival_team_id}`} className="font-display tracking-wider uppercase hover:text-brand-lime">
+                          {m.rival_team_name}
+                        </Link>
+                      </p>
+                      <p className="text-xs text-foreground/70 mt-1">
+                        Con {m.team_name} · {matchRowDetail(m)}
+                      </p>
+                    </div>
+                    <span className={`shrink-0 px-2 py-0.5 text-xs font-display uppercase tracking-wider border rounded-sm ${TONE_CLASS[badge.tone]}`}>
+                      {badge.text}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </section>
 
         {captainTeams.length > 0 && (
@@ -150,6 +234,7 @@ export default async function PartidosPage(props: {
             supabase={supabase}
             teams={captainTeams}
             proposals={proposals}
+            matches={matches}
             teamParam={teamParam}
             modalityParam={modalityParam}
             error={param(searchParams.error)}
@@ -164,6 +249,7 @@ async function RivalSearchPanel({
   supabase,
   teams,
   proposals,
+  matches,
   teamParam,
   modalityParam,
   error,
@@ -171,6 +257,7 @@ async function RivalSearchPanel({
   supabase: Awaited<ReturnType<typeof createClient>>
   teams: CaptainRow['teams'][]
   proposals: ProposalRow[]
+  matches: MatchRow[]
   teamParam?: string
   modalityParam?: string
   error?: string
@@ -201,6 +288,9 @@ async function RivalSearchPanel({
       .sort((a, b) => a.date.localeCompare(b.date) || a.from - b.from)
     compatibles = (compatibleRows ?? []) as CompatibleRow[]
   }
+
+  // Los partidos del equipo, para marcar sus franjas ocupadas.
+  const matchSlots = matches.filter((m) => m.team_id === team.id).map((m) => slotFromRange(m.range))
 
   const hrefFor = (teamId: string, mod: string) => `/partidos?equipo=${teamId}&modalidad=${mod}`
   const days = Array.from({ length: SEARCH_DAYS }, (_, i) => addDays(today.date, i))
@@ -255,7 +345,12 @@ async function RivalSearchPanel({
           <ul className="flex flex-col divide-y divide-brand-border border border-brand-border rounded-sm">
             {slots.map((slot) => (
               <li key={slotValue(slot)} className="flex items-center justify-between gap-2 px-3 py-2">
-                <span className="text-foreground">{slotLabel(slot)}</span>
+                <span className="text-foreground">
+                  {slotLabel(slot)}
+                  {isOccupied(slot, matchSlots) && (
+                    <span className="ml-2 text-xs text-foreground/70 uppercase tracking-wider">Ocupada</span>
+                  )}
+                </span>
                 {/* Sacar una franja guarda todas las demás. Sacar la última cancela la búsqueda. */}
                 <form action={saveRivalSearch}>
                   {hiddenFields}
@@ -402,5 +497,39 @@ async function RivalSearchPanel({
         </div>
       )}
     </aside>
+  )
+}
+
+// El próximo partido, arriba y en grande: rival, día y rango, y el WhatsApp del
+// capitán rival para arreglar cancha y hora (solo si el usuario es capitán).
+function NextMatch({ match, whatsapp }: { match: MatchRow; whatsapp: string | null }) {
+  const when = slotLabel(slotFromRange(match.range))
+  return (
+    <section className="flex flex-col gap-4 p-6 border border-brand-lime/40 bg-brand-surface rounded-sm">
+      <span className="text-sm text-brand-lime uppercase tracking-wider font-display">Próximo partido</span>
+      <div className="flex items-center gap-4">
+        <TeamCrest name={match.rival_team_name} src={match.rival_crest_url} />
+        <div className="min-w-0 flex-1">
+          <p className="text-3xl md:text-4xl font-display tracking-wider uppercase text-foreground leading-none">
+            vs{' '}
+            <Link href={`/equipos/${match.rival_team_id}`} className="hover:text-brand-lime">
+              {match.rival_team_name}
+            </Link>
+          </p>
+          <p className="text-foreground mt-2">{when}</p>
+          <p className="text-sm text-foreground/70">Con {match.team_name} · {matchRowDetail(match)}</p>
+        </div>
+      </div>
+      {whatsapp && (
+        <a
+          href={whatsappLink(whatsapp, `Hola, somos ${match.team_name}. Arreglemos cancha y hora para el partido del ${when}.`)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="self-start inline-flex items-center gap-2 px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-sm bg-brand-lime hover:bg-foreground text-brand-bg transition-colors font-display"
+        >
+          <MessageCircle className="w-4 h-4" /> WhatsApp del capitán rival
+        </a>
+      )}
+    </section>
   )
 }

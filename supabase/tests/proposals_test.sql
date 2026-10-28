@@ -6,7 +6,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(29);
+select plan(28);
 
 -- Caro: capitana de A y de G. Juli: plantel de A. Rafa: capitán de R.
 -- Beto: capitán de B. Oscar: ajeno.
@@ -225,13 +225,6 @@ select throws_ok(
 );
 
 -- Responder ------------------------------------------------------------------
-
-select pg_temp.login('00000000-0000-0000-0000-0000000000e1');
-select throws_ok(
-  $$ select public.respond_proposal((select id from sent), true) $$,
-  'Todavía no se pueden aceptar propuestas',
-  'aceptar llega en la etapa siguiente'
-);
 
 select pg_temp.login('00000000-0000-0000-0000-0000000000f1');
 select throws_ok(

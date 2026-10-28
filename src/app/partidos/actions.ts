@@ -87,3 +87,23 @@ export async function declineProposal(formData: FormData) {
   revalidatePath('/partidos')
   backToPanel(teamId, modality)
 }
+
+// "Aceptar" en la tarjeta recibida: nace el partido, se anulan las propuestas
+// superpuestas de los dos equipos y los dos planteles reciben el aviso.
+export async function acceptProposal(formData: FormData) {
+  const teamId = formData.get('team_id')
+  const modality = formData.get('modality')
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login?next=/partidos')
+
+  const { error } = await supabase.rpc('respond_proposal', {
+    p_proposal_id: String(formData.get('proposal_id') ?? ''),
+    p_accept: true,
+  })
+  if (error) backToPanel(teamId, modality, rpcErrorMessage(error, 'No se pudo aceptar la propuesta. Probá de nuevo.'))
+
+  revalidatePath('/partidos')
+  backToPanel(teamId, modality)
+}
