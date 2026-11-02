@@ -15,13 +15,16 @@ async function requireUser() {
   return supabase
 }
 
-// Vuelve al panel con el mismo equipo y modalidad, y el error si lo hubo.
+// Vuelve a Buscar rival con el mismo equipo y modalidad, y el error si lo
+// hubo. Sin equipo (la respuesta a una propuesta recibida, que se da en
+// /partidos), vuelve a /partidos.
 function backToPanel(teamId: unknown, modality: unknown, error?: string): never {
   const params = new URLSearchParams()
   if (typeof teamId === 'string' && teamId) params.set('equipo', teamId)
   if (typeof modality === 'string' && modality) params.set('modalidad', modality)
   if (error) params.set('error', error)
-  redirect(`/partidos?${params}`)
+  const query = params.size > 0 ? `?${params}` : ''
+  redirect(params.has('equipo') ? `/partidos/buscar${query}` : `/partidos${query}`)
 }
 
 // Publicar, agregar o sacar franjas y cancelar son el mismo guardado: el
@@ -46,6 +49,7 @@ export async function saveRivalSearch(formData: FormData) {
   if (error) backToPanel(teamId, modality, rpcErrorMessage(error, 'No se pudo guardar la búsqueda. Probá de nuevo.'))
 
   revalidatePath('/partidos')
+  revalidatePath('/partidos/buscar')
   backToPanel(teamId, modality)
 }
 
@@ -71,6 +75,7 @@ export async function sendProposal(formData: FormData) {
   if (error) backToPanel(teamId, modality, rpcErrorMessage(error, 'No se pudo mandar la propuesta. Probá de nuevo.'))
 
   revalidatePath('/partidos')
+  revalidatePath('/partidos/buscar')
   backToPanel(teamId, modality)
 }
 
@@ -89,6 +94,7 @@ export async function declineProposal(formData: FormData) {
   if (error) backToPanel(teamId, modality, rpcErrorMessage(error, 'No se pudo responder la propuesta. Probá de nuevo.'))
 
   revalidatePath('/partidos')
+  revalidatePath('/partidos/buscar')
   backToPanel(teamId, modality)
 }
 
@@ -107,6 +113,7 @@ export async function acceptProposal(formData: FormData) {
   if (error) backToPanel(teamId, modality, rpcErrorMessage(error, 'No se pudo aceptar la propuesta. Probá de nuevo.'))
 
   revalidatePath('/partidos')
+  revalidatePath('/partidos/buscar')
   backToPanel(teamId, modality)
 }
 
@@ -115,6 +122,7 @@ export async function acceptProposal(formData: FormData) {
 // conoce el partido, así que se revalidan todas las páginas de equipo.
 function revalidateMatchClosed() {
   revalidatePath('/partidos')
+  revalidatePath('/partidos/buscar')
   revalidatePath('/equipos/[id]', 'page')
 }
 
@@ -140,6 +148,7 @@ export async function coordinateMatch(formData: FormData) {
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo guardar la cancha y hora. Probá de nuevo.'))
 
   revalidatePath('/partidos')
+  revalidatePath('/partidos/buscar')
   backToMatches()
 }
 
@@ -151,6 +160,7 @@ export async function confirmGoing(formData: FormData) {
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo confirmar. Probá de nuevo.'))
 
   revalidatePath('/partidos')
+  revalidatePath('/partidos/buscar')
   backToMatches()
 }
 
@@ -187,6 +197,7 @@ export async function requestMutualDrop(formData: FormData) {
   if (error) backToMatches(rpcErrorMessage(error, 'No se pudo pedir. Probá de nuevo.'))
 
   revalidatePath('/partidos')
+  revalidatePath('/partidos/buscar')
   backToMatches()
 }
 

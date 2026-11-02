@@ -277,23 +277,21 @@ Revisión de [casos-de-uso.pdf](casos-de-uso.pdf) (módulos A–F y T) antes de 
 - **Leído:** abrir la campanita marca como leídos todos los que se ven. El número rojo cuenta los no leídos.
 - Se muestran los **últimos 30**. No se borran ni se archivan.
 
-### Pantalla de Partidos (28/10/2026)
+### Pantalla de Partidos (28/10/2026, rediseñada el 02/11/2026)
 
-Se eligió con un prototipo (rama `prototype/partidos-navegacion`). Las reglas de arriba no cambian: el otro capitán sigue confirmando cancha, hora y resultado, y sigue el "¿Confirmás que van?".
+Se eligió con un prototipo (rama `prototype/partidos-navegacion`) y se rediseñó el 02/11/2026 después de probarla con las cuentas QA: la búsqueda de rival quedaba escondida en un panel lateral (abajo de todo en el celular) y las filas repetían los nombres de los equipos. Las reglas de arriba no cambian: el otro capitán sigue confirmando cancha, hora y resultado, y sigue el "¿Confirmás que van?".
 
-- **Una sola página, `/partidos`**, con lo de **todos** los equipos del usuario juntos. Cada cosa dice de qué equipo es. No hay selector de equipo en la lista.
-- **Arriba, el próximo partido** en grande: rival, día y hora, cancha ("Ver en el mapa") y WhatsApp del capitán rival. Desde 24 h antes, ahí mismo, "¿Van?" con **Vamos** y **No vamos**.
-- **Propuestas recibidas:** una tarjeta por propuesta, con su horario y dos botones (aceptar o rechazar).
-- **Tus partidos:** una fila por partido, ordenados por hora de inicio: fecha, rival, equipo propio y el dato del momento (cancha y hora, "Falta cancha y hora", el resultado cargado). **Lo que pide una respuesta se responde en la fila** (confirmar o corregir el resultado, confirmar o cambiar cancha y hora, cargarlas). No hay una página por partido.
-- **Acciones del partido en la fila (28/10/2026):** lo que cambia según la fase aparece en la fila, nunca todo junto.
-  - Las respuestas al rival (aceptar o rechazar la caída de común acuerdo, "fuimos" o "no vinieron") y **Calificar** al rival se ven en la fila, como cualquier cosa pendiente.
-  - Desde la hora de inicio, "**No vinieron**" es un link chico al lado de "Cargar resultado", porque lo reemplaza.
-  - Antes de la hora de inicio, un menú **⋯** de la fila tiene "Tirar el partido" (con más de 24 h) o "Tirar el partido (suma falta)" y "Pedir tirarlo de común acuerdo" (con menos). El motivo se escribe en la fila, que se despliega.
-  - "**No vamos**" abre ese mismo formulario: motivo, el aviso "Suma una falta a tu equipo" y la opción de pedir tirarlo de común acuerdo. Nadie suma una falta sin saberlo.
-  - El "¿Van?" de un partido que no es el próximo (capitán de dos equipos que juegan el mismo día) aparece en su fila.
-- **Buscar rival vive en la misma página**, en un panel al costado (abajo en el celular): el equipo (solo si es capitán de más de uno), un calendario de los próximos 14 días, el horario, y los compatibles con un botón para mandarles la propuesta.
-- **Textos de la propuesta:** se dice "proponer", nunca "invitar". En el compatible, el botón es "**Proponer partido**"; una vez mandada, dice "**Propuesta enviada**" con un link "Cancelar". La tarjeta recibida dice "**Real Floresta te propone jugar** · mar 4/11, de 20 a 22", con **Aceptar** y **Rechazar**.
-- **El plantel** ve los partidos de sus equipos sin botones. El panel de Buscar rival y las propuestas los ve solo el capitán.
+- **Dos pantallas, como pestañas:** `/partidos` (lo que tenés) y `/partidos/buscar` (lo que querés). Las dos muestran lo de **todos** los equipos del usuario juntos; el nombre del equipo propio aparece solo cuando el usuario está en más de uno. Las pestañas son links: cada vista es una URL compartible.
+- **`/partidos`, de arriba abajo:** las propuestas recibidas ("Te proponen jugar", con **Aceptar** y **Rechazar**), el **próximo partido** en grande, los partidos **esperando resultado**, los otros por jugarse ("Más adelante") y el **historial** (los cerrados, del más nuevo al más viejo, en una línea cada uno: "Ganó 3–1", "Perdió 0–2", "Se cayó", "En conflicto", "Falta"; el detalle con nombres va debajo, chico).
+- **El próximo partido** lleva todo lo suyo: día y rango, cancha y hora ("Ver en el mapa"), "¿Van?" con **Vamos** y **No vamos** desde 24 h antes, el formulario de cancha y hora con el **WhatsApp del capitán rival** al lado (es para arreglarlas), y el link para tirarlo. No se repite en la lista.
+- **Lo que pide una respuesta va abierto en la fila,** con un solo botón primario: confirmar o corregir cancha y hora, "¿Cómo salió?" con el resultado, confirmar el del rival, "fuimos", la caída de común acuerdo, **Calificar**. Lo que no pide nada va plegado detrás de un link ("Cambiar cancha y hora", "Corregir el resultado", "Tirar el partido"). "No vinieron" sigue siendo un link chico al lado de cargar el resultado. "No vamos" abre el formulario de tirar el partido, con el aviso "Suma una falta a tu equipo".
+- **El día** se muestra como bloque ("HOY 2", "SÁB 7"), y la franja como "Sáb 7 · 20 a 22 h". Hoy y mañana se dicen así, no con la fecha.
+- **`/partidos/buscar`, en tres pasos y una columna:** el equipo (solo si capitanea más de uno) y la modalidad como chips; **cuándo pueden jugar** (las franjas activas como chips con ×, y el formulario para agregar); y los **rivales compatibles**, una tarjeta por franja en común con **Proponer partido** (mandada: "Propuesta enviada" y "Cancelar"; si la última ya no está pendiente, la nota de qué pasó).
+- **Cargar una franja (02/11/2026):** se toca el día en una tira de 14 días y el **turno**: Mañana (9 a 12), Tarde (14 a 18), Noche (20 a 23) u "Otro horario", que abre las dos horas enteras de siempre. El turno es un atajo del formulario: lo guardado sigue siendo "de [desde] a [hasta]". Hoy, los turnos que ya empezaron se deshabilitan. "Repetir la semana que viene" sigue siendo una casilla.
+- **En la UI, la franja se llama "horario"** ("Agregar otro horario", "Cuándo pueden jugar"): "franja" es el término del dominio, en código y documentos; para el capitán es un horario.
+- **Sin equipo o sin partidos:** `/partidos` muestra un estado vacío que lleva a Buscar rival (si es capitán) o a Mis equipos. `/partidos/buscar` sin equipo capitaneado explica que buscar rival es cosa del capitán.
+- **Textos de la propuesta:** se dice "proponer", nunca "invitar". La tarjeta recibida dice "**Real Floresta** te propone jugar Sáb 7 · 20 a 22 h", con **Aceptar** y **Rechazar**.
+- **El plantel** ve los partidos de sus equipos sin botones. Buscar rival y las propuestas los ve solo el capitán.
 - Los links de la campanita llevan a `/partidos`.
 
 ## Administración

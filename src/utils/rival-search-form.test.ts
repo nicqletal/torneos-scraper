@@ -1,6 +1,6 @@
-import { test } from 'node:test'
+import { describe, test } from 'node:test'
 import assert from 'node:assert/strict'
-import { buenosAiresToday, isUpcoming, parseRivalSearchForm, slotFromRange, slotLabel } from './rival-search-form.ts'
+import { buenosAiresToday, dayName, isUpcoming, parseRivalSearchForm, slotFromRange, slotLabel, slotTitle } from './rival-search-form.ts'
 
 // Jueves 29/10/2026, 18:40 en Buenos Aires.
 const today = { date: '2026-10-29', hour: 18 }
@@ -116,4 +116,17 @@ test('franja: se muestra (y se puede editar) mientras no empezó', () => {
   assert.equal(isUpcoming({ date: '2026-10-29', from: 18, to: 21 }, today), false)
   assert.equal(isUpcoming({ date: '2026-10-28', from: 20, to: 22 }, today), false)
   assert.equal(isUpcoming({ date: '2026-10-30', from: 8, to: 9 }, today), true)
+})
+
+describe('dayName y slotTitle', () => {
+  const today = '2026-11-02'
+  test('hoy y mañana se nombran, el resto es el día corto sin mes', () => {
+    assert.equal(dayName('2026-11-02', today), 'Hoy')
+    assert.equal(dayName('2026-11-03', today), 'Mañana')
+    assert.equal(dayName('2026-11-07', today), 'sáb 7')
+  })
+  test('la franja se lee como título, con el día en mayúscula', () => {
+    assert.equal(slotTitle({ date: '2026-11-07', from: 20, to: 22 }, today), 'Sáb 7 · 20 a 22 h')
+    assert.equal(slotTitle({ date: '2026-11-02', from: 20, to: 22 }, today), 'Hoy · 20 a 22 h')
+  })
 })

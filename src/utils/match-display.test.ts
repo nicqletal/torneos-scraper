@@ -1,7 +1,8 @@
-import { test } from 'node:test'
+import { describe, test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   asksGoing,
+  ownOutcome,
   canCoordinate,
   dropDetail,
   dropMenu,
@@ -445,4 +446,17 @@ test('estrellas: promedio con un decimal y coma, y la cantidad', () => {
 
 test('estrellas: sin calificaciones reveladas', () => {
   assert.equal(ratingSummary(null, 0), 'Sin calificaciones')
+})
+
+describe('ownOutcome', () => {
+  test('el resultado se lee desde el lado propio', () => {
+    assert.deepEqual(ownOutcome({ phase: 'jugado', score_for: 3, score_against: 1 }), { text: 'Ganó 3–1', tone: 'lime' })
+    assert.deepEqual(ownOutcome({ phase: 'jugado', score_for: 0, score_against: 2 }), { text: 'Perdió 0–2', tone: 'muted' })
+    assert.deepEqual(ownOutcome({ phase: 'jugado', score_for: 1, score_against: 1 }), { text: 'Empató 1–1', tone: 'muted' })
+    assert.deepEqual(ownOutcome({ phase: 'jugado', score_for: null, score_against: null }), { text: 'Sin resultado', tone: 'muted' })
+  })
+  test('los otros cierres son el nombre de la fase', () => {
+    assert.equal(ownOutcome({ phase: 'caido', score_for: null, score_against: null }).text, 'Se cayó')
+    assert.equal(ownOutcome({ phase: 'no_presentado', score_for: null, score_against: null }).tone, 'red')
+  })
 })
