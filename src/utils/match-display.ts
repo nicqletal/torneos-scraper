@@ -18,7 +18,7 @@ export function matchPhaseBadge(phase: MatchPhase): { text: string; tone: MatchT
     case 'caido':
       return { text: 'Se cayó', tone: 'muted' }
     case 'esperando_resultado':
-      return { text: 'Esperando resultado', tone: 'lime' }
+      return { text: 'Falta el resultado', tone: 'lime' }
     case 'jugado':
       return { text: 'Jugado', tone: 'muted' }
     case 'en_conflicto':
@@ -399,17 +399,17 @@ export function ratingSummary(average: number | null, count: number): string {
   return `★ ${average.toFixed(1).replace('.', ',')} (${count})`
 }
 
-// Cómo terminó un partido, en dos palabras, para la fila del historial de
-// /partidos: la mira el propio plantel, así que el resultado va desde su lado
-// ("Ganó 3–1"), sin nombrar a nadie. El detalle con nombres va debajo.
+// Cómo terminó un partido, en una palabra, para la fila del historial de
+// /partidos: la mira el propio plantel, así que va en primera persona
+// ("Ganamos"): "Ganó" no dice quién. El marcador con los dos nombres va al lado.
 export function ownOutcome(match: Pick<MatchResult, 'phase' | 'score_for' | 'score_against'>): { text: string; tone: MatchTone } {
   switch (match.phase) {
     case 'jugado': {
       const { score_for: own, score_against: theirs } = match
       if (own === null || theirs === null) return { text: 'Sin resultado', tone: 'muted' }
-      if (own > theirs) return { text: `Ganó ${own}–${theirs}`, tone: 'lime' }
-      if (own < theirs) return { text: `Perdió ${own}–${theirs}`, tone: 'muted' }
-      return { text: `Empató ${own}–${theirs}`, tone: 'muted' }
+      if (own > theirs) return { text: 'Ganamos', tone: 'lime' }
+      if (own < theirs) return { text: 'Perdimos', tone: 'muted' }
+      return { text: 'Empatamos', tone: 'muted' }
     }
     case 'caido':
       return { text: 'Se cayó', tone: 'muted' }

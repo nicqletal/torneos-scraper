@@ -25,6 +25,7 @@ import {
   reportResult,
   requestMutualDrop,
 } from '@/app/partidos/actions'
+import { Score, Scoreboard, ScoreInputs } from './Scoreboard'
 import { dangerButton, input, primaryButton, quietDangerLink, quietLink, secondaryButton } from './styles'
 
 // Las acciones de un partido, cada una en su momento (ver "Pantalla de
@@ -32,11 +33,14 @@ import { dangerButton, input, primaryButton, quietDangerLink, quietLink, seconda
 // Server Actions; la base valida de nuevo cada regla. Lo que pide una
 // respuesta va abierto, con un solo botón primario; lo que no, plegado.
 
-export type MatchActionRow = MatchCoordination & MatchDrop & MatchResult & MatchRating & { id: string; range: string; venue_by_own: boolean | null }
+export type MatchActionRow = MatchCoordination &
+  MatchDrop &
+  MatchResult &
+  MatchRating & { id: string; range: string; venue_by_own: boolean | null; team_crest_url: string | null; rival_crest_url: string | null }
 
 // Lo que se le pide al capitán, abierto dentro de la fila.
 function Ask({ children }: { children: React.ReactNode }) {
-  return <div className="flex flex-col gap-3 p-4 border border-brand-lime/50 bg-brand-bg rounded-sm">{children}</div>
+  return <div className="flex flex-col gap-4 p-4 border border-brand-lime/50 bg-brand-bg rounded-sm">{children}</div>
 }
 
 // "¿Van?": desde 24 h antes, al capitán que todavía no dijo "Vamos". "No
@@ -210,11 +214,17 @@ export function Coordination({ match, whatsapp }: { match: MatchActionRow; whats
   )
 }
 
-// Después de la hora de inicio: cargar o corregir el resultado, confirmar el
-// del rival, o responder "fuimos". "No vinieron" es un link chico al lado.
+// Después de la hora de inicio: "¿Cómo salió?" como un marcador, con los dos
+// escudos y los goles en el medio; confirmar el del rival, o responder
+// "fuimos". "No vinieron" es un link chico debajo.
 export function ResultActions({ match }: { match: MatchActionRow }) {
   const actions = resultActions(match)
   if (!actions) return null
+
+  const sides = {
+    team: { name: match.team_name, crest: match.team_crest_url },
+    rival: { name: match.rival_team_name, crest: match.rival_crest_url },
+  }
 
   const noShow = actions.noShow && (
     <form action={reportNoShow}>
@@ -245,30 +255,15 @@ export function ResultActions({ match }: { match: MatchActionRow }) {
     )
   }
 
+  // El marcador para cargar: los dos escudos, los goles y un solo botón.
   const form = (
-    <form action={reportResult} className="flex flex-wrap items-end gap-3">
+    <form action={reportResult} className="flex flex-col items-center gap-4 w-full">
       <input type="hidden" name="match_id" value={match.id} />
-      {[
-        { name: 'goals_for', label: 'Nosotros', value: match.goals_for },
-        { name: 'goals_against', label: 'Ellos', value: match.goals_against },
-      ].map((field) => (
-        <label key={field.name} className="flex flex-col gap-1 text-xs text-foreground/60">
-          {field.label}
-          <input
-            name={field.name}
-            type="number"
-            inputMode="numeric"
-            required
-            min={0}
-            max={99}
-            step={1}
-            defaultValue={field.value ?? undefined}
-            className={`${input} w-16 text-center font-display text-2xl`}
-          />
-        </label>
-      ))}
-      <SubmitButton pendingLabel="Guardando…" className={primaryButton}>
-        {actions.load === 'Corregir' ? 'Mandar corrección' : 'Cargar'}
+      <Scoreboard {...sides}>
+        <ScoreInputs own={match.goals_for} rival={match.goals_against} />
+      </Scoreboard>
+      <SubmitButton pendingLabel="Guardando…" className={`${primaryButton} w-full sm:w-auto sm:min-w-48`}>
+        {actions.load === 'Corregir' ? 'Mandar corrección' : 'Cargar resultado'}
       </SubmitButton>
     </form>
   )
@@ -276,49 +271,45 @@ export function ResultActions({ match }: { match: MatchActionRow }) {
   if (actions.confirm) {
     return (
       <Ask>
-        <p className="text-foreground">
-          <span className="font-semibold">{match.rival_team_name}</span> cargó el resultado:{' '}
-          <span className="font-display text-2xl text-brand-lime tracking-wider">
-            {actions.confirm.goals_for}–{actions.confirm.goals_against}
-          </span>{' '}
-          <span className="text-foreground/60 text-sm">(nosotros–ellos)</span>
+        <p className="text-center text-foreground">
+          <span className="font-semibold">{match.rival_team_name}</span> cargó el resultado. ¿Es así?
         </p>
-        <div className="flex flex-wrap items-center gap-4">
-          <form action={reportResult}>
-            <input type="hidden" name="match_id" value={match.id} />
-            <input type="hidden" name="goals_for" value={actions.confirm.goals_for} />
-            <input type="hidden" name="goals_against" value={actions.confirm.goals_against} />
-            <SubmitButton pendingLabel="Confirmando…" className={primaryButton}>
-              <Check className="w-5 h-5 stroke-[3]" /> Confirmar
-            </SubmitButton>
-          </form>
+        <Scoreboard {...sides}>
+          <Score own={actions.confirm.goals_for} rival={actions.confirm.goals_against} />
+        </Scoreboard>
+        <form action={reportResult} className="w-full flex justify-center">
+          <input type="hidden" name="match_id" value={match.id} />
+          <input type="hidden" name="goals_for" value={actions.confirm.goals_for} />
+          <input type="hidden" name="goals_against" value={actions.confirm.goals_against} />
+          <SubmitButton pendingLabel="Confirmando…" className={`${primaryButton} w-full sm:w-auto sm:min-w-48`}>
+            <Check className="w-5 h-5 stroke-[3]" /> Sí, confirmar
+          </SubmitButton>
+        </form>
+        <div className="flex flex-col items-center gap-3">
+          <details className="w-full flex flex-col items-center">
+            <summary className={`${quietLink} cursor-pointer list-none [details[open]>&]:hidden`}>No, fue otro</summary>
+            {form}
+          </details>
           {noShow}
         </div>
-        <details>
-          <summary className={`${quietLink} cursor-pointer list-none`}>Corregir</summary>
-          <div className="mt-3">{form}</div>
-        </details>
       </Ask>
     )
   }
 
   if (actions.load === 'Corregir') {
     return (
-      <div className="flex flex-wrap items-center gap-4">
-        <details className="w-full">
-          <summary className={`${quietLink} cursor-pointer list-none`}>Corregir el resultado</summary>
-          <div className="mt-3">{form}</div>
-        </details>
-      </div>
+      <details>
+        <summary className={`${quietLink} cursor-pointer list-none`}>Corregir el resultado</summary>
+        <div className="mt-3">{form}</div>
+      </details>
     )
   }
 
   return (
     <Ask>
-      <div className="flex flex-wrap items-end gap-4">
-        {form}
-        {noShow}
-      </div>
+      <p className="text-center font-display text-2xl uppercase tracking-wider text-foreground">¿Cómo salió?</p>
+      {form}
+      {noShow && <div className="flex justify-center">{noShow}</div>}
     </Ask>
   )
 }

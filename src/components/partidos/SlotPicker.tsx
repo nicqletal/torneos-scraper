@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { SHIFTS, dayName, type Shift } from '@/utils/rival-search-form'
 import { chip, chipOff, chipOn, input } from './styles'
 
-// Elegir cuándo puede jugar el equipo, en dos toques: el día (tira de 14 días)
-// y el turno (Mañana, Tarde, Noche). "Otro" abre las dos horas. Es un
+// Elegir cuándo puede jugar el equipo, en dos toques: el día (grilla de 14
+// días, dos semanas de siete, como un calendario: se ve entera, sin scroll) y
+// el turno (Mañana, Tarde, Noche). "Otro" abre las dos horas. Es un
 // componente de cliente porque el turno tiene que llenar las horas; lo que se
 // manda al servidor es lo de siempre: `day`, `from`, `to`.
 export function SlotPicker({ days, today, nowHour }: { days: string[]; today: string; nowHour: number }) {
@@ -30,20 +31,20 @@ export function SlotPicker({ days, today, nowHour }: { days: string[]; today: st
 
       <fieldset className="flex flex-col gap-2">
         <legend className="text-sm font-semibold uppercase tracking-wider text-foreground/60 mb-2">Día</legend>
-        <div className="flex gap-2 overflow-x-auto -mx-5 px-5 snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
           {days.map((d) => {
             const name = dayName(d, today)
             const [weekday, number] = name === 'Hoy' || name === 'Mañana' ? [name, d.slice(-2).replace(/^0/, '')] : name.split(' ')
             return (
               <label
                 key={d}
-                className={`shrink-0 snap-start cursor-pointer flex flex-col items-center justify-center w-16 h-16 rounded-sm border select-none has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand-lime ${
+                className={`cursor-pointer flex flex-col items-center justify-center h-14 sm:h-16 rounded-sm border select-none has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand-lime ${
                   day === d ? chipOn : chipOff
                 }`}
               >
                 <input type="radio" name="day" value={d} required className="sr-only" checked={day === d} onChange={() => setDay(d)} />
-                <span className="text-xs font-semibold uppercase tracking-wider leading-none">{weekday}</span>
-                <span className="font-display text-2xl leading-none mt-1">{number}</span>
+                <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider leading-none">{weekday}</span>
+                <span className="font-display text-xl sm:text-2xl leading-none mt-1">{number}</span>
               </label>
             )
           })}

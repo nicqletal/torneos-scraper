@@ -1,17 +1,18 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Check, Users, X } from 'lucide-react'
+import { Check, Plus, Users, X } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { TeamCrest } from '@/components/TeamCrest'
 import { SubmitButton } from '@/components/SubmitButton'
 import { SPORT_MODALITIES, isSportModality, modalityLabel, type SportModality } from '@/utils/modality'
 import { levelLabel } from '@/utils/teams'
-import { SEARCH_DAYS, addDays, buenosAiresToday, isUpcoming, slotFromRange, slotTitle, slotValue, type Slot } from '@/utils/rival-search-form'
+import { SEARCH_DAYS, SHIFTS, addDays, buenosAiresToday, isUpcoming, slotFromRange, slotTitle, slotValue, type Slot } from '@/utils/rival-search-form'
 import { noticeDate } from '@/utils/notices'
 import { proposalStatusLabel, type ProposalStatus } from '@/utils/proposals'
 import { isOccupied } from '@/utils/match-display'
 import { PartidosTabs } from '@/components/partidos/PartidosTabs'
 import { SlotPicker } from '@/components/partidos/SlotPicker'
+import { DateBlock } from '@/components/partidos/MatchRow'
 import { alert, card, chip, chipOff, chipOn, eyebrow, primaryButton, quietDangerLink, quietLink, secondaryButton } from '@/components/partidos/styles'
 import { declineProposal, saveRivalSearch, sendProposal } from '../actions'
 
@@ -36,6 +37,11 @@ interface SentProposal {
   from_slot_id: string
   to_slot_id: string
   status: ProposalStatus
+}
+
+// El turno de una franja, si coincide con uno ("Noche"); si no, "Otro horario".
+function shiftLabel(slot: Slot): string {
+  return SHIFTS.find((s) => s.from === slot.from && s.to === slot.to)?.label ?? 'Otro horario'
 }
 
 function param(value: string | string[] | undefined): string | undefined {
@@ -192,28 +198,43 @@ export default async function BuscarRivalPage(props: { searchParams: Promise<Rec
         ) : (
           <>
             {searchId ? (
-              <div className="flex flex-col gap-3">
-                <h2 className={eyebrow}>Cuándo pueden jugar · {modalityLabel(modality)}</h2>
-                <ul className="flex flex-wrap gap-2">
-                  {slots.map((slot) => (
-                    <li key={slotValue(slot)} className="inline-flex items-center gap-1 pl-4 pr-1 py-1 rounded-sm border border-brand-lime/50 text-foreground">
-                      <span className="font-semibold">{slotTitle(slot, today.date)}</span>
-                      {isOccupied(slot, matchSlots) && <span className="ml-1 text-xs text-foreground/60 uppercase tracking-wider">Ocupado</span>}
-                      {/* Sacar una franja guarda todas las demás. Sacar la última cancela la búsqueda. */}
-                      <form action={saveRivalSearch}>
-                        {hiddenFields}
-                        {slots
-                          .filter((other) => other !== slot)
-                          .map((other) => (
-                            <input key={slotValue(other)} type="hidden" name="slot" value={slotValue(other)} />
-                          ))}
-                        <SubmitButton pendingLabel="…" className="ui-action w-10 justify-center text-foreground/60 hover:text-brand-red">
-                          <X className="w-4 h-4" />
-                          <span className="sr-only">Sacar {slotTitle(slot, today.date)}</span>
-                        </SubmitButton>
-                      </form>
-                    </li>
-                  ))}
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="flex items-center gap-3 font-display text-3xl uppercase tracking-wider text-foreground leading-none">
+                    <span aria-hidden className="w-2.5 h-2.5 rounded-full bg-brand-lime animate-pulse" />
+                    Buscando rival
+                  </h2>
+                  <span className={eyebrow}>{modalityLabel(modality)}</span>
+                </div>
+                <p className="text-foreground/70">Pueden jugar en estos horarios. Abajo aparece quién puede en alguno de ellos.</p>
+                <ul className="grid gap-2 sm:grid-cols-2">
+                  {slots.map((slot) => {
+                    const occupied = isOccupied(slot, matchSlots)
+                    return (
+                      <li key={slotValue(slot)} className={`flex items-center gap-3 p-2 pr-1 rounded-sm border bg-brand-bg ${occupied ? 'border-brand-border' : 'border-brand-lime/50'}`}>
+                        <DateBlock date={slot.date} today={today.date} />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-display text-2xl leading-none text-foreground">
+                            {slot.from} a {slot.to} h
+                          </p>
+                          <p className="text-sm text-foreground/60 mt-1">{occupied ? 'Ya tienen partido a esa hora' : shiftLabel(slot)}</p>
+                        </div>
+                        {/* Sacar una franja guarda todas las demás. Sacar la última cancela la búsqueda. */}
+                        <form action={saveRivalSearch}>
+                          {hiddenFields}
+                          {slots
+                            .filter((other) => other !== slot)
+                            .map((other) => (
+                              <input key={slotValue(other)} type="hidden" name="slot" value={slotValue(other)} />
+                            ))}
+                          <SubmitButton pendingLabel="…" className="ui-action w-11 justify-center text-foreground/50 hover:text-brand-red">
+                            <X className="w-5 h-5" />
+                            <span className="sr-only">Sacar {slotTitle(slot, today.date)}</span>
+                          </SubmitButton>
+                        </form>
+                      </li>
+                    )
+                  })}
                 </ul>
               </div>
             ) : (
@@ -235,12 +256,17 @@ export default async function BuscarRivalPage(props: { searchParams: Promise<Rec
                   </SubmitButton>
                 </form>
               )
-              // Con una búsqueda activa, el formulario va plegado detrás de
-              // "Agregar otro horario"; sin búsqueda, es la pantalla.
+              // Con una búsqueda activa, el formulario va plegado detrás del
+              // botón "Agregar otro horario"; sin búsqueda, es la pantalla.
               return searchId ? (
-                <details>
-                  <summary className={`${quietLink} cursor-pointer list-none [details[open]>&]:hidden`}>+ Agregar otro horario</summary>
-                  {form}
+                <details className="group">
+                  <summary className={`${secondaryButton} cursor-pointer list-none w-full sm:w-auto [details[open]>&]:!hidden`}>
+                    <Plus className="w-5 h-5" /> Agregar otro horario
+                  </summary>
+                  <div className="flex flex-col gap-4 pt-4 border-t border-brand-border">
+                    <h3 className={eyebrow}>Otro horario</h3>
+                    {form}
+                  </div>
                 </details>
               ) : (
                 form
@@ -250,7 +276,7 @@ export default async function BuscarRivalPage(props: { searchParams: Promise<Rec
             {searchId && (
               <form action={saveRivalSearch} className="self-start">
                 {hiddenFields}
-                <SubmitButton pendingLabel="Cancelando…" className={quietDangerLink}>
+                <SubmitButton pendingLabel="Cancelando…" className={`${quietDangerLink} text-sm`}>
                   Cancelar la búsqueda
                 </SubmitButton>
               </form>
@@ -264,7 +290,11 @@ export default async function BuscarRivalPage(props: { searchParams: Promise<Rec
         <section className="flex flex-col gap-3">
           <h2 className={eyebrow}>Rivales compatibles</h2>
           {compatibles.length === 0 ? (
-            <p className={`${card} text-foreground/70`}>Todavía no hay rivales con un horario en común. Probá con más horarios.</p>
+            <div className={`${card} flex flex-col items-center text-center gap-2 py-8`}>
+              <Users className="w-8 h-8 text-foreground/40" />
+              <p className="font-display text-2xl uppercase tracking-wider text-foreground leading-none">Todavía nadie</p>
+              <p className="text-foreground/70 max-w-sm">Ningún equipo de la zona publicó esos horarios. Con más horarios, más chances de partido.</p>
+            </div>
           ) : (
             <ul className="flex flex-col gap-3">
               {compatibles.map((c) => {
