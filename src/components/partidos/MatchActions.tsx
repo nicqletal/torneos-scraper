@@ -1,4 +1,4 @@
-import { Check, Star, X } from 'lucide-react'
+import { Check, MoreHorizontal, Star, X } from 'lucide-react'
 import { SubmitButton } from '@/components/SubmitButton'
 import { slotFromRange, slotValue } from '@/utils/rival-search-form'
 import { coordinationTimes } from '@/utils/match-forms'
@@ -95,13 +95,18 @@ export function DropForm({ match, menu }: { match: MatchActionRow; menu: NonNull
   )
 }
 
-// El menú ⋯ de la fila, antes de la hora de inicio: tirar el partido.
+// El menú ⋯ de la fila, antes de la hora de inicio: tirar el partido. Se
+// abre en dos pasos para que nadie lo tire sin querer.
 export function DropMenu({ match, now }: { match: MatchActionRow; now: Date }) {
   const menu = dropMenu(match, now)
   if (!menu) return null
   return (
-    <details>
-      <summary className={`${quietDangerLink} cursor-pointer list-none`}>{menu.label}</summary>
+    <details className="self-start">
+      <summary aria-label="Más acciones" className="ui-action cursor-pointer list-none text-foreground/50 hover:text-brand-red gap-1">
+        <MoreHorizontal className="w-5 h-5" />
+        <span className="text-sm [details[open]>summary>&]:hidden">Más</span>
+        <span className="text-sm hidden [details[open]>summary>&]:inline">{menu.label}</span>
+      </summary>
       <DropForm match={match} menu={menu} />
     </details>
   )
@@ -195,22 +200,13 @@ export function Coordination({ match, whatsapp }: { match: MatchActionRow; whats
     )
   }
 
-  if (!loaded) {
-    return (
-      <Ask>
-        <p className="text-foreground">Falta cancha y hora. Arreglenlas con el otro capitán y cargalas acá; él las confirma.</p>
-        {whatsapp}
-        {form}
-      </Ask>
-    )
-  }
-
+  // Sin cancha, un botón que abre el formulario; con cancha, un link chico.
   return (
     <div className="flex flex-col gap-3">
       {whatsapp}
       <details>
-        <summary className={`${quietLink} cursor-pointer list-none`}>
-          {match.coordinated_at ? 'Cambiar cancha y hora' : `Esperando que ${match.rival_team_name} confirme · Cambiar`}
+        <summary className={`${loaded ? quietLink : secondaryButton} cursor-pointer list-none w-full sm:w-auto`}>
+          {!loaded ? 'Cargar cancha y hora' : match.coordinated_at ? 'Cambiar cancha y hora' : `Esperando que ${match.rival_team_name} confirme · Cambiar`}
         </summary>
         {form}
       </details>
@@ -260,7 +256,7 @@ export function ResultActions({ match }: { match: MatchActionRow }) {
         { name: 'goals_for', label: 'Nosotros', value: match.goals_for },
         { name: 'goals_against', label: 'Ellos', value: match.goals_against },
       ].map((field) => (
-        <label key={field.name} className="flex flex-col gap-1">
+        <label key={field.name} className="flex flex-col gap-1 text-xs text-foreground/60">
           {field.label}
           <input
             name={field.name}
@@ -271,7 +267,7 @@ export function ResultActions({ match }: { match: MatchActionRow }) {
             max={99}
             step={1}
             defaultValue={field.value ?? undefined}
-            className={`${input} w-20 text-center font-display text-2xl`}
+            className={`${input} w-16 text-center font-display text-2xl`}
           />
         </label>
       ))}
@@ -323,7 +319,6 @@ export function ResultActions({ match }: { match: MatchActionRow }) {
 
   return (
     <Ask>
-      <p className="font-display text-2xl uppercase tracking-wider text-foreground">¿Cómo salió?</p>
       <div className="flex flex-wrap items-end gap-4">
         {form}
         {noShow}

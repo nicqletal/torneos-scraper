@@ -63,7 +63,7 @@ export default async function BuscarRivalPage(props: { searchParams: Promise<Rec
 
   const header = (
     <header className="flex flex-col gap-5">
-      <h1 className="text-4xl md:text-5xl font-display tracking-wider text-foreground uppercase leading-none">Buscar rival</h1>
+      <h1 className="hidden sm:block text-5xl font-display tracking-wider text-foreground uppercase leading-none">Buscar rival</h1>
       <PartidosTabs current="buscar" />
     </header>
   )
@@ -131,31 +131,50 @@ export default async function BuscarRivalPage(props: { searchParams: Promise<Rec
     <div className="max-w-3xl w-full mx-auto flex flex-col gap-8">
       {header}
 
-      {/* Paso 1: el equipo (solo si capitanea más de uno) y la modalidad. */}
-      <section className={`${card} flex flex-col gap-4`}>
-        {teams.length > 1 && (
-          <div className="flex flex-col gap-2">
-            <span className={eyebrow}>Equipo</span>
-            <div className="flex flex-wrap gap-2">
-              {teams.map((t) => (
-                <Link key={t.id} href={hrefFor(t.id, t.modality)} className={`${chip} ${t.id === team.id ? chipOn : chipOff}`}>
-                  {t.name}
-                </Link>
-              ))}
+      {/* Paso 1: el equipo (solo si capitanea más de uno) y la modalidad. En
+          el celular va plegado en una línea: lo normal es no cambiarlo. */}
+      {(() => {
+        const chips = (
+          <div className="flex flex-col gap-4">
+            {teams.length > 1 && (
+              <div className="flex flex-col gap-2">
+                <span className={eyebrow}>Equipo</span>
+                <div className="flex flex-wrap gap-2">
+                  {teams.map((t) => (
+                    <Link key={t.id} href={hrefFor(t.id, t.modality)} className={`${chip} ${t.id === team.id ? chipOn : chipOff}`}>
+                      {t.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <span className={eyebrow}>{teams.length > 1 ? 'Modalidad' : `${team.name} · Modalidad`}</span>
+              <div className="flex flex-wrap gap-2">
+                {SPORT_MODALITIES.map((m) => (
+                  <Link key={m.value} href={hrefFor(team.id, m.value)} className={`${chip} ${m.value === modality ? chipOn : chipOff}`}>
+                    {m.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
-        )}
-        <div className="flex flex-col gap-2">
-          <span className={eyebrow}>{teams.length > 1 ? 'Modalidad' : `${team.name} · Modalidad`}</span>
-          <div className="flex flex-wrap gap-2">
-            {SPORT_MODALITIES.map((m) => (
-              <Link key={m.value} href={hrefFor(team.id, m.value)} className={`${chip} ${m.value === modality ? chipOn : chipOff}`}>
-                {m.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+        )
+        return (
+          <>
+            <details className={`${card} sm:hidden`}>
+              <summary className="cursor-pointer list-none flex items-center justify-between gap-3 text-foreground">
+                <span className="truncate">
+                  <span className="font-semibold">{team.name}</span> · {modalityLabel(modality)}
+                </span>
+                <span className={`${quietLink} shrink-0 text-sm`}>Cambiar</span>
+              </summary>
+              <div className="mt-4">{chips}</div>
+            </details>
+            <section className={`${card} hidden sm:block`}>{chips}</section>
+          </>
+        )
+      })()}
 
       {/* Paso 2: cuándo pueden jugar. */}
       <section className={`${card} flex flex-col gap-5`}>
@@ -200,7 +219,6 @@ export default async function BuscarRivalPage(props: { searchParams: Promise<Rec
             ) : (
               <div className="flex flex-col gap-1">
                 <h2 className="font-display text-3xl uppercase tracking-wider text-foreground leading-none">¿Cuándo pueden jugar?</h2>
-                <p className="text-foreground/70">Publicá un horario y te mostramos rivales de {modalityLabel(modality)} cerca de tu zona.</p>
               </div>
             )}
 
@@ -246,7 +264,7 @@ export default async function BuscarRivalPage(props: { searchParams: Promise<Rec
         <section className="flex flex-col gap-3">
           <h2 className={eyebrow}>Rivales compatibles</h2>
           {compatibles.length === 0 ? (
-            <p className={`${card} text-foreground/70`}>Todavía no hay equipos de {modalityLabel(modality)} con al menos 1 h en común. Probá con más horarios.</p>
+            <p className={`${card} text-foreground/70`}>Todavía no hay rivales con un horario en común. Probá con más horarios.</p>
           ) : (
             <ul className="flex flex-col gap-3">
               {compatibles.map((c) => {
@@ -269,8 +287,8 @@ export default async function BuscarRivalPage(props: { searchParams: Promise<Rec
                         </p>
                       </div>
                     </div>
-                    <p className="text-foreground">
-                      Horario en común: <span className="font-semibold text-brand-lime">{slotTitle(common, today.date)}</span>
+                    <p className="font-semibold text-brand-lime">
+                      {slotTitle(common, today.date)} <span className="font-normal text-foreground/60">en común</span>
                     </p>
                     {pending ? (
                       <div className="flex flex-wrap items-center gap-4">

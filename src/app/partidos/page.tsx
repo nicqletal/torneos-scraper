@@ -5,7 +5,6 @@ import { createClient } from '@/utils/supabase/server'
 import { TeamCrest } from '@/components/TeamCrest'
 import { SubmitButton } from '@/components/SubmitButton'
 import { buenosAiresToday, slotFromRange, slotTitle } from '@/utils/rival-search-form'
-import { noticeDate } from '@/utils/notices'
 import { proposalStatusLabel, type ProposalStatus } from '@/utils/proposals'
 import { isClosed, nextMatch, sortByStart } from '@/utils/match-display'
 import { PartidosTabs } from '@/components/partidos/PartidosTabs'
@@ -85,7 +84,7 @@ export default async function PartidosPage(props: { searchParams: Promise<Record
   return (
     <div className="max-w-3xl w-full mx-auto flex flex-col gap-8">
       <header className="flex flex-col gap-5">
-        <h1 className="text-4xl md:text-5xl font-display tracking-wider text-foreground uppercase leading-none">Partidos</h1>
+        <h1 className="hidden sm:block text-5xl font-display tracking-wider text-foreground uppercase leading-none">Partidos</h1>
         <PartidosTabs current="partidos" />
       </header>
 
@@ -134,9 +133,7 @@ export default async function PartidosPage(props: { searchParams: Promise<Record
                       te propone jugar <span className="text-brand-lime font-semibold">{slotTitle(slotFromRange(p.range), today)}</span>
                       {showTeam && <span className="text-foreground/60"> · con {p.to_team_name}</span>}
                     </p>
-                    <p className="text-sm text-foreground/60 mt-1">
-                      {p.status === 'pendiente' ? `Vence el ${noticeDate(p.expires_at)}` : proposalStatusLabel(p.status)}
-                    </p>
+                    {p.status !== 'pendiente' && <p className="text-sm text-foreground/60 mt-1">{proposalStatusLabel(p.status)}</p>}
                   </div>
                 </div>
                 {p.status === 'pendiente' && (
@@ -186,14 +183,16 @@ export default async function PartidosPage(props: { searchParams: Promise<Record
       )}
 
       {history.length > 0 && (
-        <section className="flex flex-col gap-3">
-          <h2 className={eyebrow}>Historial</h2>
-          <ul className="flex flex-col divide-y divide-brand-border border border-brand-border bg-brand-surface rounded-sm">
+        <details className="group flex flex-col gap-3">
+          <summary className={`${eyebrow} cursor-pointer list-none flex items-center gap-2`}>
+            <span className="transition-transform group-open:rotate-90">▸</span> Historial · {history.length} {history.length === 1 ? 'partido' : 'partidos'}
+          </summary>
+          <ul className="mt-3 flex flex-col divide-y divide-brand-border border border-brand-border bg-brand-surface rounded-sm">
             {history.map((m) => (
-              <HistoryRow key={m.id} match={m} today={today} now={now} showTeam={showTeam} />
+              <HistoryRow key={m.id} match={m} now={now} showTeam={showTeam} />
             ))}
           </ul>
-        </section>
+        </details>
       )}
     </div>
   )

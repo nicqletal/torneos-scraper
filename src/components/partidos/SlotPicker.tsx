@@ -29,7 +29,7 @@ export function SlotPicker({ days, today, nowHour }: { days: string[]; today: st
       <input type="hidden" name="to" value={to} />
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="font-display text-xl uppercase tracking-wider text-foreground mb-2">¿Qué día?</legend>
+        <legend className="text-sm font-semibold uppercase tracking-wider text-foreground/60 mb-2">Día</legend>
         <div className="flex gap-2 overflow-x-auto -mx-5 px-5 snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {days.map((d) => {
             const name = dayName(d, today)
@@ -51,8 +51,8 @@ export function SlotPicker({ days, today, nowHour }: { days: string[]; today: st
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="font-display text-xl uppercase tracking-wider text-foreground mb-2">¿A qué hora?</legend>
-        <div className="flex flex-wrap gap-2">
+        <legend className="text-sm font-semibold uppercase tracking-wider text-foreground/60 mb-2">Hora</legend>
+        <div className="grid grid-cols-4 gap-2">
           {SHIFTS.map((s) => {
             const disabled = shiftPassed(s.from)
             return (
@@ -62,7 +62,7 @@ export function SlotPicker({ days, today, nowHour }: { days: string[]; today: st
                 disabled={disabled}
                 aria-pressed={shift === s.value}
                 onClick={() => setShift(s.value)}
-                className={`${chip} ${shift === s.value ? chipOn : chipOff} disabled:opacity-40 disabled:cursor-not-allowed flex-col !items-start gap-0 px-4 py-2`}
+                className={`${chip} ${shift === s.value ? chipOn : chipOff} disabled:opacity-40 disabled:cursor-not-allowed flex-col !items-center gap-0 px-2 py-2`}
               >
                 <span>{s.label}</span>
                 <span className={`text-xs font-normal ${shift === s.value ? 'text-brand-bg/70' : 'text-foreground/50'}`}>
@@ -71,8 +71,9 @@ export function SlotPicker({ days, today, nowHour }: { days: string[]; today: st
               </button>
             )
           })}
-          <button type="button" aria-pressed={shift === 'otro'} onClick={() => setShift('otro')} className={`${chip} ${shift === 'otro' ? chipOn : chipOff}`}>
-            Otro horario
+          <button type="button" aria-pressed={shift === 'otro'} onClick={() => setShift('otro')} className={`${chip} ${shift === 'otro' ? chipOn : chipOff} flex-col !items-center gap-0 px-2 py-2`}>
+            <span>Otro</span>
+            <span className={`text-xs font-normal ${shift === 'otro' ? 'text-brand-bg/70' : 'text-foreground/50'}`}>a elegir</span>
           </button>
         </div>
         {shift === 'otro' && (

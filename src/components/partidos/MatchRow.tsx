@@ -1,11 +1,10 @@
 import Link from 'next/link'
 import { MapPin } from 'lucide-react'
 import { TeamCrest } from '@/components/TeamCrest'
-import { dayName, slotFromRange } from '@/utils/rival-search-form'
+import { dayLabel, dayName, slotFromRange } from '@/utils/rival-search-form'
 import {
   asksGoing,
   canCoordinate,
-  dropDetail,
   goingNote,
   mapsLink,
   matchRowDetail,
@@ -65,7 +64,9 @@ export function MatchRow({ match, today, now, showTeam, withGoing = true }: { ma
   const note = goingNote(match, now)
   const mutualNote = mutualDropNote(match)
   const deadlineNote = resultDeadlineNote(match)
-  const detail = waiting ? resultDetail(match) : matchRowDetail(match)
+  // "Falta cargar el resultado" sobra cuando el formulario está justo abajo.
+  const rawDetail = waiting ? resultDetail(match) : matchRowDetail(match)
+  const detail = rawDetail === 'Falta cargar el resultado' && match.is_captain ? null : rawDetail
   const needsVenue = !waiting && !match.venue
 
   return (
@@ -82,7 +83,7 @@ export function MatchRow({ match, today, now, showTeam, withGoing = true }: { ma
               {match.rival_team_name}
             </Link>
           </p>
-          <p className={`text-sm mt-1 ${needsVenue ? 'text-foreground/60' : 'text-foreground'}`}>
+          {(detail || (!waiting && match.venue)) && <p className={`text-sm ${needsVenue ? 'text-foreground/60' : 'text-foreground'}`}>
             {detail}
             {!waiting && match.venue && (
               <>
@@ -90,8 +91,8 @@ export function MatchRow({ match, today, now, showTeam, withGoing = true }: { ma
                 <MapLink venue={match.venue} />
               </>
             )}
-          </p>
-          {deadlineNote && <p className="text-sm text-foreground/60">{deadlineNote}</p>}
+          </p>}
+          {deadlineNote && <p className="text-xs text-foreground/50">{deadlineNote}</p>}
           {note && <p className="text-sm text-brand-red">{note}</p>}
           {mutualNote && <p className="text-sm text-foreground/60">{mutualNote}</p>}
         </div>
@@ -110,27 +111,20 @@ export function MatchRow({ match, today, now, showTeam, withGoing = true }: { ma
 }
 
 // Un partido cerrado, en una línea: el día, el rival y cómo terminó. El
-// detalle con nombres (quién lo tiró, las dos versiones) va debajo, chico.
-export function HistoryRow({ match, today, now, showTeam }: { match: MatchRowData; today: string; now: Date; showTeam: boolean }) {
+// detalle (quién lo tiró, las dos versiones) vive en la página del equipo.
+export function HistoryRow({ match, now, showTeam }: { match: MatchRowData; now: Date; showTeam: boolean }) {
   const slot = slotFromRange(match.range)
   const outcome = ownOutcome(match)
-  const detail = match.phase === 'caido' ? dropDetail(match) : match.phase === 'jugado' ? null : resultDetail(match)
   return (
     <li className="flex flex-col gap-2 px-4 py-3">
-      <div className="flex items-center gap-4">
-        <DateBlock date={slot.date} today={today} />
-        <div className="min-w-0 flex-1">
-          <p className="font-display text-xl tracking-wider uppercase leading-tight text-foreground">
-            vs{' '}
-            <Link href={`/equipos/${match.rival_team_id}`} className="hover:text-brand-lime">
-              {match.rival_team_name}
-            </Link>
-          </p>
-          <p className="text-sm text-foreground/60 mt-1">
-            {slot.from} a {slot.to} h{showTeam && <> · {match.team_name}</>}
-            {detail && <> · {detail}</>}
-          </p>
-        </div>
+      <div className="flex items-center gap-3">
+        <span className="w-14 shrink-0 text-sm text-foreground/60">{dayLabel(slot.date)}</span>
+        <p className="min-w-0 flex-1 font-display text-lg tracking-wider uppercase leading-tight text-foreground truncate">
+          <Link href={`/equipos/${match.rival_team_id}`} className="hover:text-brand-lime">
+            {match.rival_team_name}
+          </Link>
+          {showTeam && <span className="text-foreground/50 text-sm font-sans tracking-normal normal-case"> · {match.team_name}</span>}
+        </p>
         <Pill text={outcome.text} tone={outcome.tone} />
       </div>
       <Rating match={match} now={now} />
