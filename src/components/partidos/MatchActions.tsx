@@ -1,4 +1,4 @@
-import { Check, MoreHorizontal, Star, X } from 'lucide-react'
+import { Check, Star, X } from 'lucide-react'
 import { SubmitButton } from '@/components/SubmitButton'
 import { slotFromRange, slotValue } from '@/utils/rival-search-form'
 import { coordinationTimes } from '@/utils/match-forms'
@@ -95,18 +95,14 @@ export function DropForm({ match, menu }: { match: MatchActionRow; menu: NonNull
   )
 }
 
-// El menú ⋯ de la fila, antes de la hora de inicio: tirar el partido. Se
-// abre en dos pasos para que nadie lo tire sin querer.
+// Tirar el partido, antes de la hora de inicio: un link chico que abre el
+// formulario con el motivo (y el aviso de la falta, si suma).
 export function DropMenu({ match, now }: { match: MatchActionRow; now: Date }) {
   const menu = dropMenu(match, now)
   if (!menu) return null
   return (
     <details className="self-start">
-      <summary aria-label="Más acciones" className="ui-action cursor-pointer list-none text-foreground/50 hover:text-brand-red gap-1">
-        <MoreHorizontal className="w-5 h-5" />
-        <span className="text-sm [details[open]>summary>&]:hidden">Más</span>
-        <span className="text-sm hidden [details[open]>summary>&]:inline">{menu.label}</span>
-      </summary>
+      <summary className="ui-action cursor-pointer list-none text-sm text-foreground/50 hover:text-brand-red">{menu.label}</summary>
       <DropForm match={match} menu={menu} />
     </details>
   )
