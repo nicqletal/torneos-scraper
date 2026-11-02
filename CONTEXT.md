@@ -107,8 +107,11 @@ Anuncio que publica un capitán para encontrar un rival en una modalidad, con un
 _Avoid_: búsqueda (a secas, se confunde con los filtros del catálogo), anuncio
 
 **Franja**:
-Horario concreto de una búsqueda de rival: una fecha, con hora de inicio y de fin en horas enteras.
+Horario concreto de una búsqueda de rival: una fecha, con hora de inicio y de fin en horas enteras. En la UI se le dice "horario" ("Agregar otro horario"); "franja" queda para el código y los documentos.
 _Avoid_: disponibilidad, horario recurrente
+
+**Turno**:
+Atajo del formulario de Buscar rival para elegir las horas de una **Franja** de un toque: Mañana (9 a 12), Tarde (14 a 18) o Noche (20 a 23). No se guarda: la franja es siempre "de [desde] a [hasta]".
 
 **Propuesta**:
 Invitación que el capitán de un equipo le manda a un rival compatible para jugar en la parte en común de dos **Franjas**; vale hasta que el receptor la acepta o la rechaza, el emisor la cancela o vence.

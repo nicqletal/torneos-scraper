@@ -398,3 +398,32 @@ export function ratingSummary(average: number | null, count: number): string {
   if (average === null || count === 0) return 'Sin calificaciones'
   return `★ ${average.toFixed(1).replace('.', ',')} (${count})`
 }
+
+// Cómo terminó un partido, en dos palabras, para la fila del historial de
+// /partidos: la mira el propio plantel, así que el resultado va desde su lado
+// ("Ganó 3–1"), sin nombrar a nadie. El detalle con nombres va debajo.
+export function ownOutcome(match: Pick<MatchResult, 'phase' | 'score_for' | 'score_against'>): { text: string; tone: MatchTone } {
+  switch (match.phase) {
+    case 'jugado': {
+      const { score_for: own, score_against: theirs } = match
+      if (own === null || theirs === null) return { text: 'Sin resultado', tone: 'muted' }
+      if (own > theirs) return { text: `Ganó ${own}–${theirs}`, tone: 'lime' }
+      if (own < theirs) return { text: `Perdió ${own}–${theirs}`, tone: 'muted' }
+      return { text: `Empató ${own}–${theirs}`, tone: 'muted' }
+    }
+    case 'caido':
+      return { text: 'Se cayó', tone: 'muted' }
+    case 'en_conflicto':
+      return { text: 'En conflicto', tone: 'red' }
+    case 'no_presentado':
+      return { text: 'Falta', tone: 'red' }
+    default:
+      return matchPhaseBadge(match.phase)
+  }
+}
+
+// Un partido cerrado va al historial; el resto (por jugarse, esperando
+// resultado) es lo de ahora.
+export function isClosed(phase: MatchPhase): boolean {
+  return phase === 'jugado' || phase === 'caido' || phase === 'en_conflicto' || phase === 'no_presentado'
+}

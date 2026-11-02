@@ -126,3 +126,29 @@ export function slotValue(slot: Slot): string {
 export function isUpcoming(slot: Slot, today: Today): boolean {
   return slot.date > today.date || (slot.date === today.date && slot.from > today.hour)
 }
+
+// Los turnos del formulario: atajos para no elegir dos horas a mano. "Otro"
+// deja elegir de a una hora. Son solo del formulario: la franja guardada es
+// siempre "de [from] a [to]".
+export const SHIFTS = [
+  { value: 'manana', label: 'Mañana', from: 9, to: 12 },
+  { value: 'tarde', label: 'Tarde', from: 14, to: 18 },
+  { value: 'noche', label: 'Noche', from: 20, to: 23 },
+] as const
+
+export type Shift = (typeof SHIFTS)[number]['value']
+
+// El nombre de un día en el calendario de la búsqueda: "Hoy", "Mañana" o el
+// día corto ("sáb 7"). Lo que importa es decidir rápido, no leer una fecha.
+export function dayName(date: string, today: string): string {
+  if (date === today) return 'Hoy'
+  if (date === addDays(today, 1)) return 'Mañana'
+  return dayLabel(date).replace(/\/\d+$/, '')
+}
+
+// Una franja, como la lee el capitán: "Sáb 7 · 20 a 22 h". El día va con
+// mayúscula porque suele abrir la frase; "Hoy" y "Mañana" si corresponde.
+export function slotTitle(slot: Slot, today: string): string {
+  const day = dayName(slot.date, today)
+  return `${day[0].toUpperCase()}${day.slice(1)} · ${slot.from} a ${slot.to} h`
+}
