@@ -201,7 +201,7 @@ test('común acuerdo: quien lo pidió ve si está esperando o si se lo rechazaro
 })
 
 test('resultado: cada fase nueva tiene su cartel', () => {
-  assert.deepEqual(matchPhaseBadge('esperando_resultado'), { text: 'Esperando resultado', tone: 'lime' })
+  assert.deepEqual(matchPhaseBadge('esperando_resultado'), { text: 'Falta el resultado', tone: 'lime' })
   assert.deepEqual(matchPhaseBadge('jugado'), { text: 'Jugado', tone: 'muted' })
   assert.deepEqual(matchPhaseBadge('en_conflicto'), { text: 'En conflicto', tone: 'red' })
   assert.deepEqual(matchPhaseBadge('no_presentado'), { text: 'Falta', tone: 'red' })
@@ -450,9 +450,9 @@ test('estrellas: sin calificaciones reveladas', () => {
 
 describe('ownOutcome', () => {
   test('el resultado se lee desde el lado propio', () => {
-    assert.deepEqual(ownOutcome({ phase: 'jugado', score_for: 3, score_against: 1 }), { text: 'Ganó 3–1', tone: 'lime' })
-    assert.deepEqual(ownOutcome({ phase: 'jugado', score_for: 0, score_against: 2 }), { text: 'Perdió 0–2', tone: 'muted' })
-    assert.deepEqual(ownOutcome({ phase: 'jugado', score_for: 1, score_against: 1 }), { text: 'Empató 1–1', tone: 'muted' })
+    assert.deepEqual(ownOutcome({ phase: 'jugado', score_for: 3, score_against: 1 }), { text: 'Ganamos', tone: 'lime' })
+    assert.deepEqual(ownOutcome({ phase: 'jugado', score_for: 0, score_against: 2 }), { text: 'Perdimos', tone: 'muted' })
+    assert.deepEqual(ownOutcome({ phase: 'jugado', score_for: 1, score_against: 1 }), { text: 'Empatamos', tone: 'muted' })
     assert.deepEqual(ownOutcome({ phase: 'jugado', score_for: null, score_against: null }), { text: 'Sin resultado', tone: 'muted' })
   })
   test('los otros cierres son el nombre de la fase', () => {

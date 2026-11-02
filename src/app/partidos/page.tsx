@@ -62,7 +62,13 @@ export default async function PartidosPage(props: { searchParams: Promise<Record
     .select(
       'id, range, start_at, phase, team_id, team_name, is_captain, rival_team_id, rival_team_name, rival_crest_url, venue, venue_start_at, venue_by_own, coordinated_at, going_at, rival_going_at, deadline, drop_reason, dropped_by_own, drop_mutual, drop_fault, mutual_drop_reason, mutual_drop_by_own, mutual_drop_answered_at, mutual_drop_accepted, goals_for, goals_against, rival_goals_for, rival_goals_against, no_show_at, rival_no_show_at, went_at, rival_went_at, score_for, score_against, rating_deadline, rated_by_own, received_stars'
     )
-  const matches = sortByStart((matchRows ?? []) as MatchRowData[])
+  // El escudo del equipo propio, para el marcador: la vista trae solo el del rival.
+  const ownTeamIds = [...new Set((matchRows ?? []).map((m) => m.team_id as string))]
+  const { data: ownTeams } = ownTeamIds.length > 0 ? await supabase.from('teams').select('id, crest_url').in('id', ownTeamIds) : { data: [] }
+  const crestByTeam = new Map((ownTeams ?? []).map((t) => [t.id as string, t.crest_url as string | null]))
+  const matches = sortByStart(
+    ((matchRows ?? []) as Omit<MatchRowData, 'team_crest_url'>[]).map((m) => ({ ...m, team_crest_url: crestByTeam.get(m.team_id) ?? null }))
+  )
   const next = nextMatch(matches)
   const upcoming = matches.filter((m) => m.phase === 'por_jugarse' && m.id !== next?.id)
   const waiting = matches.filter((m) => m.phase === 'esperando_resultado')
@@ -162,7 +168,7 @@ export default async function PartidosPage(props: { searchParams: Promise<Record
 
       {waiting.length > 0 && (
         <section className="flex flex-col gap-3">
-          <h2 className={eyebrow}>Esperando resultado</h2>
+          <h2 className={eyebrow}>Contanos cómo salió</h2>
           <ul className="flex flex-col gap-3">
             {waiting.map((m) => (
               <MatchRow key={m.id} match={m} today={today} now={now} showTeam={showTeam} />

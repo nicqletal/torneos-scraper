@@ -19,7 +19,6 @@ import { Coordination, DropMenu, GoingPrompt, MutualDropAnswer, Rating, ResultAc
 export type MatchRowData = MatchActionRow & {
   team_id: string
   rival_team_id: string
-  rival_crest_url: string | null
 }
 
 const TONE: Record<MatchTone, string> = {
@@ -110,21 +109,36 @@ export function MatchRow({ match, today, now, showTeam, withGoing = true }: { ma
   )
 }
 
-// Un partido cerrado, en una línea: el día, el rival y cómo terminó. El
-// detalle (quién lo tiró, las dos versiones) vive en la página del equipo.
+// Un partido cerrado, en una línea: el día, el marcador con los dos nombres
+// (el propio a la izquierda) y cómo terminó, en primera persona. El detalle
+// (quién lo tiró, las dos versiones) vive en la página del equipo.
 export function HistoryRow({ match, now, showTeam }: { match: MatchRowData; now: Date; showTeam: boolean }) {
   const slot = slotFromRange(match.range)
   const outcome = ownOutcome(match)
+  const played = match.phase === 'jugado' && match.score_for !== null && match.score_against !== null
+  const name = 'font-display tracking-wider uppercase leading-tight truncate'
   return (
     <li className="flex flex-col gap-2 px-4 py-3">
       <div className="flex items-center gap-3">
         <span className="w-14 shrink-0 text-sm text-foreground/60">{dayLabel(slot.date)}</span>
-        <p className="min-w-0 flex-1 font-display text-lg tracking-wider uppercase leading-tight text-foreground truncate">
-          <Link href={`/equipos/${match.rival_team_id}`} className="hover:text-brand-lime">
-            {match.rival_team_name}
-          </Link>
-          {showTeam && <span className="text-foreground/50 text-sm font-sans tracking-normal normal-case"> · {match.team_name}</span>}
-        </p>
+        {played ? (
+          <div className="min-w-0 flex-1 grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3">
+            <span className={`${name} text-right text-base text-foreground`}>{match.team_name}</span>
+            <span className="font-display text-2xl leading-none tabular-nums text-foreground">
+              {match.score_for}–{match.score_against}
+            </span>
+            <Link href={`/equipos/${match.rival_team_id}`} className={`${name} text-base text-foreground hover:text-brand-lime`}>
+              {match.rival_team_name}
+            </Link>
+          </div>
+        ) : (
+          <p className={`min-w-0 flex-1 ${name} text-lg text-foreground`}>
+            <Link href={`/equipos/${match.rival_team_id}`} className="hover:text-brand-lime">
+              {match.rival_team_name}
+            </Link>
+            {showTeam && <span className="text-foreground/50 text-sm font-sans tracking-normal normal-case"> · {match.team_name}</span>}
+          </p>
+        )}
         <Pill text={outcome.text} tone={outcome.tone} />
       </div>
       <Rating match={match} now={now} />
