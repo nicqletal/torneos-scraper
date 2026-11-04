@@ -2,7 +2,7 @@
 
 Webapp que centraliza torneos de fútbol amateur de Buenos Aires y ayuda a equipos a encontrar rivales para partidos amistosos. El contacto y los pagos ocurren siempre por fuera de la app (WhatsApp / Instagram).
 
-Este archivo es el **glosario** del proyecto: define cada término una sola vez para que el equipo, el código y los agentes de IA hablen igual. Las reglas de negocio detalladas están en [docs/decisiones-casos-de-uso.md](docs/decisiones-casos-de-uso.md).
+Este archivo es el **glosario** del proyecto: define cada término una sola vez para que el equipo, el código y los agentes de IA hablen igual. Las reglas de negocio detalladas están en [docs/especificaciones-y-requerimientos/decisiones-casos-de-uso.md](docs/especificaciones-y-requerimientos/decisiones-casos-de-uso.md).
 
 ## Language
 

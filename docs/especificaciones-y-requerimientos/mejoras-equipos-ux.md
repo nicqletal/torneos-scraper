@@ -1,7 +1,7 @@
 # Gestión de equipos y legibilidad
 
 Acuerdos de la sesión del 14/10/2026. Las reglas de negocio de
-`decisiones-casos-de-uso.md` y el vocabulario de `../CONTEXT.md` siguen vigentes.
+`decisiones-casos-de-uso.md` y el vocabulario de `../../CONTEXT.md` siguen vigentes.
 
 ## Acuerdos confirmados
 

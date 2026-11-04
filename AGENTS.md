@@ -26,10 +26,10 @@ Proyecto de la asignatura **Metodología de Sistemas** (fines educacionales), he
 Leer en este orden antes de tocar código:
 
 1. **`CONTEXT.md`** — glosario del dominio. Usar **exactamente** esos términos en código, issues, PRs y UI (por ejemplo, un partido "se cae", nunca "se suspende"; se dice "baja", no "eliminar").
-2. **`docs/decisiones-casos-de-uso.md`** — reglas de negocio vigentes, por módulo, incluida la tabla de visibilidad que define las reglas de acceso (RLS). **Es la fuente de verdad del alcance.** Si contradice al PDF, manda este archivo.
+2. **`docs/especificaciones-y-requerimientos/decisiones-casos-de-uso.md`** — reglas de negocio vigentes, por módulo, incluida la tabla de visibilidad que define las reglas de acceso (RLS). **Es la fuente de verdad del alcance.** Si contradice al PDF, manda este archivo.
 3. **`docs/adr/`** — decisiones grandes con su porqué. No "arreglar" algo que un ADR decidió a propósito.
 4. **`docs/casos-de-uso/casos-de-uso.md`** — casos de uso completos y vigentes (03/11/2026), con actor, flujos, estado de implementación. Reemplaza al PDF y a los Google Docs.
-5. `docs/casos-de-uso.pdf` — casos de uso originales de la materia (módulos A–F y T). Histórico: está corregido por los puntos 2 y 4.
+5. `docs/casos-de-uso/casos-de-uso.pdf` — casos de uso originales de la materia (módulos A–F y T). Histórico: está corregido por los puntos 2 y 4.
 
 Históricos (desactualizados, no usar para decidir alcance):
 
@@ -45,7 +45,7 @@ Gestor de paquetes: **pnpm** (hay `pnpm-lock.yaml` y `pnpm-workspace.yaml`). Ign
 
 ## Mapa del código
 
-Es el **prototipo** de agosto: sirve de base visual, pero no sigue varias reglas de `docs/decisiones-casos-de-uso.md` (ver "Pendientes técnicos" al final de ese archivo).
+Es el **prototipo** de agosto: sirve de base visual, pero no sigue varias reglas de `docs/especificaciones-y-requerimientos/decisiones-casos-de-uso.md` (ver "Pendientes técnicos" al final de ese archivo).
 
 ```
 src/app/layout.tsx            header sticky + footer; lee la sesión y arma el link de "Cargar torneo"
@@ -96,7 +96,7 @@ supabase db push --include-all
 
 RLS y auth son el punto crítico del proyecto:
 
-- Qué es público y qué no lo define la **tabla de visibilidad** de `docs/decisiones-casos-de-uso.md`. Cada fila de esa tabla tiene que existir como policy de RLS, no solo como un filtro en la UI.
+- Qué es público y qué no lo define la **tabla de visibilidad** de `docs/especificaciones-y-requerimientos/decisiones-casos-de-uso.md`. Cada fila de esa tabla tiene que existir como policy de RLS, no solo como un filtro en la UI.
 - El rol de administrador nunca se puede escribir desde el cliente.
 - Las transiciones de estado de partidos y propuestas van por funciones de Postgres, no por `update` directos.
 - Al cliente solo llega la `anon key`. La `service_role key` nunca sale de contexto server controlado.
@@ -107,7 +107,7 @@ Publican los **organizadores** (cualquier usuario con sesión). Todo torneo tien
 
 ## Forma de trabajo
 
-- Avanzar según los issues del repo, sin adelantar etapas. Si una regla no está en `docs/decisiones-casos-de-uso.md`, preguntar en vez de inventarla, y después agregarla a ese archivo.
+- Avanzar según los issues del repo, sin adelantar etapas. Si una regla no está en `docs/especificaciones-y-requerimientos/decisiones-casos-de-uso.md`, preguntar en vez de inventarla, y después agregarla a ese archivo.
 - Si aparece un término nuevo del dominio, agregarlo a `CONTEXT.md` en el mismo PR.
 - Explicar decisiones de arquitectura no pedidas **antes** de aplicarlas.
 - Preferir código simple y legible a abstracciones tempranas: el objetivo incluye aprender el stack.
