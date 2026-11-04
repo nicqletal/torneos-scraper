@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Módulo D · Equipos — Especificación</title>
+<style>
+  :root { --bg:#fff; --fg:#161616; --muted:#5b5b5b; --line:#d9d9d9; --accent:#4d7c0f; --soft:#f4f7ee; }
+  * { box-sizing: border-box; }
+  body { font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); margin: 0; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { font-size: 30px; margin: 0 0 4px; }
+  h2 { font-size: 22px; margin: 48px 0 12px; padding-top: 8px; border-top: 3px solid var(--accent); }
+  h3 { font-size: 17px; margin: 28px 0 8px; }
+  p.sub { color: var(--muted); margin: 0 0 20px; }
+  nav { background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 10px 16px; margin: 20px 0; }
+  nav a { margin-right: 14px; color: var(--accent); text-decoration: none; font-weight: 600; white-space: nowrap; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 18px; font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 7px 9px; vertical-align: top; text-align: left; }
+  th { background: var(--soft); }
+  code { background: #f1f1f1; padding: 1px 5px; border-radius: 3px; font-size: 13px; }
+  .uc { border: 1px solid var(--line); border-radius: 6px; padding: 14px 18px; margin: 14px 0; background: #fff; }
+  .uc h3 { margin-top: 0; }
+  .uc dl { margin: 0; display: grid; grid-template-columns: 170px 1fr; gap: 6px 14px; }
+  .uc dt { font-weight: 700; }
+  .uc dd { margin: 0; }
+  .uc ol, .uc ul { margin: 0; padding-left: 20px; }
+  .diagram { border: 1px solid var(--line); border-radius: 6px; padding: 12px; overflow-x: auto; background: #fff; }
+  details { margin: 8px 0 16px; }
+  summary { cursor: pointer; color: var(--muted); }
+  pre { background: #f6f6f6; padding: 12px; overflow-x: auto; font-size: 12.5px; border-radius: 4px; }
+  .note { border-left: 4px solid var(--accent); background: var(--soft); padding: 8px 14px; margin: 14px 0; }
+  .tag { display:inline-block; padding:0 7px; border-radius: 10px; font-size: 12px; background:#e6efd6; }
+  .diagram svg { max-width: 100%; height: auto; }
+  @media print { nav { display: none; } h2 { page-break-before: always; } .diagram { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Módulo D · Equipos</h1>
+<p class="sub">Diagramas de secuencia, casos de uso y especificación de requerimientos, con su correspondencia en la página y en la base.
+Fuentes: <code>docs/casos-de-uso.pdf</code> (SPEC-D01, SPEC-D02), <code>docs/decisiones-casos-de-uso.md</code> (manda sobre el PDF), código de <code>src/app</code> y <code>supabase/migrations</code>.</p>
+
+<nav>
+  <a href="#alcance">1. Alcance</a>
+  <a href="#actores">2. Actores</a>
+  <a href="#casos">3. Casos de uso</a>
+  <a href="#secuencia">4. Diagramas de secuencia</a>
+  <a href="#requerimientos">5. Requerimientos</a>
+  <a href="#pagina">6. Reflejo en la página</a>
+  <a href="#diferencias">7. PDF vs. implementación</a>
+</nav>
+
+<h2 id="alcance">1. Alcance</h2>
+<p>El módulo permite a un usuario con sesión crear un equipo, armar su plantel con un link de invitación, repartir la capitanía y disolver el equipo. Cada equipo tiene una <strong>página pública</strong> (zona, modalidad, nivel, cantidad de jugadores, presentismo, calificación, últimos cinco partidos y torneos) y un <strong>plantel privado</strong> que solo ven sus integrantes.</p>
+<p>Fuera del módulo: buscar rival y partidos (módulo C), inscripciones a torneos (módulo E). La grilla de <em>disponibilidad</em> del PDF se eliminó y no existe en la implementación.</p>
+
+<h2 id="actores">2. Actores</h2>
+<table>
+  <tr><th>Actor</th><th>Descripción</th></tr>
+  <tr><td>Visitante</td><td>Sin sesión. Solo ve la página pública del equipo.</td></tr>
+  <tr><td>Usuario</td><td>Con sesión. Puede crear equipos y unirse con un link.</td></tr>
+  <tr><td>Jugador</td><td>Usuario que integra el plantel de un equipo. Ve el plantel y puede salir.</td></tr>
+  <tr><td>Capitán</td><td>Jugador con la marca de capitán (uno por equipo, máximo 3 equipos activos por persona). Edita, invita, saca jugadores, pasa la capitanía y disuelve.</td></tr>
+</table>
+
+<h2 id="casos">3. Casos de uso</h2>
+
+<h3>Diagrama de casos de uso</h3>
+<div class="diagram">
+<svg viewBox="0 0 820 470" width="100%" role="img" aria-label="Diagrama de casos de uso del módulo de equipos" font-family="system-ui, sans-serif" font-size="13">
+  <rect x="190" y="10" width="440" height="450" rx="10" fill="#fafafa" stroke="#999"/>
+  <text x="410" y="32" text-anchor="middle" font-weight="700">Módulo D · Equipos</text>
+
+  <!-- casos -->
+  <g fill="#f4f7ee" stroke="#4d7c0f">
+    <ellipse cx="410" cy="62"  rx="115" ry="19"/>
+    <ellipse cx="410" cy="112" rx="115" ry="19"/>
+    <ellipse cx="410" cy="162" rx="115" ry="19"/>
+    <ellipse cx="410" cy="212" rx="115" ry="19"/>
+    <ellipse cx="410" cy="262" rx="115" ry="19"/>
+    <ellipse cx="410" cy="312" rx="115" ry="19"/>
+    <ellipse cx="410" cy="362" rx="115" ry="19"/>
+    <ellipse cx="410" cy="412" rx="115" ry="19"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="410" y="66">UC-29 Ver página pública</text>
+    <text x="410" y="116">UC-25 Crear equipo</text>
+    <text x="410" y="166">UC-28 Aceptar invitación</text>
+    <text x="410" y="216">UC-27 Invitar jugador</text>
+    <text x="410" y="266">UC-26 Designar capitán</text>
+    <text x="410" y="316">UC-31 Editar equipo</text>
+    <text x="410" y="366">UC-32 Sacar jugador / Salir</text>
+    <text x="410" y="416">UC-33 Disolver equipo</text>
+  </g>
+
+  <!-- actores -->
+  <g stroke="#161616" fill="none" stroke-width="1.5">
+    <circle cx="70" cy="90" r="11"/><path d="M70 101v34M50 112h40M70 135l-16 24M70 135l16 24"/>
+    <circle cx="70" cy="250" r="11"/><path d="M70 261v34M50 272h40M70 295l-16 24M70 295l16 24"/>
+    <circle cx="750" cy="250" r="11"/><path d="M750 261v34M730 272h40M750 295l-16 24M750 295l16 24"/>
+  </g>
+  <g text-anchor="middle" font-weight="700">
+    <text x="70" y="178">Visitante</text>
+    <text x="70" y="338">Usuario</text>
+    <text x="750" y="338">Capitán</text>
+  </g>
+  <text x="750" y="356" text-anchor="middle" fill="#5b5b5b">(es un Jugador)</text>
+
+  <!-- relaciones -->
+  <g stroke="#555" fill="none">
+    <path d="M90 115L295 62"/>
+    <path d="M90 270L295 112"/><path d="M90 270L295 162"/>
+    <path d="M730 262L525 212"/><path d="M730 270L525 262"/><path d="M730 280L525 312"/><path d="M730 290L525 362"/><path d="M730 300L525 412"/>
+    <path d="M90 290L295 362" stroke-dasharray="4 3"/>
+  </g>
+  <text x="188" y="438" fill="#5b5b5b" font-size="11">Salir: cualquier jugador no capitán</text>
+</svg>
+</div>
+<p class="note">UC-25 a UC-29 son del PDF (SPEC-D01 y SPEC-D02). UC-31, UC-32 y UC-33 no tienen número en el PDF: salen de <code>docs/decisiones-casos-de-uso.md</code> (Equipos) y se numeran acá a continuación para poder referenciarlos. UC-30 (historial) queda dentro de UC-29 porque la decisión vigente lo hace público.</p>
+
+<h3>UC-25 · Crear equipo</h3>
+<div class="uc"><dl>
+  <dt>Actor primario</dt><dd>Usuario con sesión.</dd>
+  <dt>Precondiciones</dt><dd>Sesión iniciada. WhatsApp cargado en el perfil. Menos de 3 equipos activos como capitán.</dd>
+  <dt>Flujo principal</dt><dd><ol>
+    <li>El usuario entra a <code>/crear-equipo</code> (desde “Crear equipo” en Mis equipos).</li>
+    <li>Completa nombre, zona (lista cerrada), modalidad habitual y nivel (recreativo, intermedio, competitivo). El escudo es opcional.</li>
+    <li>Envía el formulario.</li>
+    <li>El sistema valida los datos y el escudo.</li>
+    <li>El sistema crea el equipo y asigna al creador como Capitán, en una sola transacción.</li>
+    <li>Si se subió escudo, lo guarda en el equipo.</li>
+    <li>Redirige a la página del equipo <code>/equipos/{id}</code>.</li>
+  </ol></dd>
+  <dt>Flujos alternativos</dt><dd><ul>
+    <li><strong>A1 · Sin sesión:</strong> redirige a <code>/login?next=/crear-equipo</code>.</li>
+    <li><strong>A2 · Datos inválidos:</strong> vuelve al formulario con el mensaje (nombre de 2 a 50 caracteres, zona, modalidad y nivel válidos, escudo JPG/PNG/WebP de hasta 2 MB).</li>
+    <li><strong>A3 · Sin WhatsApp:</strong> “Cargá tu WhatsApp en el perfil para crear un equipo”.</li>
+    <li><strong>A4 · Límite de capitanías:</strong> “Ya sos capitán de 3 equipos, que es el máximo”.</li>
+    <li><strong>A5 · Falla el escudo:</strong> el equipo queda creado y se lleva al usuario a Editar con el aviso para reintentar.</li>
+  </ul></dd>
+  <dt>Postcondiciones</dt><dd>Equipo activo con el creador como único integrante y capitán. Los nombres pueden repetirse.</dd>
+</dl></div>
+
+<h3>UC-26 · Designar capitán</h3>
+<div class="uc"><dl>
+  <dt>Actor primario</dt><dd>Capitán.</dd>
+  <dt>Precondiciones</dt><dd>Equipo activo con otro jugador en el plantel. El destinatario tiene WhatsApp y menos de 3 capitanías.</dd>
+  <dt>Flujo principal</dt><dd><ol>
+    <li>En el Plantel, el capitán toca “Hacer capitán” sobre un jugador y confirma.</li>
+    <li>El sistema valida las reglas y actualiza los roles: el anterior queda como jugador.</li>
+  </ol></dd>
+  <dt>Alternativos</dt><dd>A1 · El capitán intenta “Salir del equipo”: no se ofrece el botón y se le pide pasar la capitanía antes. A2 · El destinatario no tiene WhatsApp o ya capitanea 3: se rechaza con el motivo.</dd>
+</dl></div>
+
+<h3>UC-27 · Invitar jugador</h3>
+<div class="uc"><dl>
+  <dt>Actor primario</dt><dd>Capitán.</dd>
+  <dt>Precondiciones</dt><dd>Es capitán de un equipo activo.</dd>
+  <dt>Flujo principal</dt><dd><ol>
+    <li>En “Invitar jugadores”, toca “Generar link”.</li>
+    <li>El sistema crea un link <code>/unirse/{token}</code> con validez de 7 días y lo muestra con el botón Copiar.</li>
+  </ol></dd>
+  <dt>Alternativos</dt><dd>A1 · “Regenerar” crea otro y deja sin efecto el anterior. A2 · Si entró alguien no deseado, el capitán lo saca del plantel (UC-32).</dd>
+</dl></div>
+
+<h3>UC-28 · Aceptar invitación</h3>
+<div class="uc"><dl>
+  <dt>Actor primario</dt><dd>Usuario invitado.</dd>
+  <dt>Flujo principal</dt><dd><ol>
+    <li>Abre <code>/unirse/{token}</code>. Sin sesión, se lo manda a iniciar sesión o registrarse y vuelve al link.</li>
+    <li>Ve “Te invitaron a un equipo” y toca “Unirme al equipo” (entrar es un botón, no un efecto de abrir la página, para que las vistas previas del chat no sumen gente).</li>
+    <li>El sistema lo agrega al plantel sin aprobación del capitán y lo lleva a la página del equipo.</li>
+  </ol></dd>
+  <dt>Alternativos</dt><dd>A1 · Link inexistente, vencido, regenerado o de un equipo disuelto: mismo mensaje, “El link de invitación no es válido o venció”. A2 · Ya estaba en el plantel: no hay error, lo lleva al equipo.</dd>
+</dl></div>
+
+<h3>UC-29 · Ver página pública del equipo</h3>
+<div class="uc"><dl>
+  <dt>Actor primario</dt><dd>Visitante (sin sesión) o cualquier usuario.</dd>
+  <dt>Flujo principal</dt><dd><ol>
+    <li>Entra a <code>/equipos/{id}</code>.</li>
+    <li>El sistema muestra escudo, nombre, zona y corredor, modalidad, nivel, cantidad de jugadores, presentismo (“jugó X, faltó Y”), promedio de calificación, últimos cinco partidos y los torneos donde está inscripto.</li>
+  </ol></dd>
+  <dt>Reglas</dt><dd>El plantel (nombres y capitán) solo lo ven los integrantes; nunca se publican fotos ni teléfonos. Un equipo disuelto muestra la marca “Equipo disuelto” y conserva su historia.</dd>
+</dl></div>
+
+<h3>UC-31 · Editar equipo</h3>
+<div class="uc"><dl>
+  <dt>Actor primario</dt><dd>Capitán.</dd>
+  <dt>Flujo principal</dt><dd>Desde “Editar equipo” (<code>/equipos/{id}/editar</code>) cambia nombre, zona, modalidad, nivel y escudo (subir, reemplazar o quitar; vacío conserva el actual). El sistema valida, guarda y retira el escudo anterior.</dd>
+  <dt>Alternativos</dt><dd>No es capitán o el equipo está disuelto: se rechaza. El escudo anterior no se pudo retirar: el equipo se guarda y se avisa.</dd>
+</dl></div>
+
+<h3>UC-32 · Sacar un jugador / Salir del equipo</h3>
+<div class="uc"><dl>
+  <dt>Actores</dt><dd>Capitán (saca a otro) · Jugador (sale por su cuenta).</dd>
+  <dt>Flujo principal</dt><dd>El capitán toca “Sacar” sobre un jugador, o un jugador no capitán toca “Salir del equipo”, y confirma. El sistema elimina la fila del plantel.</dd>
+  <dt>Alternativos</dt><dd>El capitán no puede sacarse a sí mismo ni salir sin pasar la capitanía. En un equipo disuelto no se puede salir ni sacar.</dd>
+</dl></div>
+
+<h3>UC-33 · Disolver equipo</h3>
+<div class="uc"><dl>
+  <dt>Actor primario</dt><dd>Capitán.</dd>
+  <dt>Flujo principal</dt><dd><ol>
+    <li>En “Disolver equipo” tilda la confirmación y acepta el aviso.</li>
+    <li>El sistema marca el equipo como disuelto (no se borra), invalida el link de invitación y cancela sus búsquedas activas con las propuestas pendientes.</li>
+    <li>Redirige a la página del equipo con el aviso de disolución.</li>
+  </ol></dd>
+  <dt>Alternativos</dt><dd>Tiene un partido por jugarse o esperando resultado: se bloquea con “Tenés un partido pendiente: tiralo o cerrá el resultado antes de disolver”. Sin la casilla tildada: se rechaza. Ya disuelto: se rechaza.</dd>
+  <dt>Postcondiciones</dt><dd>No se reactiva: para volver a jugar se crea un equipo nuevo.</dd>
+</dl></div>
+
+<h2 id="secuencia">4. Diagramas de secuencia</h2>
+<p>Participantes pedidos: <strong>Usuario, EquipoService, Validador, Equipo, EquipoRepository, Localidad</strong>. Se muestran los mismos participantes en los tres diagramas para que se lean como una sola arquitectura. Correspondencia con el código en la tabla siguiente.</p>
+
+<table>
+  <tr><th>Participante</th><th>Qué es en el sistema</th></tr>
+  <tr><td>Usuario</td><td>La persona con sesión y su perfil (<code>profiles</code>, <code>profile_contacts.whatsapp</code>, capitanías actuales).</td></tr>
+  <tr><td>EquipoService</td><td>Las Server Actions: <code>createTeam</code> (<code>src/app/crear-equipo/actions.ts</code>) y <code>updateTeam</code>, <code>regenerateInvite</code>, <code>transferCaptaincy</code>, <code>dissolveTeam</code>… (<code>src/app/equipos/[id]/actions.ts</code>), <code>joinTeam</code> (<code>src/app/unirse/[token]/actions.ts</code>).</td></tr>
+  <tr><td>Validador</td><td><code>parseTeamForm</code> (<code>src/utils/team-form.ts</code>) y <code>parseCrest</code> (<code>src/utils/team-crest.ts</code>): lógica pura, con tests en <code>pnpm test</code>.</td></tr>
+  <tr><td>Equipo</td><td>Entidad de dominio: tabla <code>teams</code> (nombre, zona, modalidad, nivel, escudo, <code>dissolved_at</code>) y su plantel <code>team_members</code> (marca <code>is_captain</code>).</td></tr>
+  <tr><td>EquipoRepository</td><td>Acceso a datos: <code>saveTeam</code> (<code>src/utils/supabase/team.ts</code>) y las funciones de Postgres <code>create_team</code>, <code>join_team</code>, <code>transfer_captaincy</code>, <code>dissolve_team</code>, etc. (security definer, única vía de escritura del plantel).</td></tr>
+  <tr><td>Localidad</td><td>Zona (<code>zones</code> → <code>corridors</code> → <code>regions</code>): lista cerrada, de solo lectura. El equipo la referencia por clave foránea.</td></tr>
+</table>
+
+<h3>4.1 · UC-25 Crear equipo</h3>
+<div class="diagram"><pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor U as Usuario
+    participant S as EquipoService
+    participant V as Validador
+    participant R as EquipoRepository
+    participant L as Localidad
+    participant E as Equipo
+
+    U->>S: crearEquipo(nombre, zona, modalidad, nivel, escudo?)
+    alt sin sesión
+        S-->>U: redirige a login (next = crear-equipo)
+    else con sesión
+        S->>V: validarFormulario(nombre, zona, modalidad, nivel)
+        V-->>S: resultado
+        S->>V: validarEscudo(archivo)
+        V-->>S: resultado
+        alt datos o escudo inválidos
+            S-->>U: vuelve al formulario con el mensaje de error
+        else datos válidos
+            S->>R: crear(nombre, zonaId, modalidad, nivel)
+            R->>U: tieneWhatsApp()
+            U-->>R: sí o no
+            R->>U: capitaniasActivas()
+            U-->>R: cantidad
+            alt sin WhatsApp o ya capitanea 3 equipos
+                R-->>S: error de regla de negocio
+                S-->>U: muestra el motivo
+            else cumple las reglas
+                R->>L: existeZona(zonaId)
+                L-->>R: zona válida
+                R->>E: nuevo Equipo(nombre sin espacios, zona, modalidad, nivel)
+                E-->>R: equipoId
+                R->>E: agregarCapitan(usuario)
+                E-->>R: plantel con 1 capitán
+                R-->>S: equipoId
+                opt se subió escudo
+                    S->>R: guardarEscudo(equipoId, archivo)
+                    R-->>S: ok o error
+                end
+                S-->>U: redirige a la página del equipo
+            end
+        end
+    end
+</pre></div>
+<p class="note"><strong>Dónde se hace cada paso en el código.</strong> Pasos 2 a 5: <code>parseTeamForm</code> y <code>parseCrest</code>. Pasos de WhatsApp y límite de 3: dentro de <code>create_team</code>, que bloquea el perfil (<code>for update</code>) para que dos altas simultáneas cuenten bien el límite. La validez de la zona la garantiza la clave foránea <code>teams.zone_id → zones.id</code> dentro de esa misma transacción; el formulario no hace una consulta aparte. El equipo y su capitán se insertan juntos o no se inserta nada.</p>
+
+<h3>4.2 · UC-27 y UC-28 Invitar y aceptar invitación</h3>
+<div class="diagram"><pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor C as Capitán
+    actor U as Usuario
+    participant S as EquipoService
+    participant R as EquipoRepository
+    participant E as Equipo
+
+    C->>S: generarLink(equipoId)
+    S->>R: regenerarInvitacion(equipoId)
+    R->>E: esCapitan(capitán) y estaActivo()
+    E-->>R: confirmado
+    R->>R: token aleatorio, vence en 7 días, reemplaza el anterior
+    R-->>S: token y vencimiento
+    S-->>C: muestra el link para copiar y compartir por WhatsApp
+
+    U->>S: abre el link y toca Unirme al equipo
+    alt sin sesión
+        S-->>U: redirige a login y vuelve al link
+    else con sesión
+        S->>R: unirse(token)
+        R->>E: buscar equipo por token vigente
+        alt token inexistente, vencido o equipo disuelto
+            E-->>R: no encontrado
+            R-->>S: error: el link no es válido o venció
+            S-->>U: muestra el error
+        else token vigente
+            E-->>R: equipoId
+            R->>E: agregarJugador(usuario), ignora si ya estaba
+            E-->>R: plantel actualizado
+            R-->>S: equipoId
+            S-->>U: redirige a la página del equipo
+        end
+    end
+</pre></div>
+
+<h3>4.3 · UC-33 Disolver equipo</h3>
+<div class="diagram"><pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor C as Capitán
+    participant S as EquipoService
+    participant R as EquipoRepository
+    participant E as Equipo
+
+    C->>S: disolverEquipo(equipoId, confirmación)
+    alt no tildó la confirmación
+        S-->>C: pide confirmar que es definitivo
+    else confirmó
+        S->>R: disolver(equipoId)
+        R->>E: bloquear equipo y verificar capitán, no disuelto
+        alt no es capitán o ya está disuelto
+            E-->>R: rechazo
+            R-->>S: error
+            S-->>C: muestra el motivo
+        else es capitán
+            R->>R: ¿hay partido por jugarse o esperando resultado?
+            alt hay partido pendiente
+                R-->>S: error: tirá el partido o cerrá el resultado
+                S-->>C: muestra el motivo
+            else sin partidos pendientes
+                R->>E: marcar disuelto (conserva plantel, escudo e historia)
+                R->>R: borrar link de invitación
+                R->>R: cancelar búsquedas activas y sus propuestas pendientes
+                R-->>S: ok
+                S-->>C: redirige a la página del equipo con aviso de disolución
+            end
+        end
+    end
+</pre></div>
+
+<details>
+  <summary>¿No se ven los diagramas? Necesitan conexión para cargar Mermaid. Se pueden pegar en mermaid.live.</summary>
+  <p>Cada bloque de arriba es el texto fuente del diagrama; copiar su contenido en <code>mermaid.live</code> genera la imagen.</p>
+</details>
+
+<h2 id="requerimientos">5. Especificación de requerimientos</h2>
+
+<h3>5.1 · Requerimientos funcionales</h3>
+<table>
+  <tr><th>ID</th><th>Requerimiento</th><th>CU</th><th>Prioridad</th></tr>
+  <tr><td>RF-D01</td><td>El sistema permite crear un equipo con nombre (2 a 50 caracteres), zona de una lista cerrada, modalidad habitual y nivel (recreativo, intermedio, competitivo).</td><td>UC-25</td><td>Alta</td></tr>
+  <tr><td>RF-D02</td><td>El escudo es opcional: JPG, PNG o WebP de hasta 2 MB. Se puede subir al crear, reemplazar o quitar al editar.</td><td>UC-25, UC-31</td><td>Media</td></tr>
+  <tr><td>RF-D03</td><td>Los nombres de equipo pueden repetirse; públicamente se distinguen por la zona.</td><td>UC-25</td><td>Alta</td></tr>
+  <tr><td>RF-D04</td><td>Para crear un equipo, el usuario necesita sesión y WhatsApp cargado en su perfil.</td><td>UC-25</td><td>Alta</td></tr>
+  <tr><td>RF-D05</td><td>Un usuario puede ser capitán de como máximo 3 equipos activos. Los disueltos no cuentan. Vale al crear y al recibir la capitanía.</td><td>UC-25, UC-26</td><td>Alta</td></tr>
+  <tr><td>RF-D06</td><td>Al crear el equipo, el creador queda como capitán y único integrante, en la misma transacción.</td><td>UC-25</td><td>Alta</td></tr>
+  <tr><td>RF-D07</td><td>El capitán genera un link de invitación válido por 7 días. Hay un solo link vigente por equipo: regenerarlo invalida el anterior.</td><td>UC-27</td><td>Alta</td></tr>
+  <tr><td>RF-D08</td><td>Quien abre un link vigente y tiene sesión entra directo al plantel, sin aprobación. Si ya estaba, se lo lleva al equipo sin error.</td><td>UC-28</td><td>Alta</td></tr>
+  <tr><td>RF-D09</td><td>Un link inexistente, vencido, regenerado o de un equipo disuelto muestra el mismo mensaje.</td><td>UC-28</td><td>Alta</td></tr>
+  <tr><td>RF-D10</td><td>Sin sesión, el link lleva a iniciar sesión o registrarse y conserva el destino para volver.</td><td>UC-28</td><td>Media</td></tr>
+  <tr><td>RF-D11</td><td>El capitán puede pasar la capitanía a otro integrante; el anterior queda como jugador. El destinatario debe tener WhatsApp y menos de 3 capitanías.</td><td>UC-26</td><td>Alta</td></tr>
+  <tr><td>RF-D12</td><td>El capitán no puede salir del equipo ni sacarse a sí mismo sin pasar antes la capitanía.</td><td>UC-26, UC-32</td><td>Alta</td></tr>
+  <tr><td>RF-D13</td><td>Cualquier jugador no capitán puede salir del equipo. El capitán puede sacar a cualquier otro integrante.</td><td>UC-32</td><td>Alta</td></tr>
+  <tr><td>RF-D14</td><td>Solo el capitán edita nombre, zona, modalidad, nivel y escudo, y solo mientras el equipo no está disuelto.</td><td>UC-31</td><td>Alta</td></tr>
+  <tr><td>RF-D15</td><td>El capitán puede disolver el equipo con confirmación explícita. El equipo no se borra: queda “disuelto”, con página e historia, y no se reactiva.</td><td>UC-33</td><td>Alta</td></tr>
+  <tr><td>RF-D16</td><td>No se puede disolver con un partido por jugarse o esperando resultado.</td><td>UC-33</td><td>Alta</td></tr>
+  <tr><td>RF-D17</td><td>Al disolver se invalida el link de invitación y se cancelan las búsquedas activas con sus propuestas pendientes.</td><td>UC-33</td><td>Alta</td></tr>
+  <tr><td>RF-D18</td><td>Un equipo disuelto no acepta nuevos integrantes, ediciones, salidas ni expulsiones.</td><td>UC-31, UC-32, UC-33</td><td>Media</td></tr>
+  <tr><td>RF-D19</td><td>Cualquier visitante ve la página pública del equipo: escudo, nombre, zona, modalidad, nivel, cantidad de jugadores, presentismo, calificación, últimos cinco partidos y torneos.</td><td>UC-29</td><td>Alta</td></tr>
+  <tr><td>RF-D20</td><td>El plantel (nombres y capitán) solo es visible para sus integrantes.</td><td>UC-29</td><td>Alta</td></tr>
+  <tr><td>RF-D21</td><td>“Mis equipos” lista los equipos del usuario, con los activos primero y los disueltos al final, indicando si es capitán.</td><td>UC-25, UC-29</td><td>Media</td></tr>
+  <tr><td>RF-D22</td><td>Cambiar de capitán o de plantel nunca se bloquea por partidos en curso: el capitán nuevo opera lo que esté en marcha.</td><td>UC-26, UC-32</td><td>Media</td></tr>
+</table>
+
+<h3>5.2 · Requerimientos no funcionales</h3>
+<table>
+  <tr><th>ID</th><th>Requerimiento</th><th>Cómo se cumple</th></tr>
+  <tr><td>RNF-D01 · Seguridad</td><td>Las reglas de acceso viven en la base, no solo en la interfaz.</td><td>RLS en <code>teams</code> y <code>team_members</code>; <code>team_invites</code> sin policies (solo funciones); funciones <code>security definer</code> con <code>search_path = ''</code> y <code>execute</code> solo para <code>authenticated</code>.</td></tr>
+  <tr><td>RNF-D02 · Integridad</td><td>Siempre hay exactamente un capitán por equipo activo.</td><td>Índice único parcial <code>team_members_one_captain</code> y escritura del plantel solo por funciones.</td></tr>
+  <tr><td>RNF-D03 · Concurrencia</td><td>El límite de 3 capitanías se respeta aun con acciones simultáneas.</td><td><code>select … for update</code> sobre el perfil en <code>create_team</code> y <code>transfer_captaincy</code>.</td></tr>
+  <tr><td>RNF-D04 · Privacidad</td><td>No se publican fotos ni teléfonos de jugadores.</td><td>El plantel está protegido por RLS. El WhatsApp del capitán vive en <code>profile_contacts</code>.</td></tr>
+  <tr><td>RNF-D05 · Seguridad del link</td><td>El token no se puede adivinar ni listar.</td><td>16 bytes aleatorios en hexadecimal; la tabla no se lee directo.</td></tr>
+  <tr><td>RNF-D06 · Consistencia</td><td>Crear equipo y capitán es atómico.</td><td>Una sola función <code>create_team</code> hace ambos inserts.</td></tr>
+  <tr><td>RNF-D07 · Usabilidad</td><td>Mensajes de error claros, en español, y acciones destructivas con confirmación.</td><td>Errores <code>P0001</code> se muestran tal cual; <code>ConfirmButton</code> en sacar, hacer capitán, salir y disolver.</td></tr>
+  <tr><td>RNF-D08 · Compartible</td><td>Cada equipo tiene una URL estable y pública.</td><td><code>/equipos/{id}</code>, accesible sin sesión.</td></tr>
+  <tr><td>RNF-D09 · Mantenibilidad</td><td>La validación es lógica pura y testeada.</td><td><code>parseTeamForm</code> y <code>parseCrest</code> con tests <code>*.test.ts</code>; policies con pgTAP en <code>supabase/tests/</code>.</td></tr>
+</table>
+
+<h2 id="pagina">6. Reflejo en la página</h2>
+<p>Trazabilidad entre lo especificado y lo que se ve y se hace en la aplicación.</p>
+<table>
+  <tr><th>Pantalla / ruta</th><th>Qué muestra o permite</th><th>CU</th><th>RF</th><th>Archivo</th></tr>
+  <tr><td><code>/mis-equipos</code></td><td>Lista de equipos del usuario (activos primero, disueltos al final, marca de capitán), botón “Crear equipo” y estado vacío “Todavía no estás en ningún equipo”.</td><td>UC-25</td><td>RF-D21</td><td><code>src/app/mis-equipos/page.tsx</code></td></tr>
+  <tr><td><code>/crear-equipo</code></td><td>Formulario: nombre, zona, modalidad, nivel y escudo opcional. Muestra los errores de validación y de reglas.</td><td>UC-25</td><td>RF-D01 a D06</td><td><code>src/app/crear-equipo/page.tsx</code>, <code>actions.ts</code></td></tr>
+  <tr><td><code>/equipos/{id}</code> · cabecera y datos</td><td>Escudo, nombre, marca “Equipo disuelto”, zona · corredor, modalidad, nivel, cantidad de jugadores.</td><td>UC-29</td><td>RF-D19</td><td><code>src/app/equipos/[id]/page.tsx</code></td></tr>
+  <tr><td><code>/equipos/{id}</code> · Partidos</td><td>Presentismo, estrellas y últimos cinco partidos cerrados (públicos).</td><td>UC-29</td><td>RF-D19</td><td>ídem (vistas <code>team_record</code>, <code>team_match_history</code>)</td></tr>
+  <tr><td><code>/equipos/{id}</code> · Torneos</td><td>Torneos con inscripción vinculada y su estado.</td><td>UC-29</td><td>RF-D19</td><td>ídem (vista <code>tournament_inscriptions</code>)</td></tr>
+  <tr><td><code>/equipos/{id}</code> · Plantel</td><td>Solo integrantes: nombres, marca Capitán, “(vos)”. Botones Hacer capitán y Sacar (capitán), Salir del equipo (jugador).</td><td>UC-26, UC-32</td><td>RF-D11 a D13, D20</td><td>ídem, <code>actions.ts</code></td></tr>
+  <tr><td><code>/equipos/{id}</code> · Invitar jugadores</td><td>Solo capitán de equipo activo: Generar link, link copiable con vencimiento, Regenerar.</td><td>UC-27</td><td>RF-D07</td><td>ídem, <code>CopyLinkButton</code></td></tr>
+  <tr><td><code>/equipos/{id}</code> · Disolver equipo</td><td>Solo capitán de equipo activo: casilla de confirmación y botón con confirmación; tras disolver, aviso “El equipo quedó disuelto”.</td><td>UC-33</td><td>RF-D15 a D18</td><td>ídem, <code>dissolveTeam</code></td></tr>
+  <tr><td><code>/equipos/{id}/editar</code></td><td>Edición de nombre, zona, modalidad, nivel y escudo (reemplazar o quitar).</td><td>UC-31</td><td>RF-D02, D14</td><td><code>src/app/equipos/[id]/editar/page.tsx</code></td></tr>
+  <tr><td><code>/unirse/{token}</code></td><td>“Te invitaron a un equipo” y botón “Unirme al equipo”; muestra el error si el link no sirve.</td><td>UC-28</td><td>RF-D08 a D10</td><td><code>src/app/unirse/[token]/page.tsx</code></td></tr>
+  <tr><td><code>/perfil</code></td><td>Carga del WhatsApp, requisito para crear equipo o recibir la capitanía.</td><td>UC-25, UC-26</td><td>RF-D04, D11</td><td><code>src/app/perfil/page.tsx</code></td></tr>
+</table>
+
+<h3>Trazabilidad con la base</h3>
+<table>
+  <tr><th>Función / política</th><th>Migración</th><th>Cubre</th></tr>
+  <tr><td><code>create_team</code></td><td><code>20260928000004_teams.sql</code></td><td>RF-D01, D04, D05, D06</td></tr>
+  <tr><td><code>regenerate_team_invite</code>, <code>get_team_invite</code>, <code>join_team</code></td><td><code>20260929000002_team_invites.sql</code></td><td>RF-D07 a D09</td></tr>
+  <tr><td><code>leave_team</code>, <code>remove_team_member</code>, <code>transfer_captaincy</code></td><td><code>20260929000003_team_roster_changes.sql</code></td><td>RF-D11 a D13</td></tr>
+  <tr><td>Política “el capitán edita su equipo activo”</td><td><code>20260928000004_teams.sql</code></td><td>RF-D14</td></tr>
+  <tr><td>Política “solo los integrantes ven el plantel”</td><td><code>20260928000004_teams.sql</code></td><td>RF-D20</td></tr>
+  <tr><td><code>dissolve_team</code> (versión vigente con bloqueo y cancelación)</td><td><code>20261028000006_matches.sql</code></td><td>RF-D15 a D17</td></tr>
+  <tr><td><code>team_crests</code> (bucket del escudo)</td><td><code>20261014000002_team_crests.sql</code></td><td>RF-D02</td></tr>
+</table>
+
+<h2 id="diferencias">7. PDF vs. implementación</h2>
+<p>Para presentar sin contradicciones: donde el PDF y la aplicación difieren, vale <code>docs/decisiones-casos-de-uso.md</code>.</p>
+<table>
+  <tr><th>Tema</th><th>PDF</th><th>Vigente en la aplicación</th></tr>
+  <tr><td>Disponibilidad (grilla de días y franjas)</td><td>SPEC-D02 la incluye.</td><td>Eliminada: no existe en la página ni en la base.</td></tr>
+  <tr><td>Historial (UC-30)</td><td>Solo para miembros.</td><td>Presentismo, calificación y últimos cinco partidos son públicos; no se muestran cancha ni hora.</td></tr>
+  <tr><td>Crear equipo</td><td>Precondición de sesión y límite de 3.</td><td>Además exige WhatsApp en el perfil.</td></tr>
+  <tr><td>Link inválido (UC-28 A1)</td><td>“Este link ya no es válido, pedile uno nuevo al capitán”.</td><td>“El link de invitación no es válido o venció”.</td></tr>
+  <tr><td>Disolver, editar, sacar, salir</td><td>No tienen caso de uso.</td><td>Definidos en decisiones; acá son UC-31 a UC-33.</td></tr>
+  <tr><td>Usuario suspendido</td><td>—</td><td>Puede sumarse a un equipo, pero no recibir la capitanía. El control está marcado como pendiente hasta que exista la suspensión (módulo de administración).</td></tr>
+</table>
+
+</main>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: false, theme: "neutral", sequence: { mirrorActors: false, useMaxWidth: true, wrap: false, actorMargin: 30, messageFontSize: 12, noteFontSize: 12, actorFontSize: 13 } });
+  const nodes = [...document.querySelectorAll("pre.mermaid")];
+  for (const [i, el] of nodes.entries()) {
+    const { svg } = await mermaid.render("diagrama" + i, el.textContent);
+    el.outerHTML = svg;
+  }
+  document.documentElement.dataset.ready = "1";
+</script>
+</body>
+</html>
