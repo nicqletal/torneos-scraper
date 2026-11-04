@@ -29,7 +29,7 @@ Fueron necesarias porque equipos depende de ellas (cuentas, zonas, modalidad). C
 - ~~Nuevo token `--color-brand-danger`~~. Al integrar con torneos se unificó en `--color-brand-red`, que ya se usaba para errores, bajas y "sin confirmar". Usar ese en lugar de hex o `red-*`.
 
 ### 1.5 Documentación
-- Se agregaron `CONTEXT.md`, `docs/decisiones-casos-de-uso.md`, `docs/adr/0001` y `0002`, `docs/casos-de-uso.pdf` y el contexto del proyecto en `AGENTS.md`. Son la base común: **todos deberían leerlos** y, si deciden una regla nueva, agregarla ahí.
+- Se agregaron `CONTEXT.md`, `docs/especificaciones-y-requerimientos/decisiones-casos-de-uso.md`, `docs/adr/0001` y `0002`, `docs/casos-de-uso/casos-de-uso.pdf` y el contexto del proyecto en `AGENTS.md`. Son la base común: **todos deberían leerlos** y, si deciden una regla nueva, agregarla ahí.
 
 ### 1.6 Supabase en el repo
 - `supabase/config.toml` y `supabase/.gitignore` (proyecto de Supabase CLI).
@@ -40,7 +40,7 @@ Fueron necesarias porque equipos depende de ellas (cuentas, zonas, modalidad). C
 
 ## 1 bis. Reglas de negocio que definimos
 
-Están escritas en `docs/decisiones-casos-de-uso.md` (fuente de verdad) y en `CONTEXT.md`. Acá va el resumen de lo que afecta a otros módulos.
+Están escritas en `docs/especificaciones-y-requerimientos/decisiones-casos-de-uso.md` (fuente de verdad) y en `CONTEXT.md`. Acá va el resumen de lo que afecta a otros módulos.
 
 ### Zonas
 - **Tres niveles:** región (CABA, GBA) > corredor (p. ej. GBA Norte) > zona (barrio o partido).

@@ -1,6 +1,6 @@
 # Casos de uso de Torneos Amateur BA
 
-Versión del **03/11/2026**. Reemplaza a los documentos de casos de uso dispersos en Google Docs (última versión del 27/09/2026, módulos A–F y T) y al PDF `docs/casos-de-uso.pdf`. Está escrito a partir de las reglas vigentes en [decisiones-casos-de-uso.md](../decisiones-casos-de-uso.md), el glosario [CONTEXT.md](../../CONTEXT.md), los ADR y el código del repo al día de hoy.
+Versión del **03/11/2026**. Reemplaza a los documentos de casos de uso dispersos en Google Docs (última versión del 27/09/2026, módulos A–F y T) y al PDF `docs/casos-de-uso/casos-de-uso.pdf`. Está escrito a partir de las reglas vigentes en [decisiones-casos-de-uso.md](../especificaciones-y-requerimientos/decisiones-casos-de-uso.md), el glosario [CONTEXT.md](../../CONTEXT.md), los ADR y el código del repo al día de hoy.
 
 **Cómo leerlo**
 
