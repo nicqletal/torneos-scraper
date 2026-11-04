@@ -28,7 +28,8 @@ Leer en este orden antes de tocar código:
 1. **`CONTEXT.md`** — glosario del dominio. Usar **exactamente** esos términos en código, issues, PRs y UI (por ejemplo, un partido "se cae", nunca "se suspende"; se dice "baja", no "eliminar").
 2. **`docs/decisiones-casos-de-uso.md`** — reglas de negocio vigentes, por módulo, incluida la tabla de visibilidad que define las reglas de acceso (RLS). **Es la fuente de verdad del alcance.** Si contradice al PDF, manda este archivo.
 3. **`docs/adr/`** — decisiones grandes con su porqué. No "arreglar" algo que un ADR decidió a propósito.
-4. `docs/casos-de-uso.pdf` — casos de uso originales de la materia (módulos A–F y T). Sirve como detalle de los flujos, pero está corregido por el punto 2.
+4. **`docs/casos-de-uso/casos-de-uso.md`** — casos de uso completos y vigentes (03/11/2026), con actor, flujos, estado de implementación. Reemplaza al PDF y a los Google Docs.
+5. `docs/casos-de-uso.pdf` — casos de uso originales de la materia (módulos A–F y T). Histórico: está corregido por los puntos 2 y 4.
 
 Históricos (desactualizados, no usar para decidir alcance):
 
