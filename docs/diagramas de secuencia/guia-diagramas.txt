@@ -1,0 +1,31 @@
+GUÍA PARA DIAGRAMAS DE SECUENCIA CON FORMULARIOS Y DESPLEGABLES
+
+Propósito: usar esta guía al crear o revisar diagramas de secuencia del proyecto.
+Respetar los casos de uso y el vocabulario de CONTEXT.md y
+docs/decisiones-casos-de-uso.md. Representar un caso de uso por diagrama.
+
+1. Si el caso comienza con un formulario, mostrar al actor abriendo la pantalla.
+2. Antes de la elección del usuario, mostrar cómo la pantalla obtiene las opciones
+   de cada desplegable y recibe los resultados.
+3. Identificar el origen real de cada lista. Si se consulta en la base, representar
+   un repositorio con nombre específico, como ZonaRepository. Si es una lista fija
+   del código, representar un proveedor de opciones, como OpcionesEquipo.
+4. Crear un objeto por responsabilidad o fuente de datos, no necesariamente uno
+   por cada desplegable. No inventar repositorios para listas no almacenadas.
+5. Mostrar el formulario con las opciones cargadas antes de que el actor elija.
+6. Al enviar, pasar al método del caso de uso solo los valores elegidos (por
+   ejemplo, zonaId, modalidad y nivel), no las listas completas.
+7. Validar nuevamente al guardar. Una opción mostrada en pantalla no garantiza
+   que el valor recibido siga siendo válido.
+8. Mantener la carga de opciones y la operación principal dentro del mismo
+   diagrama cuando ambas pertenecen al mismo caso de uso. Separar casos de uso
+   distintos, no etapas de un mismo caso.
+9. Los objetos del diagrama pueden expresar responsabilidades conceptuales. Si
+   no existen como clases en el código, aclararlo junto al diagrama.
+
+EJEMPLO: CREAR EQUIPO
+
+FormularioCrearEquipo obtiene Zonas de ZonaRepository y modalidades y niveles
+de OpcionesEquipo. Después envía la selección a EquipoService.crearEquipo(...).
+Validador revisa los datos y EquipoRepository realiza el alta. En este proyecto,
+las Zonas se consultan en la base; modalidad y nivel son listas fijas del código.
