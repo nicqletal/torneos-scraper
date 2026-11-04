@@ -68,7 +68,7 @@ export function UserMenu({ email, isAdmin = false }: UserMenuProps) {
             <Link
               href="/perfil"
               onClick={() => setIsOpen(false)}
-              className="ui-action flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
+              className="ui-action w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
             >
               <UserRound className="w-4 h-4" />
               Mi perfil
@@ -77,7 +77,7 @@ export function UserMenu({ email, isAdmin = false }: UserMenuProps) {
             <Link
               href="/mis-equipos"
               onClick={() => setIsOpen(false)}
-              className="ui-action flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
+              className="ui-action w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
             >
               <Users className="w-4 h-4" />
               Mis equipos
@@ -86,7 +86,7 @@ export function UserMenu({ email, isAdmin = false }: UserMenuProps) {
             <Link
               href="/partidos"
               onClick={() => setIsOpen(false)}
-              className="ui-action flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
+              className="ui-action w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
             >
               <Swords className="w-4 h-4" />
               Partidos
@@ -95,7 +95,7 @@ export function UserMenu({ email, isAdmin = false }: UserMenuProps) {
             <Link
               href="/mis-torneos"
               onClick={() => setIsOpen(false)}
-              className="ui-action flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
+              className="ui-action w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
             >
               <Trophy className="w-4 h-4" />
               Mis torneos
@@ -105,7 +105,7 @@ export function UserMenu({ email, isAdmin = false }: UserMenuProps) {
               <Link
                 href="/admin"
                 onClick={() => setIsOpen(false)}
-                className="ui-action flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
+                className="ui-action w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
               >
                 <ShieldCheck className="w-4 h-4" />
                 Administración
