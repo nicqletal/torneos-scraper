@@ -7,35 +7,38 @@
 
 ## Modelo de dominio del módulo
 
-Vista estructural de las entidades y enumeraciones que sostienen la publicación y gestión de torneos e inscripciones por parte del Organizador (`UC-E01` a `UC-E07`).
+Vista estructural de las entidades, relaciones de composición/asociación y enumeraciones que comparten los casos de uso `UC-E01` a `UC-E07`.
 
 ```mermaid
 classDiagram
-direction TB
 class Torneo {
   <<entidad>>
   +id: uuid
-  +userId: uuid
+  +organizadorId: uuid
   +nombre: texto
   +modalidad: Modalidad
-  +cierreInscripcion: fecha
+  +zonaId: texto
+  +fechaCierreInscripcion: fecha
   +fechaInicio: fecha
   +fechaFin: fecha
-  +precio: dinero [0..1]
-  +cupo: entero [0..1]
+  +direccion: texto
+  +whatsapp: texto [0..1]
+  +instagram: texto [0..1]
+  +precio: decimal [0..1]
+  +cupoMaximo: entero [0..1]
   +descripcion: texto [0..1]
   +reglamento: texto [0..1]
-  +direccionSede: texto
-  +contactoWhatsapp: texto [0..1]
-  +contactoInstagram: texto [0..1]
   +flyerUrl: texto [0..1]
   +verificadoEn: fechaHora
-  +dadoDeBajaEn: fechaHora [0..1]
+  +observado: booleano
+  +creadoEn: fechaHora
   +estado() EstadoTorneo
   +cantidadInscriptos() entero
   +cuposRestantes() entero
-  +puedeConfirmarVigencia() booleano
   +antiguedadVerificacion() NivelAntiguedad
+  +puedeVerificarHoy() booleano
+  +admiteCambios() booleano
+  +esOrganizador(usuarioId) booleano
 }
 class Inscripcion {
   <<entidad>>
@@ -43,7 +46,6 @@ class Inscripcion {
   +torneoId: uuid
   +equipoId: uuid [0..1]
   +nombreEquipo: texto
-  +contacto: texto [0..1]
   +creadaEn: fechaHora
   +esVinculada() booleano
   +esPorNombre() booleano
@@ -52,47 +54,41 @@ class Equipo {
   <<entidad>>
   +id: uuid
   +nombre: texto
-  +modalidad: Modalidad
-  +escudoUrl: texto [0..1]
+  +zonaId: texto
   +disueltoEn: fechaHora [0..1]
-  +estaDisuelto() booleano
+  +estaActivo() booleano
 }
-class IntegrantePlantel {
-  <<entidad>>
-  +teamId: uuid
-  +userId: uuid
-  +esCapitan: booleano
-}
-class Aviso {
+class Usuario {
   <<entidad>>
   +id: uuid
-  +usuarioId: uuid
-  +tipo: TipoAviso
-  +parametros: json
-  +enlace: texto
-  +creadoEn: fechaHora
+  +email: texto
+  +estaSuspendido() booleano
 }
 class Zona {
   <<entidad>>
   +id: texto
   +nombre: texto
+  +corredorId: texto
+  +orden: entero
 }
-class Corredor {
+class Aviso {
   <<entidad>>
-  +id: texto
-  +nombre: texto
-}
-class Region {
-  <<entidad>>
-  +id: texto
-  +nombre: texto
+  +id: uuid
+  +userId: uuid
+  +tipo: TipoAviso
+  +parametros: jsonb
 }
 class Modalidad {
   <<enumeracion>>
   Futbol5
+  Futbol6
   Futbol7
   Futbol8
+  Futbol9
   Futbol11
+  Femenino
+  Mixto
+  Senior
 }
 class EstadoTorneo {
   <<enumeracion>>
@@ -103,20 +99,18 @@ class EstadoTorneo {
 }
 class NivelAntiguedad {
   <<enumeracion>>
-  AlDia
+  Vigente
   Ambar30Dias
-  RojoSinConfirmar60Dias
+  Rojo60DiasSinConfirmar
 }
-Torneo "0..*" --> "1" Zona : se juega en
-Zona "1..*" --> "1" Corredor : pertenece a
-Corredor "1..*" --> "1" Region : pertenece a
-Torneo "1" *-- "0..*" Inscripcion : registra
-Inscripcion "0..*" --> "0..1" Equipo : vincula equipo
-Equipo "1" *-- "1..*" IntegrantePlantel : conformado por
+Usuario "1" --> "0..*" Torneo
+Torneo "1" *-- "0..*" Inscripcion
+Inscripcion "0..*" --> "0..1" Equipo
+Torneo "0..*" --> "1" Zona
 Torneo ..> Modalidad
-Torneo ..> EstadoTorneo : calcula al leer
-Torneo ..> NivelAntiguedad : calcula al leer
-Torneo ..> Aviso : notifica baja a planteles vinculados
+Torneo ..> EstadoTorneo
+Torneo ..> NivelAntiguedad
+Torneo ..> Aviso
 ```
 
 ---
@@ -125,51 +119,62 @@ Torneo ..> Aviso : notifica baja a planteles vinculados
 
 ### UC-E01 · Publicar un torneo
 
-**Requerimientos:** `RF-E01`, `RF-E02`, `RNF-E01` · **Pantalla:** [P-E01 · Publicar torneo](../organizador/03-pantallas.md) (`/crear-torneo`) · **Secuencia:** [`uc-e01-publicar-torneo.md`](../organizador/04-diagramas-secuencia/uc-e01-publicar-torneo.md)
+> Especificación: [UC-E01](../organizador/02-casos-de-uso.md#uc-e01--publicar-un-torneo) · Pantalla: [P2 · Publicar torneo](../organizador/03-pantallas.md#p2--publicar-torneo) · Secuencia: [S01 · Publicar torneo](../organizador/04-diagramas-secuencia/uc-e01-publicar-torneo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FormularioTorneo {
   <<boundary>>
   +abrirPublicarTorneo()
-  +confirmarPublicacion(datos, flyer)
+  +mostrarFormulario(zonas, modalidades)
+  +completarDatosYSeleccionar(nombre, modalidad, zonaId, fechas, direccion, contactos, precio, cupo, descripcion, reglamento, flyer)
+  +confirmarPublicar()
   +mostrarErrores(errores)
+  +abrirFichaConAvisoPublicado(torneoId)
 }
 class OpcionesTorneo {
-  <<proveedor de opciones>>
+  <<boundary>>
   +listarModalidades() Modalidad[]
 }
 class TorneoService {
   <<control>>
-  +prepararFormularioTorneo() Zona[]
-  +publicarTorneo(organizadorId, datos, flyer) uuid
+  +obtenerOpcionesFormulario()
+  +publicarTorneo(nombre, modalidad, zonaId, fechas, direccion, contactos, precio, cupo, descripcion, reglamento, flyer) uuid
 }
 class ValidadorTorneo {
   <<validador>>
-  +validarDatosTorneo(datos) booleano
-  +validarFechas(cierre, inicio, fin) booleano
-  +validarPreciosYCupo(precio, cupo) booleano
-  +validarCanalContacto(whatsapp, instagram) booleano
+  +validarDatos(nombre, modalidad, zonaId, fechas, direccion, contactos, precio, cupo) booleano
   +validarFlyer(flyer) booleano
 }
 class ZonaRepository {
   <<repositorio>>
   +listarZonas() Zona[]
-  +existeZona(zonaId) booleano
 }
 class TorneoRepository {
   <<repositorio>>
-  +crearTorneo(organizadorId, datos) uuid
-  +guardarFlyer(torneoId, flyer)
+  +crearTorneo(datos, usuario) uuid
+  +guardarFlyer(id, flyer)
 }
 class Torneo {
   <<entidad>>
   +id: uuid
-  +userId: uuid
+  +organizadorId: uuid
   +nombre: texto
   +modalidad: Modalidad
+  +zonaId: texto
+  +fechaCierreInscripcion: fecha
+  +fechaInicio: fecha
+  +fechaFin: fecha
+  +direccion: texto
+  +whatsapp: texto [0..1]
+  +instagram: texto [0..1]
+  +precio: decimal [0..1]
+  +cupoMaximo: entero [0..1]
+  +descripcion: texto [0..1]
+  +reglamento: texto [0..1]
+  +flyerUrl: texto [0..1]
   +verificadoEn: fechaHora
+  +estado() EstadoTorneo
 }
 class Zona {
   <<entidad>>
@@ -179,105 +184,135 @@ class Zona {
 class Modalidad {
   <<enumeracion>>
   Futbol5
+  Futbol6
   Futbol7
   Futbol8
+  Futbol9
   Futbol11
+  Femenino
+  Mixto
+  Senior
 }
-FormularioTorneo ..> OpcionesTorneo : obtiene modalidades fijas
-FormularioTorneo ..> TorneoService : solicita Zonas y envía datos del torneo
-TorneoService ..> ZonaRepository : consulta y verifica Zona
-TorneoService ..> ValidadorTorneo : valida datos, fechas, contactos y flyer
-TorneoService ..> TorneoRepository : ejecuta alta y sube flyer
-TorneoRepository ..> Torneo : instancia con verificadoEn actual
-Torneo "0..*" --> "1" Zona : se juega en
-OpcionesTorneo ..> Modalidad
+FormularioTorneo ..> OpcionesTorneo
+FormularioTorneo ..> TorneoService
+TorneoService ..> OpcionesTorneo
+TorneoService ..> ZonaRepository
+TorneoService ..> ValidadorTorneo
+TorneoService ..> TorneoRepository
+ZonaRepository ..> Zona
+TorneoRepository ..> Torneo
+Torneo "0..*" --> "1" Zona
+Torneo ..> Modalidad
 ```
 
 ---
 
-### UC-E02 · Ver mis torneos
+### UC-E02 · Ver mis torneos (Panel de organizador)
 
-**Requerimientos:** `RF-E03`, `RF-E04` · **Pantallas:** [P-E02 · Mis torneos](../organizador/03-pantallas.md) (`/mis-torneos`) y [P-E04 · Gestión del torneo](../organizador/03-pantallas.md) (`/mis-torneos/[id]`) · **Secuencia:** [`uc-e02-ver-mis-torneos.md`](../organizador/04-diagramas-secuencia/uc-e02-ver-mis-torneos.md)
+> Especificación: [UC-E02](../organizador/02-casos-de-uso.md#uc-e02--ver-mis-torneos-panel-de-organizador) · Pantallas: [P1 · Mis torneos](../organizador/03-pantallas.md#p1--mis-torneos) y [P3 · Gestión del torneo](../organizador/03-pantallas.md#p3--gestión-del-torneo) · Secuencia: [S02 · Ver mis torneos](../organizador/04-diagramas-secuencia/uc-e02-ver-mis-torneos.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PanelTorneos {
   <<boundary>>
   +abrirMisTorneos()
-  +mostrarTarjetas(torneos)
-  +mostrarEstadoVacio()
-  +abrirGestionTorneo(torneoId)
+  +calcularAntiguedadYOrdenar(torneos)
+  +mostrarFilas(torneos)
+  +mostrarSinTorneos()
+  +tocarGestionar(torneoId)
+}
+class GestionTorneo {
+  <<boundary>>
+  +abrirGestion(torneoId, pestana)
+  +mostrarCabeceraYPestanas(torneo)
+  +mostrarNoEncontrado()
 }
 class TorneoService {
   <<control>>
-  +listarTorneosPropios(organizadorId) Torneo[]
-  +consultarGestionTorneo(torneoId, organizadorId) DetalleGestionTorneo
+  +listarMisTorneos(usuarioId) Torneo[]
+  +obtenerTorneoParaGestion(torneoId, usuarioId) Torneo
 }
 class TorneoRepository {
   <<repositorio>>
-  +listarPorOrganizador(organizadorId) Torneo[]
-  +obtenerPorIdYOrganizador(torneoId, organizadorId) Torneo
-}
-class InscripcionRepository {
-  <<repositorio>>
-  +listarPorTorneo(torneoId) Inscripcion[]
+  +listarTorneosPropios(usuarioId) Torneo[]
+  +obtenerTorneoPropio(torneoId, usuarioId) Torneo
 }
 class Torneo {
   <<entidad>>
   +id: uuid
+  +organizadorId: uuid
   +nombre: texto
-  +cupo: entero [0..1]
+  +modalidad: Modalidad
+  +zonaId: texto
+  +cupoMaximo: entero [0..1]
   +verificadoEn: fechaHora
   +estado() EstadoTorneo
   +cantidadInscriptos() entero
-  +puedeConfirmarVigencia() booleano
+  +cuposRestantes() entero
+  +antiguedadVerificacion() NivelAntiguedad
 }
 class Inscripcion {
   <<entidad>>
   +id: uuid
+  +torneoId: uuid
   +equipoId: uuid [0..1]
   +nombreEquipo: texto
-  +contacto: texto [0..1]
+  +esVinculada() booleano
 }
-PanelTorneos ..> TorneoService : solicita listado propio y detalle de gestión
-TorneoService ..> TorneoRepository : recupera torneos activos del organizador
-TorneoService ..> InscripcionRepository : recupera inscripciones del torneo
-TorneoRepository ..> Torneo : hidrata estado y cupos
-InscripcionRepository ..> Inscripcion : hidrata vinculadas y por nombre
-Torneo "1" *-- "0..*" Inscripcion : registra
+class EstadoTorneo {
+  <<enumeracion>>
+  Abierto
+  Cerrado
+  EnCurso
+  Finalizado
+}
+class NivelAntiguedad {
+  <<enumeracion>>
+  Vigente
+  Ambar30Dias
+  Rojo60DiasSinConfirmar
+}
+PanelTorneos ..> TorneoService
+PanelTorneos ..> GestionTorneo
+GestionTorneo ..> TorneoService
+TorneoService ..> TorneoRepository
+TorneoRepository ..> Torneo
+Torneo "1" *-- "0..*" Inscripcion
+Torneo ..> EstadoTorneo
+Torneo ..> NivelAntiguedad
 ```
 
 ---
 
 ### UC-E03 · Editar un torneo
 
-**Requerimientos:** `RF-E05`, `RF-E06`, `RNF-E01` · **Pantalla:** [P-E03 · Editar torneo](../organizador/03-pantallas.md) (`/mis-torneos/[id]/editar`) · **Secuencia:** [`uc-e03-editar-torneo.md`](../organizador/04-diagramas-secuencia/uc-e03-editar-torneo.md)
+> Especificación: [UC-E03](../organizador/02-casos-de-uso.md#uc-e03--editar-un-torneo) · Pantalla: [P3 · Gestión del torneo](../organizador/03-pantallas.md#p3--gestión-del-torneo) · Secuencia: [S03 · Editar torneo](../organizador/04-diagramas-secuencia/uc-e03-editar-torneo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FormularioTorneo {
   <<boundary>>
-  +abrirEditarTorneo(torneoId)
-  +pedirConfirmacionPorInscriptos(cantidadInscriptos) booleano
-  +confirmarCambios(torneoId, datos, nuevoFlyer)
-  +mostrarErrores(errores)
+  +abrirDatosDelTorneo(torneoId)
+  +mostrarFormularioActual(torneo, zonas, modalidades)
+  +cambiarDatos(nombre, modalidad, zonaId, fechas, direccion, contactos, precio, cupo, descripcion, reglamento, flyer)
+  +pedirConfirmacionConAnotados(cantidadInscriptos)
+  +guardar()
+  +mostrarError(mensaje)
+  +volverAGestion(torneoId)
 }
 class OpcionesTorneo {
-  <<proveedor de opciones>>
+  <<boundary>>
   +listarModalidades() Modalidad[]
 }
 class TorneoService {
   <<control>>
-  +cargarTorneoEditable(torneoId, organizadorId) DatosEdicionTorneo
-  +editarTorneo(organizadorId, torneoId, datos, nuevoFlyer)
+  +cargarDatosEdicion(torneoId, usuarioId)
+  +editarTorneo(torneoId, nombre, modalidad, zonaId, fechas, direccion, contactos, precio, cupo, descripcion, reglamento, flyer)
 }
 class ValidadorTorneo {
   <<validador>>
-  +validarDatosTorneo(datos) booleano
-  +validarCupoConInscriptos(cupo, inscriptosActuales) booleano
-  +validarFlyer(nuevoFlyer) booleano
+  +validarDatos(nombre, modalidad, zonaId, fechas, direccion, contactos, precio, cupo) booleano
+  +validarFlyer(flyer) booleano
 }
 class ZonaRepository {
   <<repositorio>>
@@ -285,164 +320,213 @@ class ZonaRepository {
 }
 class TorneoRepository {
   <<repositorio>>
-  +obtenerPorIdYOrganizador(torneoId, organizadorId) Torneo
-  +contarInscriptos(torneoId) entero
-  +actualizarTorneo(torneoId, datos)
-  +reemplazarFlyer(torneoId, nuevoFlyer)
+  +obtenerTorneoPropio(torneoId, usuarioId) Torneo
+  +guardarCambios(torneoId, datos, usuarioId)
+  +guardarFlyer(torneoId, flyer)
 }
 class Torneo {
   <<entidad>>
   +id: uuid
-  +userId: uuid
-  +cupo: entero [0..1]
-  +verificadoEn: fechaHora
-  +estado() EstadoTorneo
+  +organizadorId: uuid
+  +nombre: texto
+  +modalidad: Modalidad
+  +zonaId: texto
+  +fechaCierreInscripcion: fecha
+  +fechaInicio: fecha
+  +fechaFin: fecha
+  +direccion: texto
+  +whatsapp: texto [0..1]
+  +instagram: texto [0..1]
+  +precio: decimal [0..1]
+  +cupoMaximo: entero [0..1]
+  +descripcion: texto [0..1]
+  +reglamento: texto [0..1]
+  +flyerUrl: texto [0..1]
+  +cantidadInscriptos() entero
+  +esOrganizador(usuarioId) booleano
 }
 class Zona {
   <<entidad>>
   +id: texto
   +nombre: texto
 }
-FormularioTorneo ..> OpcionesTorneo : obtiene modalidades fijas
-FormularioTorneo ..> TorneoService : solicita datos actuales y envía cambios
-TorneoService ..> ZonaRepository : obtiene Zonas disponibles
-TorneoService ..> ValidadorTorneo : valida datos, cupo frente a inscriptos y flyer
-TorneoService ..> TorneoRepository : lee y actualiza torneo conservando verificadoEn
-TorneoRepository ..> Torneo : persiste cambios
-Torneo "0..*" --> "1" Zona : se juega en
+class Modalidad {
+  <<enumeracion>>
+  Futbol5
+  Futbol6
+  Futbol7
+  Futbol8
+  Futbol9
+  Futbol11
+  Femenino
+  Mixto
+  Senior
+}
+FormularioTorneo ..> OpcionesTorneo
+FormularioTorneo ..> TorneoService
+TorneoService ..> OpcionesTorneo
+TorneoService ..> ZonaRepository
+TorneoService ..> ValidadorTorneo
+TorneoService ..> TorneoRepository
+ZonaRepository ..> Zona
+TorneoRepository ..> Torneo
+Torneo "0..*" --> "1" Zona
+Torneo ..> Modalidad
 ```
 
 ---
 
 ### UC-E04 · Verificar que el torneo sigue vigente
 
-**Requerimientos:** `RF-E06`, `RNF-E01` · **Pantallas:** [P-E02 · Mis torneos](../organizador/03-pantallas.md) y [P-E04 · Gestión del torneo](../organizador/03-pantallas.md) · **Secuencia:** [`uc-e04-verificar-torneo.md`](../organizador/04-diagramas-secuencia/uc-e04-verificar-torneo.md)
+> Especificación: [UC-E04](../organizador/02-casos-de-uso.md#uc-e04--verificar-que-el-torneo-sigue-vigente) · Pantallas: [P1 · Mis torneos](../organizador/03-pantallas.md#p1--mis-torneos) y [P3 · Gestión del torneo](../organizador/03-pantallas.md#p3--gestión-del-torneo) · Secuencia: [S04 · Verificar torneo](../organizador/04-diagramas-secuencia/uc-e04-verificar-torneo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PanelTorneos {
   <<boundary>>
+  +decidirVisibilidadSigueVigente(torneo)
+  +mostrarSigueVigente()
   +pulsarSigueVigente(torneoId)
-  +mostrarFechaConfirmacion(fecha)
-  +deshabilitarBotonSiReciente()
 }
 class TorneoService {
   <<control>>
-  +confirmarVigencia(organizadorId, torneoId) fechaHora
+  +verificarTorneo(torneoId)
 }
 class TorneoRepository {
   <<repositorio>>
-  +confirmarVigencia(torneoId, organizadorId) fechaHora
+  +verificar(torneoId)
+  +comprobarDuenoYNoFinalizado(torneoId) booleano
+  +reiniciarAntiguedadVerificacion(torneoId)
 }
 class Torneo {
   <<entidad>>
   +id: uuid
-  +userId: uuid
+  +organizadorId: uuid
   +verificadoEn: fechaHora
   +estado() EstadoTorneo
-  +puedeConfirmarVigencia() booleano
+  +antiguedadVerificacion() NivelAntiguedad
+  +puedeVerificarHoy() booleano
 }
-PanelTorneos ..> TorneoService : solicita confirmar vigencia
-TorneoService ..> TorneoRepository : ejecuta verify_tournament
-TorneoRepository ..> Torneo : comprueba vigencia y actualiza verificadoEn
+class NivelAntiguedad {
+  <<enumeracion>>
+  Vigente
+  Ambar30Dias
+  Rojo60DiasSinConfirmar
+}
+PanelTorneos ..> TorneoService
+TorneoService ..> TorneoRepository
+TorneoRepository ..> Torneo
+Torneo ..> NivelAntiguedad
 ```
 
 ---
 
 ### UC-E05 · Dar de baja un torneo
 
-**Requerimientos:** `RF-E07`, `RNF-E01` · **Pantallas:** [P-E02 · Mis torneos](../organizador/03-pantallas.md) y [P-E04 · Gestión del torneo](../organizador/03-pantallas.md) · **Secuencia:** [`uc-e05-dar-de-baja-torneo.md`](../organizador/04-diagramas-secuencia/uc-e05-dar-de-baja-torneo.md)
+> Especificación: [UC-E05](../organizador/02-casos-de-uso.md#uc-e05--dar-de-baja-un-torneo) · Pantalla: [P3 · Gestión del torneo](../organizador/03-pantallas.md#p3--gestión-del-torneo) · Secuencia: [S05 · Dar de baja torneo](../organizador/04-diagramas-secuencia/uc-e05-dar-de-baja-torneo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class GestionTorneo {
   <<boundary>>
   +pulsarDarDeBaja(torneoId)
-  +pedirConfirmacionBaja(nombre, cantidadInscriptos) booleano
-  +redirigirAMisTorneos()
+  +pedirConfirmacion(nombre, cantidadInscriptos)
+  +confirmarBaja(torneoId)
+  +mostrarError(mensaje)
+  +volverAMisTorneos()
 }
 class TorneoService {
   <<control>>
-  +darDeBajaTorneo(organizadorId, torneoId)
+  +darDeBajaTorneo(torneoId)
 }
 class TorneoRepository {
   <<repositorio>>
-  +darDeBajaTorneo(torneoId, organizadorId) texto
-  +borrarFlyer(flyerUrl)
-}
-class AvisoRepository {
-  <<repositorio>>
-  +notificarBajaAInscriptosVinculados(torneoId)
+  +darDeBaja(torneoId)
+  +comprobarDuenoYNoFinalizado(torneoId) booleano
+  +borrarTorneoEInscripciones(torneoId)
+  +avisarAPlantelesVinculados(torneoId)
+  +borrarFlyer(torneoId)
 }
 class Torneo {
   <<entidad>>
   +id: uuid
+  +organizadorId: uuid
+  +nombre: texto
   +flyerUrl: texto [0..1]
-  +dadoDeBajaEn: fechaHora [0..1]
+  +estado() EstadoTorneo
+  +admiteCambios() booleano
 }
 class Inscripcion {
   <<entidad>>
   +id: uuid
   +torneoId: uuid
   +equipoId: uuid [0..1]
+  +esVinculada() booleano
 }
 class Aviso {
   <<entidad>>
   +id: uuid
-  +usuarioId: uuid
+  +userId: uuid
   +tipo: TipoAviso
+  +parametros: jsonb
 }
-GestionTorneo ..> TorneoService : confirma baja del torneo
-TorneoService ..> TorneoRepository : ejecuta withdraw_tournament y retira flyer
-TorneoRepository ..> AvisoRepository : solicita avisar a planteles vinculados
-TorneoRepository ..> Torneo : registra baja
-TorneoRepository ..> Inscripcion : consulta inscripciones vinculadas
-AvisoRepository ..> Aviso : emite un único aviso por jugador distinto
+GestionTorneo ..> TorneoService
+TorneoService ..> TorneoRepository
+TorneoRepository ..> Torneo
+TorneoRepository ..> Inscripcion
+TorneoRepository ..> Aviso
+Torneo "1" *-- "0..*" Inscripcion
 ```
 
 ---
 
 ### UC-E06 · Cargar una inscripción
 
-**Requerimientos:** `RF-E08`, `RF-E09`, `RF-E10`, `RNF-E01` · **Pantalla:** [P-E04 · Gestión del torneo](../organizador/03-pantallas.md) (`/mis-torneos/[id]`) · **Secuencia:** [`uc-e06-cargar-inscripcion.md`](../organizador/04-diagramas-secuencia/uc-e06-cargar-inscripcion.md)
+> Especificación: [UC-E06](../organizador/02-casos-de-uso.md#uc-e06--cargar-una-inscripción) · Pantalla: [P3 · Gestión del torneo](../organizador/03-pantallas.md#p3--gestión-del-torneo) · Secuencia: [S06 · Cargar inscripción](../organizador/04-diagramas-secuencia/uc-e06-cargar-inscripcion.md)
 
 ```mermaid
 classDiagram
-direction TB
 class GestionTorneo {
   <<boundary>>
-  +buscarEquipoRegistrado(termino)
-  +seleccionarEquipoVinculado(torneoId, equipoId)
-  +ingresarInscripcionPorNombre(torneoId, nombreEquipo, contacto)
-  +mostrarInscripcionAgregada(inscripcion)
+  +abrirPestanaInscripciones(torneoId)
+  +mostrarInscripciones(inscriptos)
+  +escribirBusquedaEquipo(texto)
+  +mostrarResultadosBusqueda(equipos)
+  +elegirEquipoConAnotar(torneoId, equipoId)
+  +escribirNombreYConfirmar(torneoId, nombre)
   +mostrarError(mensaje)
 }
 class InscripcionService {
   <<control>>
-  +buscarEquiposActivos(termino) Equipo[]
-  +inscribirEquipoVinculado(organizadorId, torneoId, equipoId) Inscripcion
-  +inscribirEquipoPorNombre(organizadorId, torneoId, nombreEquipo, contacto) Inscripcion
+  +buscarEquiposActivos(texto) Equipo[]
+  +anotarEquipoVinculado(torneoId, equipoId)
+  +anotarEquipoPorNombre(torneoId, nombre)
 }
 class ValidadorTorneo {
   <<validador>>
-  +validarInscripcionPorNombre(nombreEquipo, contacto) booleano
+  +validarBusqueda(texto) booleano
+  +validarNombreDeEquipo(nombre) texto
 }
 class EquipoRepository {
   <<repositorio>>
-  +buscarActivosPorNombre(termino) Equipo[]
+  +buscarEquiposActivos(texto) Equipo[]
 }
 class InscripcionRepository {
   <<repositorio>>
-  +agregarVinculada(torneoId, equipoId) Inscripcion
-  +agregarPorNombre(torneoId, nombreEquipo, contacto) Inscripcion
+  +agregarVinculada(torneoId, equipoId)
+  +agregarPorNombre(torneoId, nombre)
+  +verificarDuenoNoFinalizadoYCupo(torneoId) booleano
+  +verificarEquipoActivoYNoAnotado(torneoId, equipoId) booleano
 }
-class Equipo {
+class Torneo {
   <<entidad>>
   +id: uuid
-  +nombre: texto
-  +disueltoEn: fechaHora [0..1]
+  +organizadorId: uuid
+  +cupoMaximo: entero [0..1]
+  +estado() EstadoTorneo
+  +cantidadInscriptos() entero
+  +cuposRestantes() entero
+  +admiteCambios() booleano
 }
 class Inscripcion {
   <<entidad>>
@@ -450,38 +534,62 @@ class Inscripcion {
   +torneoId: uuid
   +equipoId: uuid [0..1]
   +nombreEquipo: texto
-  +contacto: texto [0..1]
+  +creadaEn: fechaHora
+  +esVinculada() booleano
+  +esPorNombre() booleano
 }
-GestionTorneo ..> InscripcionService : busca equipo y envía alta de inscripción
-InscripcionService ..> EquipoRepository : consulta equipos activos por nombre
-InscripcionService ..> ValidadorTorneo : valida nombre y contacto
-InscripcionService ..> InscripcionRepository : ejecuta add_linked_inscription o add_inscription
-EquipoRepository ..> Equipo : filtra activos
-InscripcionRepository ..> Inscripcion : verifica cupo y registra inscripción
+class Equipo {
+  <<entidad>>
+  +id: uuid
+  +nombre: texto
+  +zonaId: texto
+  +disueltoEn: fechaHora [0..1]
+  +estaActivo() booleano
+}
+GestionTorneo ..> InscripcionService
+InscripcionService ..> ValidadorTorneo
+InscripcionService ..> EquipoRepository
+InscripcionService ..> InscripcionRepository
+EquipoRepository ..> Equipo
+InscripcionRepository ..> Torneo
+InscripcionRepository ..> Inscripcion
+InscripcionRepository ..> Equipo
+Torneo "1" *-- "0..*" Inscripcion
+Inscripcion "0..*" --> "0..1" Equipo
 ```
 
 ---
 
 ### UC-E07 · Dar de baja una inscripción
 
-**Requerimientos:** `RF-E11`, `RNF-E01` · **Pantalla:** [P-E04 · Gestión del torneo](../organizador/03-pantallas.md) (`/mis-torneos/[id]`) · **Secuencia:** [`uc-e07-dar-de-baja-inscripcion.md`](../organizador/04-diagramas-secuencia/uc-e07-dar-de-baja-inscripcion.md)
+> Especificación: [UC-E07](../organizador/02-casos-de-uso.md#uc-e07--dar-de-baja-una-inscripción) · Pantalla: [P3 · Gestión del torneo](../organizador/03-pantallas.md#p3--gestión-del-torneo) · Secuencia: [S07 · Dar de baja inscripción](../organizador/04-diagramas-secuencia/uc-e07-dar-de-baja-inscripcion.md)
 
 ```mermaid
 classDiagram
-direction TB
 class GestionTorneo {
   <<boundary>>
-  +pulsarQuitarInscripcion(inscripcionId)
-  +confirmarBajaInscripcion(nombreEquipo) booleano
-  +actualizarListaYCupos()
+  +mostrarEquiposAnotados(inscriptos)
+  +pulsarDarDeBajaYConfirmar(torneoId, inscripcionId)
+  +mostrarListaActualizada()
+  +mostrarError(mensaje)
 }
 class InscripcionService {
   <<control>>
-  +quitarInscripcion(organizadorId, inscripcionId)
+  +darDeBajaInscripcion(torneoId, inscripcionId)
 }
 class InscripcionRepository {
   <<repositorio>>
-  +eliminarInscripcion(inscripcionId, organizadorId)
+  +quitar(inscripcionId)
+  +comprobarTorneoPropioYNoFinalizado(inscripcionId) booleano
+  +borrarInscripcionYLiberarCupo(inscripcionId)
+}
+class Torneo {
+  <<entidad>>
+  +id: uuid
+  +organizadorId: uuid
+  +cupoMaximo: entero [0..1]
+  +estado() EstadoTorneo
+  +admiteCambios() booleano
 }
 class Inscripcion {
   <<entidad>>
@@ -490,9 +598,11 @@ class Inscripcion {
   +equipoId: uuid [0..1]
   +nombreEquipo: texto
 }
-GestionTorneo ..> InscripcionService : solicita quitar inscripción
-InscripcionService ..> InscripcionRepository : ejecuta remove_inscription
-InscripcionRepository ..> Inscripcion : retira inscripción y libera cupo
+GestionTorneo ..> InscripcionService
+InscripcionService ..> InscripcionRepository
+InscripcionRepository ..> Torneo
+InscripcionRepository ..> Inscripcion
+Torneo "1" *-- "0..*" Inscripcion
 ```
 
 ---
@@ -501,13 +611,14 @@ InscripcionRepository ..> Inscripcion : retira inscripción y libera cupo
 
 | Clase | Estereotipo | Implementación en el repo | Estado |
 |---|---|---|---|
-| `FormularioTorneo` | `«boundary»` | `src/app/crear-torneo/page.tsx`, `src/app/mis-torneos/[id]/editar/page.tsx`, `src/components/TournamentForm.tsx` | Implementada |
-| `PanelTorneos` / `GestionTorneo` | `«boundary»` | `src/app/mis-torneos/page.tsx`, `src/app/mis-torneos/[id]/page.tsx` | Implementadas |
-| `OpcionesTorneo` | `«proveedor de opciones»` | `SPORT_MODALITIES` (`src/utils/modality.ts`) | Implementado |
-| `TorneoService` / `InscripcionService` | `«control»` | Server Actions en `src/app/crear-torneo/actions.ts`, `src/app/mis-torneos/actions.ts`, `src/app/mis-torneos/[id]/actions.ts` | Implementados |
-| `ValidadorTorneo` | `«validador»` | `parseTournamentForm` (`src/utils/tournament-form.ts`), `parseFlyer` (`src/utils/tournament-flyer.ts`), `parseInscription` (`src/utils/inscriptions.ts`) | Implementado |
+| `FormularioTorneo` | `«boundary»` | `src/components/TournamentForm.tsx` en `src/app/crear-torneo/page.tsx` y `src/app/mis-torneos/[id]/DatosTab.tsx` | Implementada |
+| `PanelTorneos` | `«boundary»` | `src/app/mis-torneos/page.tsx` + `src/components/VerifyButton.tsx` | Implementada |
+| `GestionTorneo` | `«boundary»` | `src/app/mis-torneos/[id]/page.tsx`, `DatosTab.tsx`, `InscripcionesTab.tsx`, `TeamSearch.tsx`, `WithdrawButton.tsx` | Implementada |
+| `OpcionesTorneo` | `«boundary»` | `SPORT_MODALITIES` (`src/utils/modality.ts`) | Implementado |
+| `TorneoService` / `InscripcionService` | `«control»` | Server Actions en `src/app/crear-torneo/actions.ts`, `src/app/mis-torneos/actions.ts`, `src/app/mis-torneos/[id]/editar/actions.ts` e `inscripciones/actions.ts` | Implementados |
+| `ValidadorTorneo` | `«validador»` | `parseTournamentForm`, `parseFlyer` (`src/utils/tournament-form.ts`), `parseTeamName`, `parseTeamQuery` (`src/utils/inscriptions.ts`) | Implementado |
 | `ZonaRepository` | `«repositorio»` | `getZoneGroups()` en `src/components/ZoneSelect.tsx` (`public.zones`, `corridors`, `regions`) | Implementado |
-| `TorneoRepository` | `«repositorio»` | Tabla `public.tournaments`, funciones `verify_tournament`, `withdraw_tournament`, `saveTournament` (`src/utils/supabase/tournament.ts`), bucket `flyers` | Implementado |
-| `InscripcionRepository` / `EquipoRepository` | `«repositorio»` | Tabla `public.inscriptions`, funciones `add_inscription`, `add_linked_inscription`, `remove_inscription`, búsqueda sobre `public.teams` | Implementados |
-| `AvisoRepository` | `«repositorio»` | Emisión de avisos en `withdraw_tournament` (`public.notices`, `20261028000003_tournament_withdraw_notices.sql`) | Implementado |
-| `Torneo` / `Inscripcion` / `Equipo` / `Aviso` | `«entidad»` | `public.tournaments`, `public.inscriptions`, `public.teams`, `public.notices` | Implementadas |
+| `TorneoRepository` | `«repositorio»` | Tabla `public.tournaments` con RLS, funciones `verify_tournament` y `withdraw_tournament` (`20261028000016`), bucket `flyers` (`src/utils/supabase/flyer.ts`) | Implementado |
+| `InscripcionRepository` | `«repositorio»` | Tabla `public.inscriptions`, funciones `add_inscription`, `add_linked_inscription`, `remove_inscription` (`20261001000000_inscriptions.sql`, `20261028000002_teams.sql`) | Implementado |
+| `EquipoRepository` | `«repositorio»` | Tabla `public.teams` (búsqueda de equipos activos por nombre) | Implementado |
+| `Torneo` / `Inscripcion` / `Equipo` / `Zona` / `Aviso` | `«entidad»` | `tournaments`, `inscriptions`, `teams`, `zones`, `notices` | Implementadas |

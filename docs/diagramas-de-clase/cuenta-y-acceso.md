@@ -11,13 +11,13 @@ Vista estructural de las entidades, relaciones de herencia/composición y enumer
 
 ```mermaid
 classDiagram
-direction TB
 class Usuario {
   <<entidad>>
   +id: uuid
   +email: texto
   +contrasenaHash: texto
   +creadoEn: fechaHora
+  +tieneSesionActiva() booleano
 }
 class Administrador {
   <<entidad>>
@@ -28,14 +28,20 @@ class Perfil {
   <<entidad>>
   +id: uuid
   +nombre: texto
+  +zonaId: texto [0..1]
   +fotoUrl: texto [0..1]
   +creadoEn: fechaHora
+  +actualizadoEn: fechaHora
+  +actualizarDatos(nombre, zonaId, fotoUrl)
+  +tieneFoto() booleano
 }
 class ContactoPerfil {
   <<entidad>>
   +userId: uuid
   +whatsapp: texto [0..1]
   +actualizadoEn: fechaHora
+  +tieneWhatsapp() booleano
+  +actualizarWhatsapp(whatsapp)
 }
 class Sesion {
   <<entidad>>
@@ -48,23 +54,30 @@ class Sesion {
 class Aviso {
   <<entidad>>
   +id: uuid
+  +userId: uuid
   +tipo: TipoAviso
-  +parametros: json
-  +enlace: texto
-  +creadoEn: fechaHora
+  +parametros: jsonb
   +leidoEn: fechaHora [0..1]
+  +creadoEn: fechaHora
   +textoVisible() texto
+  +enlaceDestino() texto
+  +fechaVisible() texto
   +estaLeido() booleano
+  +marcarLeido()
 }
 class Zona {
   <<entidad>>
   +id: texto
   +nombre: texto
+  +corredorId: texto
+  +orden: entero
 }
 class Corredor {
   <<entidad>>
   +id: texto
   +nombre: texto
+  +regionId: texto
+  +orden: entero
 }
 class Region {
   <<entidad>>
@@ -92,14 +105,14 @@ class TipoAviso {
   TorneoDadoDeBaja
   CuentaSuspendida
 }
-Usuario <|-- Administrador : es un
-Usuario "1" *-- "1" Perfil : datos públicos
-Perfil "1" *-- "1" ContactoPerfil : datos privados
-Usuario "1" *-- "0..*" Sesion : mantiene activas
-Usuario "1" --> "0..*" Aviso : recibe
-Perfil "0..*" --> "0..1" Zona : se ubica en
-Zona "1..*" --> "1" Corredor : pertenece a
-Corredor "1..*" --> "1" Region : pertenece a
+Usuario <|-- Administrador
+Usuario "1" *-- "1" Perfil
+Perfil "1" *-- "1" ContactoPerfil
+Usuario "1" *-- "0..*" Sesion
+Usuario "1" --> "0..*" Aviso
+Perfil "0..*" --> "0..1" Zona
+Zona "1..*" --> "1" Corredor
+Corredor "1..*" --> "1" Region
 Aviso ..> TipoAviso
 ```
 
@@ -109,42 +122,49 @@ Aviso ..> TipoAviso
 
 ### UC-A01 · Crear cuenta
 
-**Requerimientos:** `RF-A01` a `RF-A03`, `RF-A06`, `RF-A08`, `RF-A25` · **Pantalla:** [P2 · Crear cuenta](../cuenta-y-acceso/03-pantallas.md#p2--crear-cuenta) (`/login?modo=registro`) · **Secuencia:** [S01 · Crear cuenta](../cuenta-y-acceso/04-diagramas-secuencia/uc-a01-crear-cuenta.md)
+> Especificación: [UC-A01](../cuenta-y-acceso/02-casos-de-uso.md#uc-a01--crear-cuenta) · Pantalla: [P2 · Crear cuenta](../cuenta-y-acceso/03-pantallas.md#p2--crear-cuenta) · Secuencia: [S01 · Crear cuenta](../cuenta-y-acceso/04-diagramas-secuencia/uc-a01-crear-cuenta.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FormularioAcceso {
   <<boundary>>
   +abrirCrearCuenta(destino)
+  +completarDatos(nombre, email, contrasena)
   +confirmarRegistro(nombre, email, contrasena, destino)
-  +mostrarAvisoPublicarTorneo()
   +mostrarError(mensaje)
+  +abrirDestino(destino)
 }
 class CuentaService {
   <<control>>
+  +validarDestino(destino) texto
   +registrarse(nombre, email, contrasena, destino) texto
 }
 class ValidadorCuenta {
   <<validador>>
+  +validarDestino(destino) texto
   +validarNombre(nombre) booleano
   +validarCredenciales(email, contrasena) booleano
-  +validarDestino(destino) texto
 }
 class CuentaRepository {
   <<repositorio>>
   +crearCuenta(nombre, email, contrasena) Sesion
+  +abrirSesion() Sesion
+  +crearPerfilInicial(usuarioId, nombre)
 }
 class Usuario {
   <<entidad>>
   +id: uuid
   +email: texto
   +contrasenaHash: texto
+  +creadoEn: fechaHora
+  +tieneSesionActiva() booleano
 }
 class Perfil {
   <<entidad>>
   +id: uuid
   +nombre: texto
+  +zonaId: texto [0..1]
+  +fotoUrl: texto [0..1]
   +creadoEn: fechaHora
 }
 class ContactoPerfil {
@@ -157,50 +177,54 @@ class Sesion {
   +token: texto
   +dispositivo: texto
   +venceEn: fechaHora
+  +esVigente() booleano
 }
-FormularioAcceso ..> CuentaService : envía solicitud de registro
-CuentaService ..> ValidadorCuenta : valida nombre, credenciales y destino
-CuentaService ..> CuentaRepository : solicita alta de cuenta
-CuentaRepository ..> Usuario : instancia
-CuentaRepository ..> Sesion : abre en el dispositivo actual
-Usuario "1" *-- "1" Perfil : datos públicos
-Perfil "1" *-- "1" ContactoPerfil : datos privados
+FormularioAcceso ..> CuentaService
+CuentaService ..> ValidadorCuenta
+CuentaService ..> CuentaRepository
+CuentaRepository ..> Usuario
+CuentaRepository ..> Sesion
+Usuario "1" *-- "1" Perfil
+Perfil "1" *-- "1" ContactoPerfil
 ```
 
 ---
 
 ### UC-A02 · Iniciar sesión
 
-**Requerimientos:** `RF-A04` a `RF-A08`, `RF-A25` · **Pantalla:** [P1 · Iniciar sesión](../cuenta-y-acceso/03-pantallas.md#p1--iniciar-sesión) (`/login`) · **Secuencia:** [S02 · Iniciar sesión](../cuenta-y-acceso/04-diagramas-secuencia/uc-a02-iniciar-sesion.md)
+> Especificación: [UC-A02](../cuenta-y-acceso/02-casos-de-uso.md#uc-a02--iniciar-sesión) · Pantalla: [P1 · Iniciar sesión](../cuenta-y-acceso/03-pantallas.md#p1--iniciar-sesión) · Secuencia: [S02 · Iniciar sesión](../cuenta-y-acceso/04-diagramas-secuencia/uc-a02-iniciar-sesion.md)
 
 ```mermaid
 classDiagram
-direction TB
 class ControlDeAcceso {
   <<boundary>>
-  +interceptarRutaProtegida(ruta)
-  +requiereSesion(ruta) booleano
+  +abrirRutaProtegida(ruta)
+  +redirigirALogin(destino)
 }
 class FormularioAcceso {
   <<boundary>>
   +abrirIniciarSesion(destino)
+  +completarCredenciales(email, contrasena)
   +confirmarIngreso(email, contrasena, destino)
   +mostrarError(mensaje)
+  +abrirDestino(destino)
 }
 class CuentaService {
   <<control>>
-  +verificarSesionActiva() Sesion
+  +consultarSesion() Sesion
+  +validarDestino(destino) texto
   +iniciarSesion(email, contrasena, destino) texto
 }
 class ValidadorCuenta {
   <<validador>>
-  +validarCredenciales(email, contrasena) booleano
   +validarDestino(destino) texto
+  +validarCredenciales(email, contrasena) booleano
 }
 class CuentaRepository {
   <<repositorio>>
-  +consultarSesionActual() Sesion
+  +consultarSesion() Sesion
   +validarCredenciales(email, contrasena) Sesion
+  +abrirSesion() Sesion
 }
 class Usuario {
   <<entidad>>
@@ -213,63 +237,78 @@ class Sesion {
   +token: texto
   +dispositivo: texto
   +venceEn: fechaHora
+  +esVigente() booleano
 }
-ControlDeAcceso ..> CuentaService : verifica sesión activa
-ControlDeAcceso ..> FormularioAcceso : redirige con destino next
-FormularioAcceso ..> CuentaService : envía credenciales y destino
-CuentaService ..> ValidadorCuenta : valida credenciales y destino
-CuentaService ..> CuentaRepository : consulta sesión y autentica
-CuentaRepository ..> Usuario : comprueba credenciales
-CuentaRepository ..> Sesion : inicia en el dispositivo actual
+ControlDeAcceso ..> CuentaService
+ControlDeAcceso ..> FormularioAcceso
+FormularioAcceso ..> CuentaService
+CuentaService ..> ValidadorCuenta
+CuentaService ..> CuentaRepository
+CuentaRepository ..> Usuario
+CuentaRepository ..> Sesion
 ```
 
 ---
 
 ### UC-A03 · Cerrar sesión
 
-**Requerimientos:** `RF-A09`, `RF-A25` · **Pantalla:** [P4 · Barra superior](../cuenta-y-acceso/03-pantallas.md#p4--barra-superior) · **Secuencia:** [S03 · Cerrar sesión](../cuenta-y-acceso/04-diagramas-secuencia/uc-a03-cerrar-sesion.md)
+> Especificación: [UC-A03](../cuenta-y-acceso/02-casos-de-uso.md#uc-a03--cerrar-sesión) · Pantalla: [Menú de usuario](../cuenta-y-acceso/03-pantallas.md#menú-de-usuario-y-campanita-de-avisos) · Secuencia: [S03 · Cerrar sesión](../cuenta-y-acceso/04-diagramas-secuencia/uc-a03-cerrar-sesion.md)
 
 ```mermaid
 classDiagram
-direction TB
 class MenuDeUsuario {
   <<boundary>>
   +abrirMenu()
   +elegirCerrarSesion()
+  +abrirCatalogo()
 }
 class CuentaService {
   <<control>>
-  +cerrarSesionDispositivoActual()
+  +cerrarSesion()
 }
-class SesionRepository {
+class CuentaRepository {
   <<repositorio>>
-  +finalizarSesionActual(tokenDispositivo)
+  +finalizarSesionLocal()
 }
 class Sesion {
   <<entidad>>
   +token: texto
   +dispositivo: texto
   +venceEn: fechaHora
+  +esVigente() booleano
   +finalizarEnDispositivo()
 }
-MenuDeUsuario ..> CuentaService : solicita cierre de sesión
-CuentaService ..> SesionRepository : ordena finalizar sesión local
-SesionRepository ..> Sesion : finaliza únicamente la del dispositivo actual
+MenuDeUsuario ..> CuentaService
+CuentaService ..> CuentaRepository
+CuentaRepository ..> Sesion
 ```
 
 ---
 
 ### UC-A04 · Recuperar contraseña
 
-**Requerimientos:** `RF-A10` · **Pantalla:** Diseño objetivo · **Secuencia:** [S04 · Recuperar contraseña](../cuenta-y-acceso/04-diagramas-secuencia/uc-a04-recuperar-contrasena.md)
+> Especificación: [UC-A04](../cuenta-y-acceso/02-casos-de-uso.md#uc-a04--recuperar-contraseña) · Pantalla: [P3 · Recuperar contraseña](../cuenta-y-acceso/03-pantallas.md#p3--recuperar-contraseña) · Secuencia: [S04 · Recuperar contraseña](../cuenta-y-acceso/04-diagramas-secuencia/uc-a04-recuperar-contrasena.md)
 
 ```mermaid
 classDiagram
-direction TB
+class FormularioRecuperar {
+  <<boundary>>
+  +abrirRecuperarContrasena()
+  +solicitarEnlace(email)
+  +mostrarConfirmacion()
+  +mostrarError(mensaje)
+}
+class FormularioNuevaContrasena {
+  <<boundary>>
+  +abrirEnlace(enlace)
+  +confirmarNuevaContrasena(enlace, contrasenaNueva)
+  +mostrarConfirmacionCambio()
+  +mostrarErrorEnlace()
+}
 class CuentaService {
   <<control>>
-  +pedirRecuperacion(email)
-  +definirContrasena(token, contrasenaNueva)
+  +solicitarRecuperacion(email)
+  +restablecerContrasena(enlace, contrasenaNueva)
 }
 class ValidadorCuenta {
   <<validador>>
@@ -278,12 +317,12 @@ class ValidadorCuenta {
 }
 class CuentaRepository {
   <<repositorio>>
-  +generarTokenRecuperacion(email) texto
-  +cambiarContrasena(token, contrasenaNueva) booleano
+  +generarEnlaceDeRecuperacion(email) texto
+  +cambiarContrasena(enlace, contrasenaNueva) booleano
 }
 class ServicioCorreo {
   <<boundary>>
-  +enviarEnlaceRecuperacion(email, token)
+  +enviarEnlace(email, enlace)
 }
 class Usuario {
   <<entidad>>
@@ -291,32 +330,36 @@ class Usuario {
   +email: texto
   +contrasenaHash: texto
 }
-CuentaService ..> ValidadorCuenta : valida email y nueva contraseña
-CuentaService ..> CuentaRepository : genera token y actualiza contraseña
-CuentaService ..> ServicioCorreo : despacha enlace si existe cuenta
-CuentaRepository ..> Usuario : actualiza contrasenaHash
+FormularioRecuperar ..> CuentaService
+FormularioNuevaContrasena ..> CuentaService
+CuentaService ..> ValidadorCuenta
+CuentaService ..> CuentaRepository
+CuentaRepository ..> ServicioCorreo
+CuentaRepository ..> Usuario
 ```
 
 ---
 
-### UC-A05 · Editar perfil
+### UC-A05 · Editar mi perfil
 
-**Requerimientos:** `RF-A11` a `RF-A18` · **Pantalla:** [P3 · Mi perfil](../cuenta-y-acceso/03-pantallas.md#p3--mi-perfil) (`/perfil`) · **Secuencia:** [S05 · Editar perfil](../cuenta-y-acceso/04-diagramas-secuencia/uc-a05-editar-perfil.md)
+> Especificación: [UC-A05](../cuenta-y-acceso/02-casos-de-uso.md#uc-a05--editar-mi-perfil) · Pantalla: [P4 · Mi perfil](../cuenta-y-acceso/03-pantallas.md#p4--mi-perfil) · Secuencia: [S05 · Editar mi perfil](../cuenta-y-acceso/04-diagramas-secuencia/uc-a05-editar-perfil.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FormularioPerfil {
   <<boundary>>
   +abrirMiPerfil(destino)
+  +mostrarFormulario(perfil, zonas)
+  +cambiarDatos(nombre, zonaId, whatsapp, foto)
   +confirmarGuardar(nombre, zonaId, whatsapp, foto, destino)
-  +mostrarAvisoCargarWhatsapp()
+  +mostrarAvisoWhatsapp()
   +mostrarConfirmacion()
-  +mostrarError(mensaje)
+  +mostrarErrores(errores)
+  +abrirDestino(destino)
 }
 class PerfilService {
   <<control>>
-  +cargarDatosEdicion(usuarioId) DatosEdicionPerfil
+  +obtenerDatosEdicion(usuarioId)
   +editarPerfil(nombre, zonaId, whatsapp, foto, destino)
 }
 class ValidadorCuenta {
@@ -335,53 +378,56 @@ class PerfilRepository {
   +obtenerPerfil(usuarioId) Perfil
   +guardarPerfil(nombre, zonaId, foto)
   +guardarWhatsapp(whatsapp)
-  -subirFotoNueva(foto) texto
-  -retirarFotoAnterior(ruta)
+  +subirFotoNueva(foto) texto
+  +retirarFotoNueva(ruta)
+  +retirarFotoAnterior(ruta)
 }
 class Perfil {
   <<entidad>>
   +id: uuid
   +nombre: texto
+  +zonaId: texto [0..1]
   +fotoUrl: texto [0..1]
+  +actualizadoEn: fechaHora
+  +actualizarDatos(nombre, zonaId, fotoUrl)
 }
 class ContactoPerfil {
   <<entidad>>
   +userId: uuid
   +whatsapp: texto [0..1]
+  +actualizadoEn: fechaHora
+  +actualizarWhatsapp(whatsapp)
 }
 class Zona {
   <<entidad>>
   +id: texto
   +nombre: texto
+  +corredorId: texto
+  +orden: entero
 }
-class Corredor {
-  <<entidad>>
-  +id: texto
-  +nombre: texto
-}
-FormularioPerfil ..> PerfilService : solicita datos iniciales y envía cambios
-PerfilService ..> ZonaRepository : obtiene Zonas disponibles
-PerfilService ..> ValidadorCuenta : valida nombre, WhatsApp, foto y destino
-PerfilService ..> PerfilRepository : lee y actualiza perfil y contacto
-ZonaRepository ..> Zona : consulta agrupada por corredor
-Zona "1..*" --> "1" Corredor : pertenece a
-Perfil "0..*" --> "0..1" Zona : zona opcional
-Perfil "1" *-- "1" ContactoPerfil : datos privados
+FormularioPerfil ..> PerfilService
+PerfilService ..> ZonaRepository
+PerfilService ..> ValidadorCuenta
+PerfilService ..> PerfilRepository
+PerfilRepository ..> Perfil
+PerfilRepository ..> ContactoPerfil
+ZonaRepository ..> Zona
+Perfil "1" *-- "1" ContactoPerfil
+Perfil "0..*" --> "0..1" Zona
 ```
 
 ---
 
 ### UC-A06 · Ver avisos (campanita)
 
-**Requerimientos:** `RF-A19` a `RF-A25` · **Pantalla:** [P5 · Campanita de avisos](../cuenta-y-acceso/03-pantallas.md#p5--campanita-de-avisos) · **Secuencia:** [S06 · Ver avisos](../cuenta-y-acceso/04-diagramas-secuencia/uc-a06-ver-avisos.md)
+> Especificación: [UC-A06](../cuenta-y-acceso/02-casos-de-uso.md#uc-a06--ver-avisos-campanita) · Pantalla: [Campanita de avisos](../cuenta-y-acceso/03-pantallas.md#menú-de-usuario-y-campanita-de-avisos) · Secuencia: [S06 · Ver avisos](../cuenta-y-acceso/04-diagramas-secuencia/uc-a06-ver-avisos.md)
 
 ```mermaid
 classDiagram
-direction TB
 class AvisoService {
   <<control>>
-  +consultarAvisosRecientes(limite) Aviso[]
-  +obtenerTotalNoLeidos() entero
+  +listarUltimos(limite) Aviso[]
+  +contarNoLeidos() entero
   +marcarLeidos(idsVisiblesSinLeer)
 }
 class AvisoRepository {
@@ -393,13 +439,16 @@ class AvisoRepository {
 class Aviso {
   <<entidad>>
   +id: uuid
+  +userId: uuid
   +tipo: TipoAviso
-  +parametros: json
-  +enlace: texto
-  +creadoEn: fechaHora
+  +parametros: jsonb
   +leidoEn: fechaHora [0..1]
+  +creadoEn: fechaHora
   +textoVisible() texto
+  +enlaceDestino() texto
+  +fechaVisible() texto
   +estaLeido() booleano
+  +marcarLeido()
 }
 class TipoAviso {
   <<enumeracion>>
@@ -422,8 +471,8 @@ class TipoAviso {
   TorneoDadoDeBaja
   CuentaSuspendida
 }
-AvisoService ..> AvisoRepository : consulta últimos avisos, total no leídos y marca leídos
-AvisoRepository ..> Aviso : recupera y actualiza propios
+AvisoService ..> AvisoRepository
+AvisoRepository ..> Aviso
 Aviso ..> TipoAviso
 ```
 
@@ -435,6 +484,7 @@ Aviso ..> TipoAviso
 |---|---|---|---|
 | `ControlDeAcceso` | `«boundary»` | `src/proxy.ts` | Implementado |
 | `FormularioAcceso` | `«boundary»` | `src/app/login/page.tsx` + `src/utils/login-screen.ts` | Implementado |
+| `FormularioRecuperar` / `FormularioNuevaContrasena` | `«boundary»` | — (diseño objetivo de UC-A04) | **Pendiente** |
 | `FormularioPerfil` | `«boundary»` | `src/app/perfil/page.tsx` | Implementado |
 | `MenuDeUsuario` | `«boundary»` | `src/components/UserMenu.tsx` | Implementado |
 | `ServicioCorreo` | `«boundary»` | — (diseño objetivo de UC-A04) | **Pendiente** |
@@ -442,7 +492,7 @@ Aviso ..> TipoAviso
 | `PerfilService` | `«control»` | Server Action `updateProfile` en `src/app/perfil/actions.ts` | Parcial (falta RF-A17) |
 | `AvisoService` | `«control»` | Lectura de avisos en `src/app/layout.tsx` + Server Action `markNoticesRead` en `src/app/avisos/actions.ts` | Implementado |
 | `ValidadorCuenta` | `«validador»` | `safeNextPath` (`src/utils/safe-next-path.ts`), `normalizeWhatsapp` (`src/utils/whatsapp.ts`), `parseAvatar` (`src/utils/profile-avatar.ts`) | Implementado |
-| `CuentaRepository` / `SesionRepository` | `«repositorio»` | Supabase Auth (`signUp`, `signInWithPassword`, `signOut({ scope: 'local' })`, `getUser`) + trigger `handle_new_user` | Implementado |
+| `CuentaRepository` | `«repositorio»` | Supabase Auth (`signUp`, `signInWithPassword`, `signOut({ scope: 'local' })`, `getUser`) + trigger `handle_new_user` | Implementado |
 | `ZonaRepository` | `«repositorio»` | `getZoneGroups()` en `src/components/ZoneSelect.tsx` (`public.zones`, `corridors`, `regions`) | Implementado |
 | `PerfilRepository` | `«repositorio»` | `saveProfile` (`src/utils/supabase/profile.ts`), tablas `public.profiles` y `public.profile_contacts`, bucket `avatars` | Parcial (falta RF-A17) |
 | `AvisoRepository` | `«repositorio»` | Tabla `public.notices` con RLS + función `public.mark_notices_read` (`20261028000001_notices.sql`) | Implementado |

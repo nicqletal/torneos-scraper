@@ -24,24 +24,23 @@ El módulo T (seguridad y RLS) no tiene diagramas propios: sus reglas se aplican
 
 ## Convenciones de arquitectura y estereotipos (Craig Larman / ECB)
 
-Cada archivo comienza con el **Modelo de dominio del módulo** (las entidades, relaciones de herencia/composición y enumeraciones del negocio) y luego desarrolla **un diagrama de clases de diseño por cada caso de uso**. Los flujos principales, reglas de negocio detalladas y flujos alternativos pertenecen estrictamente a las especificaciones de casos de uso (`02-casos-de-uso.md`), por lo que no se duplican en estos documentos.
+Cada archivo comienza con el **Modelo de dominio del módulo** (las entidades con sus atributos y operaciones de negocio, relaciones de herencia/composición/asociación y enumeraciones) y luego desarrolla **un diagrama de clases de diseño por cada caso de uso** alineado con las pantallas (`03-pantallas.md`) y los diagramas de secuencia del módulo (`04-diagramas-secuencia/`). Los flujos principales, reglas de negocio detalladas y flujos alternativos pertenecen a `02-casos-de-uso.md`, por lo que no se duplican en estos documentos. Las relaciones entre clases se representan mediante conectores UML estándar (multiplicidades en asociaciones/composiciones, herencia y dependencias) sin etiquetas de texto sobre las flechas.
 
 | Estereotipo | Capa / Rol (Larman) | Qué representa en este proyecto |
 |---|---|---|
-| `«boundary»` | Frontera (UI / Perímetro) | Pantallas, formularios, menús, middleware de acceso (`ControlDeAcceso`) y sistemas externos (`WhatsApp`, `Instagram`, `ServicioCorreo`) |
-| `«proveedor de opciones»` | Frontera / Configuración | Entrega listas fijas definidas en el código para poblar desplegables (`OpcionesEquipo`, `OpcionesTorneo`, `OpcionesBusqueda`, `OpcionesPartido`, `OpcionesReporte`, `OpcionesResolucion`, `OpcionesSuspension`) |
+| `«boundary»` | Frontera (UI / Perímetro) | Pantallas, formularios, menús, proveedores de opciones de UI (`Opciones*`), middleware de acceso (`ControlDeAcceso`) y sistemas externos (`WhatsApp`, `Instagram`, `ServicioCorreo`) |
 | `«control»` | Lógica de negocio (BLL) | Controladores de caso de uso (`CuentaService`, `PerfilService`, `AvisoService`, `TorneoService`, `InscripcionService`, `ReporteService`, `EquipoService`, `BusquedaService`, `PartidoService`, `AdminService`) |
-| `«validador»` | Lógica de negocio (BLL) | Componentes cohesivos de validación por módulo (`ValidadorCuenta`, `ValidadorTorneo`, `ValidadorEquipo`, `ValidadorPartido`, `ValidadorAdmin`), invocados siempre desde el `«control»` (`*Service`) |
-| `«repositorio»` | Acceso a datos (DAL) | Lee y escribe entidades en la base o Storage aplicando RLS y funciones RPC (`*Repository`) |
-| `«entidad»` | Dominio | Conceptos del dominio con identidad o estado persistente/calculado (`Usuario`, `Administrador`, `Perfil`, `Sesion`, `Torneo`, `Inscripcion`, `Equipo`, `Partido`, `Propuesta`, `Aviso`, etc.) |
+| `«validador»` | Lógica de negocio (BLL) | Componentes cohesivos de validación por módulo (`ValidadorCuenta`, `ValidadorTorneo`, `ValidadorEquipo`, `ValidadorPartido`, `ValidadorAdmin`), invocados desde el `«control»` (`*Service`) |
+| `«repositorio»` | Acceso a datos (DAL) | Lee y escribe entidades en la base o Storage aplicando RLS y funciones RPC (`*Repository`, `RegistroDeAcciones`) |
+| `«entidad»` | Dominio | Conceptos del dominio con identidad, estado persistente/calculado y operaciones de negocio (`Usuario`, `Administrador`, `Perfil`, `Sesion`, `Torneo`, `Inscripcion`, `Equipo`, `Partido`, `Propuesta`, `Aviso`, etc.) |
 | `«enumeracion»` | Dominio | Conjuntos cerrados de valores del dominio (`Modalidad`, `EstadoTorneo`, `NivelEquipo`, `FasePartido`, `TipoAviso`, etc.) |
 
 ### Principios aplicados transversalmente
 
-- **Separación estricta de capas (`«boundary»` → `«control»` → `«repositorio»` → `«entidad»`):** ningún componente `«boundary»` accede de forma directa a un `«repositorio»` (DAL) ni a un `«validador»`. Toda lectura o escritura pasa por el servicio controlador (`«control»`, BLL).
-- **Validadores unificados en BLL:** cada módulo cuenta con un componente `«validador»` cohesivo invocado exclusivamente por el `*Service` (`«control»`) antes de persistir en el `*Repository`.
-- **Subsistema de Avisos (campanita) directo:** la consulta de avisos no leídos y el marcado como leídos se canalizan directamente a través de `AvisoService` (`«control»`) hacia `AvisoRepository` (`«repositorio»`) y `Aviso` (`«entidad»`), sin interfaces intermedias redundantes.
-- **Generalización en el dominio:** los roles especializados con identidad de cuenta (como `Administrador` respecto de `Usuario`) se modelan mediante herencia (`<|--`, *«es un»*).
+- **Separación de capas (`«boundary»` → `«control»` → `«repositorio»` → `«entidad»`):** ningún componente `«boundary»` accede de forma directa a un `«repositorio»` (DAL) ni a un `«validador»`. Toda lectura o escritura pasa por el servicio controlador (`«control»`, BLL).
+- **Validadores cohesivos en BLL:** cada módulo cuenta con un componente `«validador»` con todos los métodos de validación y normalización requeridos por los diagramas de secuencia, invocado por el `*Service` (`«control»`).
+- **Subsistema de Avisos (campanita) directo:** en `UC-A06`, la consulta de los últimos avisos, el conteo de no leídos y el marcado como leídos van directo desde `AvisoService` (`«control»`) hacia `AvisoRepository` (`«repositorio»`) y `Aviso` (`«entidad»`).
+- **Generalización en el dominio:** los roles especializados con identidad de cuenta (como `Administrador` respecto de `Usuario`) se modelan mediante herencia (`<|--`).
 
 ## Regenerar los PDF
 
