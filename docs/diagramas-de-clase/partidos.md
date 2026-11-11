@@ -196,7 +196,7 @@ class PantallaBuscarRival {
   +mostrarErrores(errores)
 }
 class OpcionesBusqueda {
-  <<boundary>>
+  <<control>>
   +listarModalidades() Modalidad[]
   +listarTurnos() TurnoBusqueda[]
 }
@@ -264,7 +264,6 @@ class TurnoBusqueda {
   Noche20a23
   OtroHorario
 }
-PantallaBuscarRival ..> OpcionesBusqueda
 PantallaBuscarRival ..> BusquedaService
 BusquedaService ..> OpcionesBusqueda
 BusquedaService ..> EquipoRepository
@@ -650,7 +649,7 @@ class PantallaPartidos {
   +mostrarError(mensaje)
 }
 class OpcionesPartido {
-  <<boundary>>
+  <<control>>
   +listarHoras(rango) hora[]
 }
 class WhatsApp {
@@ -692,7 +691,6 @@ class Aviso {
   +tipo: TipoAviso
   +parametros: jsonb
 }
-PantallaPartidos ..> OpcionesPartido
 PantallaPartidos ..> WhatsApp
 PantallaPartidos ..> PartidoService
 PartidoService ..> OpcionesPartido
@@ -1212,9 +1210,8 @@ Partido ..> FasePartido
 | Clase | Estereotipo | Implementación en el repo | Estado |
 |---|---|---|---|
 | `PantallaBuscarRival` / `PantallaPartidos` | `«boundary»` | `src/app/partidos/buscar/page.tsx`, `src/app/partidos/page.tsx` y formularios de acción en `src/components/matches/` | Implementadas |
-| `OpcionesBusqueda` / `OpcionesPartido` | `«boundary»` | `SPORT_MODALITIES` (`src/utils/modality.ts`), `TIME_SLOTS` y horas de inicio (`src/utils/matches.ts`) | Implementados |
 | `WhatsApp` | `«boundary»` | `whatsappLink` (`src/utils/whatsapp.ts`) | Implementado |
-| `BusquedaService` / `PartidoService` | `«control»` | Server Actions en `src/app/partidos/actions.ts` y `src/app/partidos/buscar/actions.ts` | Implementados |
+| `BusquedaService` / `PartidoService` / `OpcionesBusqueda` / `OpcionesPartido` | `«control»` | Server Actions en `src/app/partidos/actions.ts` y `src/app/partidos/buscar/actions.ts`, `SPORT_MODALITIES` (`src/utils/modality.ts`), `TIME_SLOTS` y horas de inicio (`src/utils/matches.ts`) | Implementados |
 | `ValidadorPartido` | `«validador»` | `parseSearchSlots`, `parseProposalTarget`, `parseCoordinateForm`, `parseDropReason`, `parseResultForm`, `parseRatingForm` (`src/utils/matches.ts`) | Implementado |
 | `EquipoRepository` | `«repositorio»` | Consultas de pertenencia y capitanías en `public.teams` y `public.team_members` | Implementado |
 | `BusquedaRepository` / `PropuestaRepository` | `«repositorio»` | Tablas `public.rival_searches`, `search_slots`, `proposals`; funciones `save_rival_search`, `compatible_rivals`, `send_proposal`, `respond_proposal`, `proposal_status` (`20261028000003..06`) | Implementados |

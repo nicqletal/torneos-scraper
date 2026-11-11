@@ -133,7 +133,7 @@ class FormularioTorneo {
   +abrirFichaConAvisoPublicado(torneoId)
 }
 class OpcionesTorneo {
-  <<boundary>>
+  <<control>>
   +listarModalidades() Modalidad[]
 }
 class TorneoService {
@@ -193,7 +193,6 @@ class Modalidad {
   Mixto
   Senior
 }
-FormularioTorneo ..> OpcionesTorneo
 FormularioTorneo ..> TorneoService
 TorneoService ..> OpcionesTorneo
 TorneoService ..> ZonaRepository
@@ -301,7 +300,7 @@ class FormularioTorneo {
   +volverAGestion(torneoId)
 }
 class OpcionesTorneo {
-  <<boundary>>
+  <<control>>
   +listarModalidades() Modalidad[]
 }
 class TorneoService {
@@ -362,7 +361,6 @@ class Modalidad {
   Mixto
   Senior
 }
-FormularioTorneo ..> OpcionesTorneo
 FormularioTorneo ..> TorneoService
 TorneoService ..> OpcionesTorneo
 TorneoService ..> ZonaRepository
@@ -614,8 +612,7 @@ Torneo "1" *-- "0..*" Inscripcion
 | `FormularioTorneo` | `«boundary»` | `src/components/TournamentForm.tsx` en `src/app/crear-torneo/page.tsx` y `src/app/mis-torneos/[id]/DatosTab.tsx` | Implementada |
 | `PanelTorneos` | `«boundary»` | `src/app/mis-torneos/page.tsx` + `src/components/VerifyButton.tsx` | Implementada |
 | `GestionTorneo` | `«boundary»` | `src/app/mis-torneos/[id]/page.tsx`, `DatosTab.tsx`, `InscripcionesTab.tsx`, `TeamSearch.tsx`, `WithdrawButton.tsx` | Implementada |
-| `OpcionesTorneo` | `«boundary»` | `SPORT_MODALITIES` (`src/utils/modality.ts`) | Implementado |
-| `TorneoService` / `InscripcionService` | `«control»` | Server Actions en `src/app/crear-torneo/actions.ts`, `src/app/mis-torneos/actions.ts`, `src/app/mis-torneos/[id]/editar/actions.ts` e `inscripciones/actions.ts` | Implementados |
+| `TorneoService` / `InscripcionService` / `OpcionesTorneo` | `«control»` | Server Actions en `src/app/crear-torneo/actions.ts`, `src/app/mis-torneos/actions.ts`, `src/app/mis-torneos/[id]/editar/actions.ts`, `inscripciones/actions.ts` y `SPORT_MODALITIES` (`src/utils/modality.ts`) | Implementados |
 | `ValidadorTorneo` | `«validador»` | `parseTournamentForm`, `parseFlyer` (`src/utils/tournament-form.ts`), `parseTeamName`, `parseTeamQuery` (`src/utils/inscriptions.ts`) | Implementado |
 | `ZonaRepository` | `«repositorio»` | `getZoneGroups()` en `src/components/ZoneSelect.tsx` (`public.zones`, `corridors`, `regions`) | Implementado |
 | `TorneoRepository` | `«repositorio»` | Tabla `public.tournaments` con RLS, funciones `verify_tournament` y `withdraw_tournament` (`20261028000016`), bucket `flyers` (`src/utils/supabase/flyer.ts`) | Implementado |

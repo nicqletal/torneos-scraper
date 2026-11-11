@@ -28,18 +28,18 @@ Cada archivo comienza con el **Modelo de dominio del módulo** (las entidades co
 
 | Estereotipo | Capa / Rol (Larman) | Qué representa en este proyecto |
 |---|---|---|
-| `«boundary»` | Frontera (UI / Perímetro) | Pantallas, formularios, menús, proveedores de opciones de UI (`Opciones*`), middleware de acceso (`ControlDeAcceso`) y sistemas externos (`WhatsApp`, `Instagram`, `ServicioCorreo`) |
-| `«control»` | Lógica de negocio (BLL) | Controladores de caso de uso (`CuentaService`, `PerfilService`, `AvisoService`, `TorneoService`, `InscripcionService`, `ReporteService`, `EquipoService`, `BusquedaService`, `PartidoService`, `AdminService`) |
-| `«validador»` | Lógica de negocio (BLL) | Componentes cohesivos de validación por módulo (`ValidadorCuenta`, `ValidadorTorneo`, `ValidadorEquipo`, `ValidadorPartido`, `ValidadorAdmin`), invocados desde el `«control»` (`*Service`) |
-| `«repositorio»` | Acceso a datos (DAL) | Lee y escribe entidades en la base o Storage aplicando RLS y funciones RPC (`*Repository`, `RegistroDeAcciones`) |
-| `«entidad»` | Dominio | Conceptos del dominio con identidad, estado persistente/calculado y operaciones de negocio (`Usuario`, `Administrador`, `Perfil`, `Sesion`, `Torneo`, `Inscripcion`, `Equipo`, `Partido`, `Propuesta`, `Aviso`, etc.) |
+| `«boundary»` | Presentación (Frontera / UI / Perímetro) | Pantallas, formularios, menús, campanita (`Campanita`), middleware de acceso (`ControlDeAcceso`) y sistemas externos (`WhatsApp`, `Instagram`, `ServicioCorreo`) |
+| `«control»` | Lógica de negocio (BLL) | Controladores de caso de uso (`CuentaService`, `PerfilService`, `AvisoService`, `TorneoService`, `InscripcionService`, `ReporteService`, `EquipoService`, `BusquedaService`, `PartidoService`, `AdminService`) y proveedores de opciones de negocio (`Opciones*`) |
+| `«validador»` | Lógica de negocio (BLL) | Componentes cohesivos de validación por módulo (`ValidadorCuenta`, `ValidadorTorneo`, `ValidadorEquipo`, `ValidadorPartido`, `ValidadorAdmin`), invocados siempre desde el `«control»` (`*Service`) |
+| `«repositorio»` | Datos (Acceso a datos / DAL) | Lee y escribe entidades en la base o Storage aplicando RLS y funciones RPC (`*Repository`, `RegistroDeAcciones`) |
+| `«entidad»` | Dominio / Datos | Conceptos del dominio con identidad, estado persistente/calculado y operaciones de negocio (`Usuario`, `Administrador`, `Perfil`, `Sesion`, `Torneo`, `Inscripcion`, `Equipo`, `Partido`, `Propuesta`, `Aviso`, etc.) |
 | `«enumeracion»` | Dominio | Conjuntos cerrados de valores del dominio (`Modalidad`, `EstadoTorneo`, `NivelEquipo`, `FasePartido`, `TipoAviso`, etc.) |
 
 ### Principios aplicados transversalmente
 
-- **Separación de capas (`«boundary»` → `«control»` → `«repositorio»` → `«entidad»`):** ningún componente `«boundary»` accede de forma directa a un `«repositorio»` (DAL) ni a un `«validador»`. Toda lectura o escritura pasa por el servicio controlador (`«control»`, BLL).
-- **Validadores cohesivos en BLL:** cada módulo cuenta con un componente `«validador»` con todos los métodos de validación y normalización requeridos por los diagramas de secuencia, invocado por el `*Service` (`«control»`).
-- **Subsistema de Avisos (campanita) directo:** en `UC-A06`, la consulta de los últimos avisos, el conteo de no leídos y el marcado como leídos van directo desde `AvisoService` (`«control»`) hacia `AvisoRepository` (`«repositorio»`) y `Aviso` (`«entidad»`).
+- **Separación estricta de capas sin salteos (`Presentación` → `Lógica` → `Datos`):** ningún componente de **Presentación** (`«boundary»`) accede de forma directa a **Datos** (`«repositorio»` o `«entidad»`) ni a un `«validador»`. Toda lectura o escritura pasa obligatoriamente por el controlador de **Lógica** (`*Service`, `«control»`), y este delega la persistencia en **Datos** (`*Repository`, `«repositorio»`).
+- **Validadores cohesivos en Lógica (BLL):** cada módulo cuenta con un componente `«validador»` con todos los métodos de validación y normalización requeridos por los diagramas de secuencia, invocado exclusivamente por el `*Service` (`«control»`).
+- **Subsistema de Avisos (campanita) sin saltear capas:** en `UC-A06`, `Campanita` (`«boundary»`, Presentación) pasa siempre por `AvisoService` (`«control»`, Lógica) antes de llegar a `AvisoRepository` (`«repositorio»`, Datos) y `Aviso` (`«entidad»`), corrigiendo el salto directo de Presentación a Datos que tenía el diagrama de secuencia original.
 - **Generalización en el dominio:** los roles especializados con identidad de cuenta (como `Administrador` respecto de `Usuario`) se modelan mediante herencia (`<|--`).
 
 ## Regenerar los PDF

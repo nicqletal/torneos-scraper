@@ -171,7 +171,7 @@ class FormularioCrearEquipo {
   +abrirEditarConAvisoEscudo(equipoId)
 }
 class OpcionesEquipo {
-  <<boundary>>
+  <<control>>
   +listarModalidades() Modalidad[]
   +listarNiveles() NivelEquipo[]
 }
@@ -237,7 +237,6 @@ class NivelEquipo {
   Amateur
   Competitivo
 }
-FormularioCrearEquipo ..> OpcionesEquipo
 FormularioCrearEquipo ..> EquipoService
 EquipoService ..> OpcionesEquipo
 EquipoService ..> ZonaRepository
@@ -477,7 +476,7 @@ class FormularioEditarEquipo {
   +mostrarErrores(errores)
 }
 class OpcionesEquipo {
-  <<boundary>>
+  <<control>>
   +listarModalidades() Modalidad[]
   +listarNiveles() NivelEquipo[]
 }
@@ -520,7 +519,6 @@ class Zona {
   +id: texto
   +nombre: texto
 }
-FormularioEditarEquipo ..> OpcionesEquipo
 FormularioEditarEquipo ..> EquipoService
 EquipoService ..> OpcionesEquipo
 EquipoService ..> ZonaRepository
@@ -761,7 +759,7 @@ class FichaEquipo {
   +mostrarError(mensaje)
 }
 class OpcionesReporte {
-  <<boundary>>
+  <<control>>
   +listarMotivos() MotivoReporteEquipo[]
 }
 class EquipoService {
@@ -801,7 +799,6 @@ class MotivoReporteEquipo {
   MalComportamiento
   Otro
 }
-FichaEquipo ..> OpcionesReporte
 FichaEquipo ..> EquipoService
 EquipoService ..> OpcionesReporte
 EquipoService ..> ValidadorEquipo
@@ -821,8 +818,7 @@ ReporteEquipo ..> MotivoReporteEquipo
 | `FichaEquipo` | `«boundary»` | `src/app/equipos/[id]/page.tsx` + `InviteLinkBox.tsx`, `MemberActions.tsx`, `LeaveTeamForm.tsx`, `DissolveTeamForm.tsx` | Implementada (falta botón «Reportar» de UC-C10) |
 | `FormularioEditarEquipo` | `«boundary»` | `src/app/equipos/[id]/editar/page.tsx` + `src/components/TeamForm.tsx` | Implementada |
 | `PantallaUnirse` | `«boundary»` | `src/app/equipos/unirse/[token]/page.tsx` | Implementada |
-| `OpcionesEquipo` / `OpcionesReporte` | `«boundary»` | `SPORT_MODALITIES` (`src/utils/modality.ts`), `TEAM_LEVELS` (`src/utils/teams.ts`) | Implementados (`OpcionesReporte` pendiente) |
-| `EquipoService` | `«control»` | Server Actions en `src/app/equipos/crear/actions.ts`, `src/app/equipos/[id]/actions.ts`, `src/app/equipos/[id]/editar/actions.ts`, `src/app/equipos/unirse/[token]/actions.ts` | Implementado (falta `reportarEquipo`) |
+| `EquipoService` / `OpcionesEquipo` / `OpcionesReporte` | `«control»` | Server Actions en `src/app/equipos/crear/actions.ts`, `src/app/equipos/[id]/actions.ts`, `src/app/equipos/[id]/editar/actions.ts`, `src/app/equipos/unirse/[token]/actions.ts`, `SPORT_MODALITIES` (`src/utils/modality.ts`), `TEAM_LEVELS` (`src/utils/teams.ts`) | Implementados (faltan `reportarEquipo` y `OpcionesReporte`) |
 | `ValidadorEquipo` | `«validador»` | `parseTeamForm`, `parseCrest`, `parseRemoveCrest`, `parseInviteToken`, `parseMemberTarget`, `parseDissolveConfirmation` (`src/utils/teams.ts`) | Implementado |
 | `ZonaRepository` | `«repositorio»` | `getZoneGroups()` en `src/components/ZoneSelect.tsx` (`public.zones`) | Implementado |
 | `EquipoRepository` | `«repositorio»` | Tablas `public.teams`, `team_members`, `team_invites`; funciones `create_team`, `regenerate_team_invite`, `join_team`, `transfer_captaincy`, `remove_team_member`, `leave_team`, `dissolve_team`; bucket `crests` (`src/utils/supabase/crest.ts`) | Implementado |

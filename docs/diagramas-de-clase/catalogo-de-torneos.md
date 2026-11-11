@@ -227,7 +227,7 @@ class FiltrosCatalogo {
   +compartirURL()
 }
 class OpcionesTorneo {
-  <<boundary>>
+  <<control>>
   +listarModalidades() Modalidad[]
   +listarEstados() EstadoTorneo[]
 }
@@ -278,7 +278,7 @@ class EstadoTorneo {
   EnCurso
   Finalizado
 }
-FiltrosCatalogo ..> OpcionesTorneo
+FiltrosCatalogo ..> TorneoService
 FiltrosCatalogo ..> PaginaCatalogo
 PaginaCatalogo ..> TorneoService
 TorneoService ..> OpcionesTorneo
@@ -398,6 +398,14 @@ class Instagram {
   <<boundary>>
   +abrirPerfilOrganizador(usuario)
 }
+class TorneoService {
+  <<control>>
+  +obtenerDatosContacto(torneoId) Torneo
+}
+class TorneoRepository {
+  <<repositorio>>
+  +obtenerTorneo(torneoId) Torneo
+}
 class Torneo {
   <<entidad>>
   +id: uuid
@@ -407,9 +415,11 @@ class Torneo {
   +tieneContacto() booleano
   +mensajeSugeridoWhatsApp() texto
 }
-FichaTorneo ..> Torneo
+FichaTorneo ..> TorneoService
 FichaTorneo ..> WhatsApp
 FichaTorneo ..> Instagram
+TorneoService ..> TorneoRepository
+TorneoRepository ..> Torneo
 ```
 
 ---
@@ -495,7 +505,7 @@ class FichaTorneo {
   +mostrarError(mensaje)
 }
 class OpcionesReporte {
-  <<boundary>>
+  <<control>>
   +listarMotivos() MotivoReporteTorneo[]
 }
 class ReporteService {
@@ -533,7 +543,6 @@ class MotivoReporteTorneo {
   Estafa
   Inapropiado
 }
-FichaTorneo ..> OpcionesReporte
 FichaTorneo ..> ReporteService
 ReporteService ..> OpcionesReporte
 ReporteService ..> ValidadorTorneo
@@ -553,9 +562,8 @@ ReporteTorneo ..> MotivoReporteTorneo
 | `FiltrosCatalogo` | `«boundary»` | `src/components/Filters.tsx` | Parcial (faltan filtros de Zona, Estado y Precio; hoy tiene `city`/`maxPrice`) |
 | `FichaTorneo` | `«boundary»` | `src/app/torneos/[id]/page.tsx` + `src/app/torneos/[id]/loading.tsx` | Implementada (falta botón «Reportar») |
 | `PaginaOrganizador` | `«boundary»` | `src/app/organizadores/[id]/page.tsx` | Implementada |
-| `OpcionesTorneo` / `OpcionesReporte` | `«boundary»` | `SPORT_MODALITIES` (`src/utils/modality.ts`), `STATUS_FILTERS` (`src/utils/tournament-status.ts`) | Implementados (falta `OpcionesReporte`) |
 | `WhatsApp` / `Instagram` | `«boundary»` | `whatsappLink` (`src/utils/whatsapp.ts`), `instagramUrl` (`src/utils/instagram.ts`) | Implementados |
-| `TorneoService` / `ReporteService` | `«control»` | Consultas RSC en `TournamentList`, `torneos/[id]/page.tsx`, `organizadores/[id]/page.tsx` | Implementado (`ReporteService` pendiente) |
+| `TorneoService` / `ReporteService` / `OpcionesTorneo` / `OpcionesReporte` | `«control»` | Consultas RSC en `TournamentList`, `torneos/[id]/page.tsx`, `organizadores/[id]/page.tsx`, `SPORT_MODALITIES` (`src/utils/modality.ts`), `STATUS_FILTERS` (`src/utils/tournament-status.ts`) | Implementado (`ReporteService` y `OpcionesReporte` pendientes) |
 | `ValidadorTorneo` | `«validador»` | Validación de parámetros de búsqueda y motivos de reporte | Parcial |
 | `TorneoRepository` | `«repositorio»` | Vista `public.tournaments_with_status` (`20261028000010_tournaments_with_status.sql`) | Implementado |
 | `PerfilRepository` | `«repositorio»` | Tabla `public.profiles` (lectura pública) | Implementado |
