@@ -281,7 +281,7 @@ class PanelReportes {
   +mostrarError(mensaje)
 }
 class OpcionesResolucion {
-  <<boundary>>
+  <<control>>
   +listarResolucionesDeTorneo() ResolucionReporteTorneo[]
 }
 class AdminService {
@@ -353,7 +353,6 @@ class ResolucionReporteTorneo {
   DarDeBaja
   SuspenderOrganizador
 }
-PanelReportes ..> OpcionesResolucion
 PanelReportes ..> AdminService
 AdminService ..> OpcionesResolucion
 AdminService ..> ValidadorAdmin
@@ -386,7 +385,7 @@ class PanelReportes {
   +mostrarError(mensaje)
 }
 class OpcionesResolucion {
-  <<boundary>>
+  <<control>>
   +listarResolucionesDeEquipo() ResolucionReporteEquipo[]
 }
 class AdminService {
@@ -459,7 +458,6 @@ class ResolucionReporteEquipo {
   Descartar
   SuspenderCapitan
 }
-PanelReportes ..> OpcionesResolucion
 PanelReportes ..> AdminService
 AdminService ..> OpcionesResolucion
 AdminService ..> ValidadorAdmin
@@ -495,7 +493,7 @@ class FormularioSuspension {
   +mostrarErrores(errores)
 }
 class OpcionesSuspension {
-  <<boundary>>
+  <<control>>
   +listarDuraciones() DuracionSuspension[]
 }
 class AdminService {
@@ -561,7 +559,6 @@ class DuracionSuspension {
   Dias30
   Permanente
 }
-FormularioSuspension ..> OpcionesSuspension
 FormularioSuspension ..> AdminService
 AdminService ..> OpcionesSuspension
 AdminService ..> ValidadorAdmin
@@ -664,8 +661,7 @@ Usuario "1" *-- "0..*" Suspension
 | `FormularioAdmin` | `«boundary»` | `src/app/admin/login/page.tsx` | Implementada |
 | `PanelAdmin` | `«boundary»` | `src/app/admin/(panel)/layout.tsx`, `src/app/admin/(panel)/page.tsx`, `src/app/admin/(panel)/seguridad/page.tsx` | Implementada (parcial en métricas nuevas) |
 | `PanelReportes` / `FormularioSuspension` / `PanelUsuarios` | `«boundary»` | — (previstos en `03-pantallas.md`) | **Pendiente** |
-| `OpcionesResolucion` / `OpcionesSuspension` | `«boundary»` | Listas fijas de resoluciones y duraciones | **Pendiente** |
-| `AdminService` | `«control»` | `adminLogin` (`src/app/admin/login/actions.ts`) + consultas en `src/app/admin/(panel)/page.tsx` | Parcial (faltan UC-F03 a UC-F06) |
+| `AdminService` / `OpcionesResolucion` / `OpcionesSuspension` | `«control»` | `adminLogin` (`src/app/admin/login/actions.ts`) + consultas en `src/app/admin/(panel)/page.tsx` + listas fijas de resoluciones y duraciones | Parcial (faltan UC-F03 a UC-F06) |
 | `ValidadorAdmin` | `«validador»` | `safeAdminNextPath` (`src/utils/safe-next-path.ts`) + validadores de moderación | Parcial |
 | `CuentaRepository` / `RolRepository` | `«repositorio»` | Supabase Auth + función `public.is_admin()` y tabla `public.admins` (`20260928000002_profiles.sql`) | Implementados |
 | `EstadisticasRepository` | `«repositorio»` | `countTable` en `src/app/admin/(panel)/page.tsx` (`tournaments`, `teams`, `profiles`) | Implementado |

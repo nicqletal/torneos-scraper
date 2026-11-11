@@ -334,7 +334,7 @@ FormularioRecuperar ..> CuentaService
 FormularioNuevaContrasena ..> CuentaService
 CuentaService ..> ValidadorCuenta
 CuentaService ..> CuentaRepository
-CuentaRepository ..> ServicioCorreo
+CuentaService ..> ServicioCorreo
 CuentaRepository ..> Usuario
 ```
 
@@ -424,6 +424,14 @@ Perfil "0..*" --> "0..1" Zona
 
 ```mermaid
 classDiagram
+class Campanita {
+  <<boundary>>
+  +cargarCampanita()
+  +mostrarContadorNoLeidos(cantidad)
+  +abrirCampanita()
+  +mostrarAvisos(avisos)
+  +tocarAviso(enlace)
+}
 class AvisoService {
   <<control>>
   +listarUltimos(limite) Aviso[]
@@ -471,6 +479,7 @@ class TipoAviso {
   TorneoDadoDeBaja
   CuentaSuspendida
 }
+Campanita ..> AvisoService
 AvisoService ..> AvisoRepository
 AvisoRepository ..> Aviso
 Aviso ..> TipoAviso
@@ -487,6 +496,7 @@ Aviso ..> TipoAviso
 | `FormularioRecuperar` / `FormularioNuevaContrasena` | `«boundary»` | — (diseño objetivo de UC-A04) | **Pendiente** |
 | `FormularioPerfil` | `«boundary»` | `src/app/perfil/page.tsx` | Implementado |
 | `MenuDeUsuario` | `«boundary»` | `src/components/UserMenu.tsx` | Implementado |
+| `Campanita` | `«boundary»` | `src/components/NoticeBell.tsx` | Implementada |
 | `ServicioCorreo` | `«boundary»` | — (diseño objetivo de UC-A04) | **Pendiente** |
 | `CuentaService` | `«control»` | Server Actions `signup`, `login`, `logout` en `src/app/login/actions.ts` | Implementado (falta UC-A04) |
 | `PerfilService` | `«control»` | Server Action `updateProfile` en `src/app/perfil/actions.ts` | Parcial (falta RF-A17) |
