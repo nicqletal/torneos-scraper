@@ -1,6 +1,6 @@
 # Diagramas de clase por caso de uso
 
-Versión del **04/11/2026**. Un archivo por módulo, cada uno con su versión `.md` (para leer y editar en el repo) y `.pdf` (para entregar). Cada módulo está alineado con sus documentos de `01-requerimientos.md`, `02-casos-de-uso.md`, `03-pantallas.md` y `04-diagramas-secuencia/`.
+Un archivo por módulo, cada uno con su versión `.md` (para leer y editar en el repo) y `.pdf` (para entregar). Cada módulo está alineado con sus documentos de `01-requerimientos.md`, `02-casos-de-uso.md`, `03-pantallas.md` y `04-diagramas-secuencia/`.
 
 | Módulo | Casos de uso | Documentación del módulo | Markdown | PDF |
 |---|---|---|---|---|
@@ -11,7 +11,7 @@ Versión del **04/11/2026**. Un archivo por módulo, cada uno con su versión `.
 | E — Organizador | UC-E01 a UC-E07 | [docs/organizador](../organizador/README.md) | [organizador.md](organizador.md) | [organizador.pdf](organizador.pdf) |
 | F — Administración | UC-F01 a UC-F06 | [docs/administracion](../administracion/README.md) | [administracion.md](administracion.md) | [administracion.pdf](administracion.pdf) |
 
-El módulo T (seguridad y RLS) no tiene diagramas propios: sus reglas aparecen como restricciones dentro de cada caso de uso y en los repositorios.
+El módulo T (seguridad y RLS) no tiene diagramas propios: sus reglas se aplican en la capa de persistencia (`«repositorio»`).
 
 ## Fuentes (en orden de autoridad)
 
@@ -22,24 +22,26 @@ El módulo T (seguridad y RLS) no tiene diagramas propios: sus reglas aparecen c
 5. [`docs/adr/`](../adr/): decisiones de arquitectura vigentes (por ejemplo, ADR 0002: conflictos sin árbitro).
 6. `supabase/migrations/` y `src/`: de acá salen los atributos reales de las entidades y la matriz de trazabilidad.
 
-## Convenciones de los diagramas
+## Convenciones de arquitectura y estereotipos (Craig Larman / ECB)
 
-Cada archivo comienza con el **Modelo de dominio del módulo** (las entidades y enumeraciones persistentes o calculadas) y luego desarrolla **un diagrama de clases por cada caso de uso**, mostrando únicamente las clases que participan en ese caso y manteniendo correspondencia directa con los participantes y mensajes de su **diagrama de secuencia** (`04-diagramas-secuencia/`).
+Cada archivo comienza con el **Modelo de dominio del módulo** (las entidades, relaciones de herencia/composición y enumeraciones del negocio) y luego desarrolla **un diagrama de clases de diseño por cada caso de uso**. Los flujos principales, reglas de negocio detalladas y flujos alternativos pertenecen estrictamente a las especificaciones de casos de uso (`02-casos-de-uso.md`), por lo que no se duplican en estos documentos.
 
-| Estereotipo | Qué representa | En este proyecto |
+| Estereotipo | Capa / Rol (Larman) | Qué representa en este proyecto |
 |---|---|---|
-| `«interfaz»` | La pantalla o componente que el actor ve y opera | Páginas del App Router y componentes (`FormularioAcceso`, `FichaTorneo`, `FichaEquipo`, `PantallaPartidos`) |
-| `«proveedor de opciones»` | Entrega listas fijas definidas en el código, sin consultar la base | `OpcionesEquipo`, `OpcionesTorneo`, `OpcionesBusqueda`, `OpcionesPartido`, `OpcionesReporte`, `OpcionesResolucion`, `OpcionesSuspension` |
-| `«control»` | Coordina el caso de uso o valida las entradas | Server Actions (`*Service`), middleware (`ControlDeAcceso`) y validadores puros (`Validador`) |
-| `«repositorio»` | Lee y escribe datos en la base o Storage, aplicando RLS y funciones RPC | `*Repository` (`ZonaRepository`, `EquipoRepository`, `TorneoRepository`, `PartidoRepository`, etc.) |
-| `«entidad»` | Un concepto del dominio con identidad o valor persistente/calculado | Tablas y vistas de Supabase (`Usuario`, `Perfil`, `Torneo`, `Inscripcion`, `Equipo`, `Partido`, `Propuesta`, `Aviso`, etc.) |
-| `«enumeracion»` | Un conjunto cerrado de valores del dominio | `enum` de Postgres o listas cerradas (`Modalidad`, `EstadoTorneo`, `NivelEquipo`, `FasePartido`, etc.) |
-| `«servicio externo»` | Un sistema externo fuera de nuestro código | `WhatsApp`, `Instagram`, `ServicioCorreo` |
+| `«boundary»` | Frontera (UI / Perímetro) | Pantallas, formularios, menús, middleware de acceso (`ControlDeAcceso`) y sistemas externos (`WhatsApp`, `Instagram`, `ServicioCorreo`) |
+| `«proveedor de opciones»` | Frontera / Configuración | Entrega listas fijas definidas en el código para poblar desplegables (`OpcionesEquipo`, `OpcionesTorneo`, `OpcionesBusqueda`, `OpcionesPartido`, `OpcionesReporte`, `OpcionesResolucion`, `OpcionesSuspension`) |
+| `«control»` | Lógica de negocio (BLL) | Controladores de caso de uso (`CuentaService`, `PerfilService`, `AvisoService`, `TorneoService`, `InscripcionService`, `ReporteService`, `EquipoService`, `BusquedaService`, `PartidoService`, `AdminService`) |
+| `«validador»` | Lógica de negocio (BLL) | Componentes cohesivos de validación por módulo (`ValidadorCuenta`, `ValidadorTorneo`, `ValidadorEquipo`, `ValidadorPartido`, `ValidadorAdmin`), invocados siempre desde el `«control»` (`*Service`) |
+| `«repositorio»` | Acceso a datos (DAL) | Lee y escribe entidades en la base o Storage aplicando RLS y funciones RPC (`*Repository`) |
+| `«entidad»` | Dominio | Conceptos del dominio con identidad o estado persistente/calculado (`Usuario`, `Administrador`, `Perfil`, `Sesion`, `Torneo`, `Inscripcion`, `Equipo`, `Partido`, `Propuesta`, `Aviso`, etc.) |
+| `«enumeracion»` | Dominio | Conjuntos cerrados de valores del dominio (`Modalidad`, `EstadoTorneo`, `NivelEquipo`, `FasePartido`, `TipoAviso`, etc.) |
 
-- **Carga previa de desplegables y validación al guardar:** siguiendo la guía de diagramas, cuando un caso empieza con un formulario con desplegables, la `«interfaz»` consulta antes a los repositorios (`ZonaRepository`) o proveedores de opciones (`OpcionesEquipo`, `OpcionesTorneo`, `OpcionesBusqueda`), y al enviar pasa al `«control»` solo los valores elegidos (`zonaId`, `modalidad`, `nivel`). El `Validador` y el `«repositorio»` vuelven a validar al guardar.
-- **Valores calculados:** los estados y plazos que no se guardan en columnas sino que se calculan al leer (como `Torneo.estado()`, `Torneo.antiguedadVerificacion()`, `Partido.fase()`, `Partido.plazo()`, `Propuesta.estado()`) se representan como **métodos** de la entidad.
-- **Nombres de clases:** van sin tildes ni espacios (`Inscripcion`, `Sesion`, `BusquedaDeRival`) por compatibilidad con Mermaid; en atributos, métodos y etiquetas sí se usan tildes.
-- **Relaciones:** `..>` dependencia (usa / consulta), `-->` asociación, `*--` composición, `o--` agregación.
+### Principios aplicados transversalmente
+
+- **Separación estricta de capas (`«boundary»` → `«control»` → `«repositorio»` → `«entidad»`):** ningún componente `«boundary»` accede de forma directa a un `«repositorio»` (DAL) ni a un `«validador»`. Toda lectura o escritura pasa por el servicio controlador (`«control»`, BLL).
+- **Validadores unificados en BLL:** cada módulo cuenta con un componente `«validador»` cohesivo invocado exclusivamente por el `*Service` (`«control»`) antes de persistir en el `*Repository`.
+- **Subsistema de Avisos (campanita) directo:** la consulta de avisos no leídos y el marcado como leídos se canalizan directamente a través de `AvisoService` (`«control»`) hacia `AvisoRepository` (`«repositorio»`) y `Aviso` (`«entidad»`), sin interfaces intermedias redundantes.
+- **Generalización en el dominio:** los roles especializados con identidad de cuenta (como `Administrador` respecto de `Usuario`) se modelan mediante herencia (`<|--`, *«es un»*).
 
 ## Regenerar los PDF
 
