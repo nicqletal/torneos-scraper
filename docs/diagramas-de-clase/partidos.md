@@ -7,74 +7,88 @@
 
 ## Modelo de dominio del módulo
 
-Vista estructural de las entidades y enumeraciones involucradas en la **Búsqueda de rival**, el cruce de **Franjas**, las **Propuestas**, la máquina de estados del **Partido**, el presentismo (**Faltas** y **Bloqueo por faltas**) y la **Calificación** con revelación cruzada (`UC-D01` a `UC-D14`).
+Vista estructural de las entidades, relaciones de composición/asociación y enumeraciones involucradas en la **Búsqueda de rival**, el cruce de **Franjas**, las **Propuestas**, la máquina de estados del **Partido**, el presentismo (**Faltas** y **Bloqueo por faltas**) y la **Calificación** con revelación cruzada (`UC-D01` a `UC-D14`).
 
 ```mermaid
 classDiagram
-direction TB
 class BusquedaDeRival {
   <<entidad>>
   +id: uuid
-  +equipoId: uuid
-  +modalidades: Modalidad[]
-  +notaOpcional: texto [0..1]
-  +activa: booleano
-  +actualizadaEn: fechaHora
-  +franjasFuturasVigentes() Franja[]
-  +tieneAlMenosUnaFranjaVigente() booleano
+  +teamId: uuid
+  +modalidad: Modalidad
+  +creadaEn: fechaHora
+  +canceladaEn: fechaHora [0..1]
+  +estaActiva() booleano
+  +franjasVigentes() Franja[]
 }
 class Franja {
   <<entidad>>
   +id: uuid
-  +busquedaId: uuid
-  +fecha: fecha
-  +turno: Turno
-  +ocupadaPorPartidoId: uuid [0..1]
+  +searchId: uuid
+  +rango: rangoFechaHora
+  +eliminadaEn: fechaHora [0..1]
   +esFutura() booleano
-  +estaDisponible() booleano
+  +estaVigente() booleano
+  +estaOcupada() booleano
+  +superponeCon(otroRango) booleano
 }
 class Propuesta {
   <<entidad>>
   +id: uuid
-  +equipoEmisorId: uuid
-  +equipoReceptorId: uuid
-  +fecha: fecha
-  +turno: Turno
-  +modalidad: Modalidad
+  +franjaEmisoraId: uuid
+  +franjaReceptoraId: uuid
+  +rangoComun: rangoFechaHora
   +creadaEn: fechaHora
-  +respondidaEn: fechaHora [0..1]
+  +cerradaEn: fechaHora [0..1]
+  +motivoCierre: MotivoCierrePropuesta [0..1]
+  +partidoId: uuid [0..1]
+  +venceEn() fechaHora
   +estado() EstadoPropuesta
 }
 class Partido {
   <<entidad>>
   +id: uuid
-  +propuestaId: uuid
-  +equipoAId: uuid
-  +equipoBId: uuid
-  +fecha: fecha
-  +turno: Turno
-  +modalidad: Modalidad
-  +canchaElegida: texto [0..1]
-  +horaExacta: hora [0..1]
+  +rango: rangoFechaHora
+  +creadoEn: fechaHora
+  +cancha: texto [0..1]
+  +horaExacta: fechaHora [0..1]
+  +cargadoPorEquipoId: uuid [0..1]
   +coordinadoEn: fechaHora [0..1]
-  +solicitudCaidaMutuaDeId: uuid [0..1]
-  +reporteNoShowDeId: uuid [0..1]
-  +reporteNoShowEn: fechaHora [0..1]
+  +tiradoEn: fechaHora [0..1]
   +motivoCaida: texto [0..1]
+  +tiradoPorEquipoId: uuid [0..1]
+  +caidaMutua: booleano
+  +pedidoCaidaEquipoId: uuid [0..1]
+  +pedidoCaidaMotivo: texto [0..1]
+  +pedidoCaidaEn: fechaHora [0..1]
+  +pedidoCaidaRespondidoEn: fechaHora [0..1]
+  +pedidoCaidaAceptado: booleano [0..1]
+  +ultimaAccionEn: fechaHora [0..1]
+  +horaDeInicio() fechaHora
   +fase() FasePartido
   +plazo() fechaHora [0..1]
-  +faltanMenosDe24Horas() booleano
+  +estaCoordinado() booleano
+  +estaConfirmado() booleano
+  +sumaFaltaPorCaida() booleano
+  +resultadosCoinciden() booleano
+  +estaEnConflicto() booleano
+  +plazoResultado() fechaHora
+  +plazoCalificacion() fechaHora
 }
 class LadoPartido {
   <<entidad>>
   +partidoId: uuid
   +equipoId: uuid
-  +canchaPropuesta: texto [0..1]
-  +horaPropuesta: hora [0..1]
-  +asistenciaConfirmadaEn: fechaHora [0..1]
-  +golesPropiosCargados: entero [0..1]
-  +golesRivalCargados: entero [0..1]
-  +resultadoCargadoEn: fechaHora [0..1]
+  +vamosEn: fechaHora [0..1]
+  +golesAFavor: entero [0..1]
+  +golesEnContra: entero [0..1]
+  +resultadoEn: fechaHora [0..1]
+  +noVinieronEn: fechaHora [0..1]
+  +fuimosEn: fechaHora [0..1]
+  +confirmoVamos() booleano
+  +cargoResultado() booleano
+  +reportoAusencia() booleano
+  +respondioFuimos() booleano
 }
 class Calificacion {
   <<entidad>>
@@ -82,19 +96,17 @@ class Calificacion {
   +partidoId: uuid
   +equipoEvaluadorId: uuid
   +equipoEvaluadoId: uuid
-  +respeto: entero
-  +comentarioPrivado: texto [0..1]
+  +estrellas: entero
+  +comentario: texto [0..1]
   +creadaEn: fechaHora
-  +esVisibleEnPromedio() booleano
+  +estaRevelada() booleano
 }
 class Falta {
   <<entidad>>
-  +id: uuid
   +equipoId: uuid
   +partidoId: uuid
-  +tipo: TipoFalta
-  +registradaEn: fechaHora
-  +estaEnVentana90Dias() booleano
+  +ocurridaEn: fechaHora
+  +cuentaEn90Dias() booleano
 }
 class Equipo {
   <<entidad>>
@@ -103,66 +115,63 @@ class Equipo {
   +zonaId: texto
   +modalidad: Modalidad
   +nivel: NivelEquipo
+  +faltasRecientes90Dias() entero
+  +bloqueadoHasta() fechaHora [0..1]
   +tieneBloqueoPorFaltas() booleano
 }
-class Aviso {
-  <<entidad>>
-  +id: uuid
-  +usuarioId: uuid
-  +tipo: TipoAviso
-  +parametros: json
-  +enlace: texto
-}
-class Turno {
+class TurnoBusqueda {
   <<enumeracion>>
-  Manana
-  Tarde
-  Noche
+  Manana9a12
+  Tarde14a18
+  Noche20a23
+  OtroHorario
 }
 class Modalidad {
   <<enumeracion>>
   Futbol5
+  Futbol6
   Futbol7
   Futbol8
+  Futbol9
   Futbol11
+  Femenino
+  Mixto
+  Senior
 }
 class EstadoPropuesta {
   <<enumeracion>>
   Pendiente
+  Vencida
   Aceptada
   Rechazada
   Cancelada
+  FranjaSacada
+  BusquedaCancelada
+  Anulada
+  EquipoBloqueado
 }
 class FasePartido {
   <<enumeracion>>
-  PendienteDeCoordinacion
-  Coordinado
-  Confirmado
+  PorJugarse
+  EsperandoResultado
   Jugado
-  SinAcuerdo
-  PartidoCaido
-  NoSePresento
-  PartidoEnConflicto
+  Caido
+  EnConflicto
+  NoPresentado
 }
-class TipoFalta {
-  <<enumeracion>>
-  CaidaSobreLaHora
-  NoPresentacion
-}
-Equipo "1" *-- "0..1" BusquedaDeRival : mantiene
-BusquedaDeRival "1" *-- "1..*" Franja : ofrece
-Franja ..> Turno
-Equipo "1" --> "0..*" Propuesta : envía o recibe
-Propuesta ..> Turno
-Propuesta ..> Modalidad
-Propuesta ..> EstadoPropuesta : calcula al leer
-Propuesta "1" --> "0..1" Partido : origina al aceptarse
-Partido "1" *-- "2" LadoPartido : involucra dos equipos
-Partido ..> FasePartido : calcula al leer
-Partido "1" --> "0..2" Calificacion : recibe hasta dos
-Partido "0..1" --> "0..1" Falta : puede generar
-Equipo "1" *-- "0..*" Falta : registra en 90 días
-Partido ..> Aviso : notifica transiciones
+Equipo "1" *-- "0..*" BusquedaDeRival
+BusquedaDeRival "1" *-- "1..*" Franja
+Franja "1" --> "0..*" Propuesta
+Propuesta "0..1" --> "0..1" Partido
+Partido "1" *-- "2" LadoPartido
+Equipo "1" --> "0..*" LadoPartido
+Partido "1" *-- "0..2" Calificacion
+Equipo "1" *-- "0..*" Falta
+Partido "1" --> "0..1" Falta
+BusquedaDeRival ..> Modalidad
+Franja ..> TurnoBusqueda
+Propuesta ..> EstadoPropuesta
+Partido ..> FasePartido
 ```
 
 ---
@@ -171,310 +180,427 @@ Partido ..> Aviso : notifica transiciones
 
 ### UC-D01 · Publicar una búsqueda de rival
 
-**Requerimientos:** `RF-D01`, `RF-D02`, `RNF-D01` · **Pantalla:** [P-D01 · Buscar rival](../partidos/03-pantallas.md) (`/buscar-rival`) · **Secuencia:** [`uc-d01-publicar-busqueda.md`](../partidos/04-diagramas-secuencia/uc-d01-publicar-busqueda.md)
+> Especificación: [UC-D01](../partidos/02-casos-de-uso.md#uc-d01--publicar-una-búsqueda-de-rival) · Pantalla: [P1 · Buscar rival](../partidos/03-pantallas.md#p1--buscar-rival) · Secuencia: [S01 · Publicar búsqueda](../partidos/04-diagramas-secuencia/uc-d01-publicar-busqueda.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaBuscarRival {
   <<boundary>>
-  +abrirBuscarRival()
-  +seleccionarEquipoCapitan(equipoId)
-  +guardarBusqueda(equipoId, modalidades, franjas, nota)
-  +mostrarAvisoBloqueoPorFaltas(fechaFinBloqueo)
+  +abrirBuscarRival(equipoId, modalidad)
+  +mostrarAvisoSoloCapitan()
+  +mostrarBloqueoPorFaltas(bloqueadoHasta)
+  +mostrarFormulario(equipos, modalidades, turnos)
+  +elegirDiaTurnoYModalidad(equipoId, modalidad, franjas)
+  +confirmarBusqueda()
+  +mostrarBuscandoRivalYCompatibles()
+  +mostrarErrores(errores)
 }
 class OpcionesBusqueda {
-  <<proveedor de opciones>>
-  +listarTurnos() Turno[]
+  <<boundary>>
+  +listarModalidades() Modalidad[]
+  +listarTurnos() TurnoBusqueda[]
 }
 class BusquedaService {
   <<control>>
-  +cargarEquiposCapitan(usuarioId) Equipo[]
-  +publicarBusqueda(usuarioId, equipoId, modalidades, franjas, nota) BusquedaDeRival
+  +prepararBuscarRival(usuarioId, equipoId, modalidad)
+  +publicarBusqueda(equipoId, modalidad, franjas)
 }
 class ValidadorPartido {
   <<validador>>
-  +validarBusquedaRival(modalidades, franjas, nota) booleano
-  +validarFranjasFuturas(franjas) booleano
+  +validarFranjas(franjas) Franja[]
 }
 class EquipoRepository {
   <<repositorio>>
-  +listarEquiposComoCapitan(usuarioId) Equipo[]
+  +listarEquiposDelCapitan(usuarioId) Equipo[]
 }
 class BusquedaRepository {
   <<repositorio>>
-  +guardarBusqueda(equipoId, modalidades, franjas, nota) BusquedaDeRival
+  +consultarEstado(equipoId, modalidad)
+  +guardarBusqueda(equipoId, modalidad, franjas) uuid
+  +verificarCapitanWhatsappYBloqueo(equipoId) booleano
+  +verificarFormato14DiasYChoques(equipoId, franjas) booleano
+}
+class Equipo {
+  <<entidad>>
+  +id: uuid
+  +nombre: texto
+  +modalidad: Modalidad
+  +faltasRecientes90Dias() entero
+  +bloqueadoHasta() fechaHora [0..1]
+  +tieneBloqueoPorFaltas() booleano
 }
 class BusquedaDeRival {
   <<entidad>>
   +id: uuid
-  +equipoId: uuid
-  +modalidades: Modalidad[]
-  +notaOpcional: texto [0..1]
-  +activa: booleano
+  +teamId: uuid
+  +modalidad: Modalidad
+  +creadaEn: fechaHora
+  +estaActiva() booleano
 }
 class Franja {
   <<entidad>>
   +id: uuid
-  +fecha: fecha
-  +turno: Turno
+  +searchId: uuid
+  +rango: rangoFechaHora
+  +esFutura() booleano
+  +estaVigente() booleano
 }
-class Turno {
+class Modalidad {
   <<enumeracion>>
-  Manana
-  Tarde
-  Noche
+  Futbol5
+  Futbol6
+  Futbol7
+  Futbol8
+  Futbol9
+  Futbol11
+  Femenino
+  Mixto
+  Senior
 }
-PantallaBuscarRival ..> OpcionesBusqueda : obtiene turnos fijos
-PantallaBuscarRival ..> BusquedaService : consulta equipos propios y envía búsqueda
-BusquedaService ..> EquipoRepository : obtiene equipos donde es Capitán
-BusquedaService ..> ValidadorPartido : valida modalidades, franjas futuras y nota
-BusquedaService ..> BusquedaRepository : ejecuta save_rival_search
-BusquedaRepository ..> BusquedaDeRival : verifica sin bloqueo por faltas y guarda búsqueda única
-BusquedaDeRival "1" *-- "1..*" Franja : contiene
-OpcionesBusqueda ..> Turno
+class TurnoBusqueda {
+  <<enumeracion>>
+  Manana9a12
+  Tarde14a18
+  Noche20a23
+  OtroHorario
+}
+PantallaBuscarRival ..> OpcionesBusqueda
+PantallaBuscarRival ..> BusquedaService
+BusquedaService ..> OpcionesBusqueda
+BusquedaService ..> EquipoRepository
+BusquedaService ..> ValidadorPartido
+BusquedaService ..> BusquedaRepository
+EquipoRepository ..> Equipo
+BusquedaRepository ..> BusquedaDeRival
+BusquedaRepository ..> Franja
+Equipo "1" *-- "0..*" BusquedaDeRival
+BusquedaDeRival "1" *-- "1..*" Franja
+BusquedaDeRival ..> Modalidad
+Franja ..> TurnoBusqueda
 ```
 
 ---
 
 ### UC-D02 · Editar o cancelar la búsqueda
 
-**Requerimientos:** `RF-D01`, `RF-D03`, `RNF-D01` · **Pantalla:** [P-D01 · Buscar rival](../partidos/03-pantallas.md) (`/buscar-rival`) · **Secuencia:** [`uc-d02-editar-cancelar-busqueda.md`](../partidos/04-diagramas-secuencia/uc-d02-editar-cancelar-busqueda.md)
+> Especificación: [UC-D02](../partidos/02-casos-de-uso.md#uc-d02--editar-o-cancelar-la-búsqueda) · Pantalla: [P1 · Buscar rival](../partidos/03-pantallas.md#p1--buscar-rival) · Secuencia: [S02 · Editar o cancelar búsqueda](../partidos/04-diagramas-secuencia/uc-d02-editar-cancelar-busqueda.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaBuscarRival {
   <<boundary>>
-  +modificarModalidadesYFranjas(equipoId, modalidades, franjas, nota)
-  +pulsarCancelarBusqueda(equipoId)
+  +mostrarBusquedaActiva(franjas)
+  +agregarOtroHorario(equipoId, modalidad, franjas)
+  +sacarHorario(equipoId, modalidad, franjasRestantes)
+  +cancelarBusqueda(equipoId, modalidad)
+  +mostrarBusquedaActualizada()
+  +mostrarError(mensaje)
 }
 class BusquedaService {
   <<control>>
-  +actualizarBusqueda(usuarioId, equipoId, modalidades, franjas, nota)
-  +cancelarBusqueda(usuarioId, equipoId)
+  +editarBusqueda(equipoId, modalidad, franjas)
+  +cancelarBusqueda(equipoId, modalidad)
 }
 class ValidadorPartido {
   <<validador>>
-  +validarBusquedaRival(modalidades, franjas, nota) booleano
+  +validarFranjas(franjas) Franja[]
 }
 class BusquedaRepository {
   <<repositorio>>
-  +actualizarBusqueda(equipoId, modalidades, franjas, nota)
-  +cancelarBusqueda(equipoId)
+  +guardarBusqueda(equipoId, modalidad, franjas) uuid
+  +cancelarPropuestasDeFranjasEliminadas(busquedaId, franjas)
 }
-class AvisoRepository {
-  <<repositorio>>
-  +notificarPropuestasCanceladas(propuestasIds)
+class BusquedaDeRival {
+  <<entidad>>
+  +id: uuid
+  +teamId: uuid
+  +modalidad: Modalidad
+  +canceladaEn: fechaHora [0..1]
+  +estaActiva() booleano
+  +franjasVigentes() Franja[]
+}
+class Franja {
+  <<entidad>>
+  +id: uuid
+  +searchId: uuid
+  +rango: rangoFechaHora
+  +eliminadaEn: fechaHora [0..1]
+  +estaVigente() booleano
 }
 class Propuesta {
   <<entidad>>
   +id: uuid
+  +franjaEmisoraId: uuid
+  +franjaReceptoraId: uuid
+  +cerradaEn: fechaHora [0..1]
+  +motivoCierre: MotivoCierrePropuesta [0..1]
   +estado() EstadoPropuesta
 }
 class Aviso {
   <<entidad>>
   +id: uuid
-  +usuarioId: uuid
+  +userId: uuid
   +tipo: TipoAviso
+  +parametros: jsonb
 }
-PantallaBuscarRival ..> BusquedaService : solicita actualizar o cancelar búsqueda
-BusquedaService ..> ValidadorPartido : valida modalidades, franjas y nota
-BusquedaService ..> BusquedaRepository : ejecuta save_rival_search o cancel_rival_search
-BusquedaRepository ..> Propuesta : cancela pendientes de franjas eliminadas
-BusquedaRepository ..> AvisoRepository : avisa a capitanes de la contraparte
-AvisoRepository ..> Aviso : persiste aviso
+PantallaBuscarRival ..> BusquedaService
+BusquedaService ..> ValidadorPartido
+BusquedaService ..> BusquedaRepository
+BusquedaRepository ..> BusquedaDeRival
+BusquedaRepository ..> Franja
+BusquedaRepository ..> Propuesta
+BusquedaRepository ..> Aviso
+BusquedaDeRival "1" *-- "1..*" Franja
+Franja "1" --> "0..*" Propuesta
 ```
 
 ---
 
 ### UC-D03 · Ver rivales compatibles
 
-**Requerimientos:** `RF-D04` · **Pantalla:** [P-D01 · Buscar rival](../partidos/03-pantallas.md) (`/buscar-rival`) · **Secuencia:** [`uc-d03-ver-rivales-compatibles.md`](../partidos/04-diagramas-secuencia/uc-d03-ver-rivales-compatibles.md)
+> Especificación: [UC-D03](../partidos/02-casos-de-uso.md#uc-d03--ver-rivales-compatibles) · Pantalla: [P1 · Buscar rival](../partidos/03-pantallas.md#p1--buscar-rival) · Secuencia: [S03 · Ver rivales compatibles](../partidos/04-diagramas-secuencia/uc-d03-ver-rivales-compatibles.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaBuscarRival {
   <<boundary>>
-  +mostrarRivalesCompatibles(rivales)
-  +mostrarEstadoPropuestaPorFranja(estado)
+  +abrirBuscarRival(equipoId, modalidad)
+  +mostrarRivalesCompatibles(rivales, propuestas)
+  +mostrarSinCompatibles()
 }
 class BusquedaService {
   <<control>>
-  +consultarRivalesCompatibles(equipoId) RivalCompatible[]
+  +consultarCompatiblesYPropuestas(busquedaId)
 }
 class BusquedaRepository {
   <<repositorio>>
-  +obtenerRivalesCompatibles(equipoId) RivalCompatible[]
+  +obtenerRivalesCompatibles(busquedaId) RivalCompatible[]
+  +cruzarFranjasMismaModalidad(busquedaId)
+  +descartarNivelesIncompatiblesMismoCapitanYOcupadas()
+  +ordenarPorCercaniaNivelYPresentismo()
 }
 class PropuestaRepository {
   <<repositorio>>
-  +listarPropuestasPendientesDelEquipo(equipoId) Propuesta[]
+  +listarPropuestasEnviadas(busquedaId) Propuesta[]
 }
 class RivalCompatible {
   <<entidad>>
-  +equipoId: uuid
-  +nombre: texto
+  +franjaPropiaId: uuid
+  +franjaRivalId: uuid
+  +equipoRivalId: uuid
+  +nombreRival: texto
   +escudoUrl: texto [0..1]
-  +zonaNombre: texto
-  +corredor: texto
-  +mismaZona: booleano
-  +mismoCorredor: booleano
-  +modalidadesEnComun: Modalidad[]
-  +franjasCoincidentes: Franja[]
-  +promedioRespeto: decimal [0..1]
-  +faltas90Dias: entero
-  +notaBusqueda: texto [0..1]
+  +zonaRival: texto
+  +nivelRival: NivelEquipo
+  +rangoComun: rangoFechaHora
+  +jugados: entero
+  +noPresentado: entero
+  +promedioEstrellas: decimal [0..1]
+  +totalCalificaciones: entero
 }
 class Propuesta {
   <<entidad>>
   +id: uuid
-  +fecha: fecha
-  +turno: Turno
+  +franjaEmisoraId: uuid
+  +franjaReceptoraId: uuid
+  +rangoComun: rangoFechaHora
   +estado() EstadoPropuesta
 }
-PantallaBuscarRival ..> BusquedaService : solicita rivales compatibles
-BusquedaService ..> BusquedaRepository : ejecuta compatible_rivals
-BusquedaService ..> PropuestaRepository : consulta propuestas pendientes por franja
-BusquedaRepository ..> RivalCompatible : cruza modalidad y franja futura y ordena por cercanía
-PropuestaRepository ..> Propuesta : recupera pendientes
+class BusquedaDeRival {
+  <<entidad>>
+  +id: uuid
+  +teamId: uuid
+  +modalidad: Modalidad
+  +estaActiva() booleano
+}
+PantallaBuscarRival ..> BusquedaService
+BusquedaService ..> BusquedaRepository
+BusquedaService ..> PropuestaRepository
+BusquedaRepository ..> BusquedaDeRival
+BusquedaRepository ..> RivalCompatible
+PropuestaRepository ..> Propuesta
 ```
 
 ---
 
 ### UC-D04 · Proponer un partido
 
-**Requerimientos:** `RF-D02`, `RF-D05`, `RNF-D01` · **Pantalla:** [P-D01 · Buscar rival](../partidos/03-pantallas.md) (`/buscar-rival`) · **Secuencia:** [`uc-d04-proponer-partido.md`](../partidos/04-diagramas-secuencia/uc-d04-proponer-partido.md)
+> Especificación: [UC-D04](../partidos/02-casos-de-uso.md#uc-d04--proponer-un-partido) · Pantalla: [P1 · Buscar rival](../partidos/03-pantallas.md#p1--buscar-rival) · Secuencia: [S04 · Proponer partido](../partidos/04-diagramas-secuencia/uc-d04-proponer-partido.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaBuscarRival {
   <<boundary>>
-  +elegirFranjaYModalidad(rivalId, fecha, turno, modalidad)
-  +enviarPropuesta()
+  +tocarProponerPartido(franjaPropiaId, franjaRivalId)
   +mostrarPropuestaEnviada()
+  +mostrarError(mensaje)
 }
 class BusquedaService {
   <<control>>
-  +proponerPartido(usuarioId, equipoEmisorId, equipoReceptorId, fecha, turno, modalidad) uuid
+  +proponerPartido(franjaPropiaId, franjaRivalId)
 }
 class ValidadorPartido {
   <<validador>>
-  +validarDatosPropuesta(fecha, turno, modalidad) booleano
+  +validarIdsFranjas(franjaPropiaId, franjaRivalId) booleano
 }
 class PropuestaRepository {
   <<repositorio>>
-  +enviarPropuesta(equipoEmisorId, equipoReceptorId, fecha, turno, modalidad) uuid
-}
-class AvisoRepository {
-  <<repositorio>>
-  +notificarPropuestaRecibida(capitanReceptorId, parametros)
+  +enviarPropuesta(franjaPropiaId, franjaRivalId) uuid
+  +verificarCapitanCompatibilidadYUnicidad(franjaPropiaId, franjaRivalId) booleano
+  +calcularHorarioEnComun(franjaPropia, franjaRival) rangoFechaHora
 }
 class Propuesta {
   <<entidad>>
   +id: uuid
-  +equipoEmisorId: uuid
-  +equipoReceptorId: uuid
-  +fecha: fecha
-  +turno: Turno
-  +modalidad: Modalidad
+  +franjaEmisoraId: uuid
+  +franjaReceptoraId: uuid
+  +rangoComun: rangoFechaHora
+  +creadaEn: fechaHora
+  +venceEn() fechaHora
   +estado() EstadoPropuesta
+}
+class Franja {
+  <<entidad>>
+  +id: uuid
+  +searchId: uuid
+  +rango: rangoFechaHora
+  +estaVigente() booleano
+  +estaOcupada() booleano
 }
 class Aviso {
   <<entidad>>
   +id: uuid
-  +usuarioId: uuid
+  +userId: uuid
   +tipo: TipoAviso
+  +parametros: jsonb
 }
-PantallaBuscarRival ..> BusquedaService : envía propuesta de partido
-BusquedaService ..> ValidadorPartido : valida fecha, turno y modalidad
-BusquedaService ..> PropuestaRepository : ejecuta send_proposal
-PropuestaRepository ..> Propuesta : verifica coincidencia vigente y unicidad en la franja
-PropuestaRepository ..> AvisoRepository : avisa al Capitán receptor
-AvisoRepository ..> Aviso : persiste aviso
+class EstadoPropuesta {
+  <<enumeracion>>
+  Pendiente
+  Vencida
+  Aceptada
+  Rechazada
+  Cancelada
+}
+PantallaBuscarRival ..> BusquedaService
+BusquedaService ..> ValidadorPartido
+BusquedaService ..> PropuestaRepository
+PropuestaRepository ..> Franja
+PropuestaRepository ..> Propuesta
+PropuestaRepository ..> Aviso
+Franja "1" --> "0..*" Propuesta
+Propuesta ..> EstadoPropuesta
 ```
 
 ---
 
 ### UC-D05 · Cancelar una propuesta enviada
 
-**Requerimientos:** `RF-D05`, `RNF-D01` · **Pantallas:** [P-D01 · Buscar rival](../partidos/03-pantallas.md) y [P-D02 · Partidos](../partidos/03-pantallas.md) · **Secuencia:** [`uc-d05-cancelar-propuesta.md`](../partidos/04-diagramas-secuencia/uc-d05-cancelar-propuesta.md)
+> Especificación: [UC-D05](../partidos/02-casos-de-uso.md#uc-d05--cancelar-una-propuesta-enviada) · Pantalla: [P1 · Buscar rival](../partidos/03-pantallas.md#p1--buscar-rival) · Secuencia: [S05 · Cancelar propuesta](../partidos/04-diagramas-secuencia/uc-d05-cancelar-propuesta.md)
 
 ```mermaid
 classDiagram
-direction TB
-class PantallaPartidos {
+class PantallaBuscarRival {
   <<boundary>>
-  +pulsarCancelarPropuesta(propuestaId)
-  +actualizarListaPropuestas()
+  +mostrarPropuestaEnviada()
+  +tocarCancelar(propuestaId)
+  +volverAProponerPartido()
+  +mostrarEstadoPropuesta(estado)
 }
 class BusquedaService {
   <<control>>
-  +cancelarPropuestaEnviada(usuarioId, propuestaId)
+  +cancelarPropuesta(propuestaId)
 }
 class PropuestaRepository {
   <<repositorio>>
-  +cancelarPropuesta(propuestaId, capitanEmisorId)
+  +responder(propuestaId, aceptar)
+  +verificarEmisorYPendiente(propuestaId) booleano
+  +cerrarComoCancelada(propuestaId)
 }
 class Propuesta {
   <<entidad>>
   +id: uuid
-  +equipoEmisorId: uuid
+  +franjaEmisoraId: uuid
+  +franjaReceptoraId: uuid
+  +cerradaEn: fechaHora [0..1]
+  +motivoCierre: MotivoCierrePropuesta [0..1]
+  +venceEn() fechaHora
   +estado() EstadoPropuesta
 }
-PantallaPartidos ..> BusquedaService : solicita cancelar propuesta enviada
-BusquedaService ..> PropuestaRepository : ejecuta respond_proposal con cancelación
-PropuestaRepository ..> Propuesta : verifica estado Pendiente y pasa a Cancelada
+class Aviso {
+  <<entidad>>
+  +id: uuid
+  +userId: uuid
+  +tipo: TipoAviso
+  +parametros: jsonb
+}
+class EstadoPropuesta {
+  <<enumeracion>>
+  Pendiente
+  Vencida
+  Aceptada
+  Rechazada
+  Cancelada
+}
+PantallaBuscarRival ..> BusquedaService
+BusquedaService ..> PropuestaRepository
+PropuestaRepository ..> Propuesta
+PropuestaRepository ..> Aviso
+Propuesta ..> EstadoPropuesta
 ```
 
 ---
 
 ### UC-D06 · Aceptar o rechazar una propuesta
 
-**Requerimientos:** `RF-D06`, `RNF-D01`, `RNF-D02` · **Pantalla:** [P-D02 · Partidos](../partidos/03-pantallas.md) (`/partidos`) · **Secuencia:** [`uc-d06-responder-propuesta.md`](../partidos/04-diagramas-secuencia/uc-d06-responder-propuesta.md)
+> Especificación: [UC-D06](../partidos/02-casos-de-uso.md#uc-d06--aceptar-o-rechazar-una-propuesta) · Pantalla: [P2 · Partidos](../partidos/03-pantallas.md#p2--partidos) · Secuencia: [S06 · Responder propuesta](../partidos/04-diagramas-secuencia/uc-d06-responder-propuesta.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaPartidos {
   <<boundary>>
-  +pulsarAceptarPropuesta(propuestaId)
-  +pulsarRechazarPropuesta(propuestaId)
-  +mostrarPartidoCreado(partidoId)
+  +mostrarTeProponenJugar(propuestas)
+  +tocarRechazar(propuestaId)
+  +tocarAceptar(propuestaId)
+  +mostrarProximoPartido(partido, whatsappRival)
+  +mostrarError(mensaje)
 }
 class BusquedaService {
   <<control>>
-  +responderPropuesta(usuarioId, propuestaId, decision)
-}
-class ValidadorPartido {
-  <<validador>>
-  +validarDecisionPropuesta(decision) booleano
+  +listarPropuestasRecibidas(usuarioId) Propuesta[]
+  +rechazarPropuesta(propuestaId)
+  +aceptarPropuesta(propuestaId)
 }
 class PropuestaRepository {
   <<repositorio>>
-  +aceptarPropuestaYCrearPartido(propuestaId, capitanReceptorId) uuid
-  +rechazarPropuesta(propuestaId, capitanReceptorId)
+  +listarPropuestasRecibidas(usuarioId) Propuesta[]
+  +responder(propuestaId, aceptar)
+  +cerrarComoRechazada(propuestaId)
+  +ocuparFranjasYAnularSuperpuestas(partidoId, equipos, rango)
 }
-class AvisoRepository {
+class PartidoRepository {
   <<repositorio>>
-  +notificarResolucionPropuesta(partidoId, tercerosAfectados)
+  +existePartidoSuperpuesto(equipos, rango) booleano
+  +crearPartido(propuestaId, rango) Partido
 }
 class Propuesta {
   <<entidad>>
   +id: uuid
+  +franjaEmisoraId: uuid
+  +franjaReceptoraId: uuid
+  +rangoComun: rangoFechaHora
+  +cerradaEn: fechaHora [0..1]
+  +partidoId: uuid [0..1]
+  +venceEn() fechaHora
   +estado() EstadoPropuesta
 }
 class Partido {
   <<entidad>>
   +id: uuid
-  +propuestaId: uuid
-  +equipoAId: uuid
-  +equipoBId: uuid
-  +fecha: fecha
-  +turno: Turno
-  +modalidad: Modalidad
+  +rango: rangoFechaHora
+  +creadoEn: fechaHora
+  +horaDeInicio() fechaHora
+  +fase() FasePartido
 }
 class LadoPartido {
   <<entidad>>
@@ -484,410 +610,491 @@ class LadoPartido {
 class Franja {
   <<entidad>>
   +id: uuid
-  +ocupadaPorPartidoId: uuid [0..1]
+  +rango: rangoFechaHora
+  +estaOcupada() booleano
 }
 class Aviso {
   <<entidad>>
   +id: uuid
-  +usuarioId: uuid
+  +userId: uuid
   +tipo: TipoAviso
+  +parametros: jsonb
 }
-PantallaPartidos ..> BusquedaService : envía aceptación o rechazo
-BusquedaService ..> ValidadorPartido : valida decisión
-BusquedaService ..> PropuestaRepository : ejecuta respond_proposal en transacción
-PropuestaRepository ..> Propuesta : actualiza propuesta y anula superpuestas en esa franja
-PropuestaRepository ..> Partido : crea partido en PendienteDeCoordinacion si acepta
-Partido "1" *-- "2" LadoPartido : inicializa lados
-PropuestaRepository ..> Franja : ocupa franja en ambos equipos
-PropuestaRepository ..> AvisoRepository : avisa a planteles y terceros afectados
-AvisoRepository ..> Aviso : persiste avisos
+PantallaPartidos ..> BusquedaService
+BusquedaService ..> PropuestaRepository
+PropuestaRepository ..> PartidoRepository
+PropuestaRepository ..> Propuesta
+PropuestaRepository ..> Franja
+PropuestaRepository ..> Aviso
+PartidoRepository ..> Partido
+PartidoRepository ..> LadoPartido
+Partido "1" *-- "2" LadoPartido
 ```
 
 ---
 
 ### UC-D07 · Coordinar cancha y hora
 
-**Requerimientos:** `RF-D07`, `RF-D08`, `RF-D09`, `RNF-D01`, `RNF-D02` · **Pantalla:** [P-D02 · Partidos](../partidos/03-pantallas.md) (`/partidos`) · **Secuencia:** [`uc-d07-coordinar-cancha-hora.md`](../partidos/04-diagramas-secuencia/uc-d07-coordinar-cancha-hora.md)
+> Especificación: [UC-D07](../partidos/02-casos-de-uso.md#uc-d07--coordinar-cancha-y-hora) · Pantalla: [P2 · Partidos](../partidos/03-pantallas.md#p2--partidos) · Secuencia: [S07 · Coordinar cancha y hora](../partidos/04-diagramas-secuencia/uc-d07-coordinar-cancha-hora.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaPartidos {
   <<boundary>>
-  +abrirWhatsAppCapitanRival(enlaceWaMe)
-  +cargarCanchaYHora(partidoId, cancha, horaExacta)
-  +confirmarValoresCargadosPorRival(partidoId)
+  +abrirCargarCanchaYHora(partidoId)
+  +mostrarFormularioCoordinacion(partido, horas)
+  +confirmarCanchaYHora(partidoId, cancha, hora)
+  +tocarConfirmarValoresRival(partidoId, cancha, hora)
+  +mostrarPartidoCoordinado()
+  +mostrarEsperandoConfirmacionRival()
+  +mostrarError(mensaje)
+}
+class OpcionesPartido {
+  <<boundary>>
+  +listarHoras(rango) hora[]
 }
 class WhatsApp {
   <<boundary>>
-  +abrirChatConMensaje(enlaceWaMe)
-}
-class OpcionesPartido {
-  <<proveedor de opciones>>
-  +rangoHorarioPorTurno(turno) RangoHorario
+  +abrirChatConCapitanRival(enlaceWaMe)
 }
 class PartidoService {
   <<control>>
-  +coordinarPartido(usuarioId, partidoId, cancha, horaExacta) FasePartido
+  +obtenerDatosCoordinacion(partidoId)
+  +coordinarPartido(partidoId, cancha, hora)
 }
 class ValidadorPartido {
   <<validador>>
-  +validarCoordinacion(cancha, horaExacta, turno) booleano
+  +validarCoordinacion(cancha, hora, rango) booleano
 }
 class PartidoRepository {
   <<repositorio>>
-  +registrarPropuestaCoordinacion(partidoId, capitanId, cancha, horaExacta) FasePartido
-}
-class AvisoRepository {
-  <<repositorio>>
-  +notificarCoordinacion(partidoId, coincidenciaAlcanzada)
+  +obtenerPartido(partidoId) Partido
+  +coordinar(partidoId, cancha, horaDeInicio)
+  +verificarCapitanYAntesDelRango(partidoId) booleano
+  +compararConValoresDelRival(partidoId, cancha, horaDeInicio) booleano
+  +obtenerWhatsappDelRival(partidoId) texto
 }
 class Partido {
   <<entidad>>
   +id: uuid
-  +turno: Turno
-  +canchaElegida: texto [0..1]
-  +horaExacta: hora [0..1]
+  +rango: rangoFechaHora
+  +cancha: texto [0..1]
+  +horaExacta: fechaHora [0..1]
+  +cargadoPorEquipoId: uuid [0..1]
   +coordinadoEn: fechaHora [0..1]
-}
-class LadoPartido {
-  <<entidad>>
-  +partidoId: uuid
-  +equipoId: uuid
-  +canchaPropuesta: texto [0..1]
-  +horaPropuesta: hora [0..1]
+  +horaDeInicio() fechaHora
+  +estaCoordinado() booleano
 }
 class Aviso {
   <<entidad>>
   +id: uuid
-  +usuarioId: uuid
+  +userId: uuid
   +tipo: TipoAviso
+  +parametros: jsonb
 }
-PantallaPartidos ..> WhatsApp : abre conversación con Capitán rival
-PantallaPartidos ..> OpcionesPartido : consulta rango horario del turno
-PantallaPartidos ..> PartidoService : envía cancha y hora exacta
-PartidoService ..> ValidadorPartido : valida cancha y hora dentro del turno
-PartidoService ..> PartidoRepository : ejecuta coordinate_match
-PartidoRepository ..> LadoPartido : guarda propuesta del lado
-PartidoRepository ..> Partido : fija canchaElegida, horaExacta y coordinadoEn si coinciden
-PartidoRepository ..> AvisoRepository : avisa al Capitán rival o a ambos planteles
-AvisoRepository ..> Aviso : persiste avisos
+PantallaPartidos ..> OpcionesPartido
+PantallaPartidos ..> WhatsApp
+PantallaPartidos ..> PartidoService
+PartidoService ..> OpcionesPartido
+PartidoService ..> ValidadorPartido
+PartidoService ..> PartidoRepository
+PartidoRepository ..> Partido
+PartidoRepository ..> Aviso
 ```
 
 ---
 
 ### UC-D08 · Confirmar asistencia
 
-**Requerimientos:** `RF-D10`, `RNF-D01`, `RNF-D02` · **Pantalla:** [P-D02 · Partidos](../partidos/03-pantallas.md) (`/partidos`) · **Secuencia:** [`uc-d08-confirmar-asistencia.md`](../partidos/04-diagramas-secuencia/uc-d08-confirmar-asistencia.md)
+> Especificación: [UC-D08](../partidos/02-casos-de-uso.md#uc-d08--confirmar-asistencia) · Pantalla: [P2 · Partidos](../partidos/03-pantallas.md#p2--partidos) · Secuencia: [S08 · Confirmar asistencia](../partidos/04-diagramas-secuencia/uc-d08-confirmar-asistencia.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaPartidos {
   <<boundary>>
-  +pulsarConfirmarAsistencia(partidoId)
-  +mostrarEstadoConfirmacion(ambosConfirmaron)
+  +mostrarConfirmacionAsistencia(partido)
+  +mostrarAvisoRivalSinConfirmar()
+  +tocarVamos(partidoId)
+  +tocarNoVamos(partidoId)
+  +mostrarConfirmasteQueVan()
+  +abrirFormularioTirarPartido(partidoId)
+  +mostrarError(mensaje)
 }
 class PartidoService {
   <<control>>
-  +confirmarAsistencia(usuarioId, partidoId) FasePartido
+  +obtenerPartido(partidoId) Partido
+  +confirmarAsistencia(partidoId)
 }
 class PartidoRepository {
   <<repositorio>>
-  +confirmarAsistenciaLado(partidoId, capitanId) FasePartido
-}
-class AvisoRepository {
-  <<repositorio>>
-  +notificarConfirmacionAsistencia(partidoId)
+  +obtenerPartido(partidoId) Partido
+  +confirmarVamos(partidoId)
+  +verificarCapitanYVentana24h(partidoId) booleano
 }
 class Partido {
   <<entidad>>
   +id: uuid
-  +coordinadoEn: fechaHora [0..1]
-  +fase() FasePartido
+  +rango: rangoFechaHora
+  +horaExacta: fechaHora [0..1]
+  +horaDeInicio() fechaHora
+  +estaConfirmado() booleano
 }
 class LadoPartido {
   <<entidad>>
   +partidoId: uuid
   +equipoId: uuid
-  +asistenciaConfirmadaEn: fechaHora [0..1]
+  +vamosEn: fechaHora [0..1]
+  +confirmoVamos() booleano
 }
-class Aviso {
-  <<entidad>>
-  +id: uuid
-  +usuarioId: uuid
-  +tipo: TipoAviso
-}
-PantallaPartidos ..> PartidoService : confirma asistencia del equipo
-PartidoService ..> PartidoRepository : ejecuta confirm_going
-PartidoRepository ..> LadoPartido : registra asistenciaConfirmadaEn
-PartidoRepository ..> Partido : pasa a Confirmado si ambos lados confirmaron
-PartidoRepository ..> AvisoRepository : avisa a contraparte o planteles
-AvisoRepository ..> Aviso : persiste avisos
+PantallaPartidos ..> PartidoService
+PartidoService ..> PartidoRepository
+PartidoRepository ..> Partido
+PartidoRepository ..> LadoPartido
+Partido "1" *-- "2" LadoPartido
 ```
 
 ---
 
 ### UC-D09 · Tirar el partido
 
-**Requerimientos:** `RF-D11`, `RF-D16`, `RNF-D01`, `RNF-D02` · **Pantalla:** [P-D02 · Partidos](../partidos/03-pantallas.md) (`/partidos`) · **Secuencia:** [`uc-d09-tirar-partido.md`](../partidos/04-diagramas-secuencia/uc-d09-tirar-partido.md)
+> Especificación: [UC-D09](../partidos/02-casos-de-uso.md#uc-d09--tirar-el-partido) · Pantalla: [P2 · Partidos](../partidos/03-pantallas.md#p2--partidos) · Secuencia: [S09 · Tirar el partido](../partidos/04-diagramas-secuencia/uc-d09-tirar-partido.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaPartidos {
   <<boundary>>
-  +pulsarNosBajamos(partidoId)
-  +mostrarAdvertenciaFaltaSiMenosDe24h(faltanMenosDe24h) booleano
+  +tocarTirarPartido(partidoId)
+  +mostrarFormularioMotivo(advierteFalta)
+  +confirmarTirarPartido(partidoId, motivo)
+  +mostrarEnHistorialComoCaido()
+  +mostrarError(mensaje)
 }
 class PartidoService {
   <<control>>
-  +tirarPartido(usuarioId, partidoId, motivoOpcional)
+  +obtenerPartido(partidoId) Partido
+  +tirarPartido(partidoId, motivo)
 }
 class ValidadorPartido {
   <<validador>>
-  +validarMotivoOpcional(motivo) booleano
+  +validarMotivo(motivo) booleano
 }
 class PartidoRepository {
   <<repositorio>>
-  +tirarPartidoUnilateral(partidoId, capitanId, motivo) booleano
-}
-class AvisoRepository {
-  <<repositorio>>
-  +notificarPartidoCaido(partidoId)
+  +obtenerPartido(partidoId) Partido
+  +tirar(partidoId, motivo)
+  +verificarCapitanYAntesDeHoraInicio(partidoId) booleano
+  +marcarPartidoCaidoYLiberarFranjas(partidoId, motivo)
 }
 class Partido {
   <<entidad>>
   +id: uuid
-  +fecha: fecha
-  +turno: Turno
-  +horaExacta: hora [0..1]
+  +rango: rangoFechaHora
+  +horaExacta: fechaHora [0..1]
+  +tiradoEn: fechaHora [0..1]
   +motivoCaida: texto [0..1]
-  +faltanMenosDe24Horas() booleano
+  +tiradoPorEquipoId: uuid [0..1]
+  +horaDeInicio() fechaHora
+  +sumaFaltaPorCaida() booleano
+  +fase() FasePartido
 }
 class Falta {
   <<entidad>>
-  +id: uuid
   +equipoId: uuid
   +partidoId: uuid
-  +tipo: TipoFalta
-  +registradaEn: fechaHora
+  +ocurridaEn: fechaHora
+  +cuentaEn90Dias() booleano
 }
 class Aviso {
   <<entidad>>
   +id: uuid
-  +usuarioId: uuid
+  +userId: uuid
   +tipo: TipoAviso
+  +parametros: jsonb
 }
-PantallaPartidos ..> PartidoService : confirma baja unilateral del partido
-PartidoService ..> ValidadorPartido : valida motivo opcional
-PartidoService ..> PartidoRepository : ejecuta drop_match
-PartidoRepository ..> Partido : marca PartidoCaido y libera franja futura del rival
-PartidoRepository ..> Falta : registra CaidaSobreLaHora si faltaban menos de 24 h
-PartidoRepository ..> AvisoRepository : avisa a ambos planteles
-AvisoRepository ..> Aviso : persiste avisos
+class FasePartido {
+  <<enumeracion>>
+  PorJugarse
+  EsperandoResultado
+  Jugado
+  Caido
+  EnConflicto
+  NoPresentado
+}
+PantallaPartidos ..> PartidoService
+PartidoService ..> ValidadorPartido
+PartidoService ..> PartidoRepository
+PartidoRepository ..> Partido
+PartidoRepository ..> Falta
+PartidoRepository ..> Aviso
+Partido ..> FasePartido
 ```
 
 ---
 
 ### UC-D10 · Caída de común acuerdo
 
-**Requerimientos:** `RF-D12`, `RNF-D01`, `RNF-D02` · **Pantalla:** [P-D02 · Partidos](../partidos/03-pantallas.md) (`/partidos`) · **Secuencia:** [`uc-d10-caida-comun-acuerdo.md`](../partidos/04-diagramas-secuencia/uc-d10-caida-comun-acuerdo.md)
+> Especificación: [UC-D10](../partidos/02-casos-de-uso.md#uc-d10--caída-de-común-acuerdo) · Pantalla: [P2 · Partidos](../partidos/03-pantallas.md#p2--partidos) · Secuencia: [S10 · Caída de común acuerdo](../partidos/04-diagramas-secuencia/uc-d10-caida-comun-acuerdo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaPartidos {
   <<boundary>>
-  +solicitarCaidaComunAcuerdo(partidoId, motivoOpcional)
-  +responderCaidaComunAcuerdo(partidoId, acepta)
+  +ofrecerCaidaDeComunAcuerdo()
+  +pedirCaidaDeComunAcuerdo(partidoId, motivo)
+  +mostrarEsperandoRespuesta()
+  +verPedidoAbiertoEnFila()
+  +tocarAceptarCaida(partidoId)
+  +tocarRechazarCaida(partidoId)
+  +mostrarResultadoCaida()
+  +mostrarError(mensaje)
 }
 class PartidoService {
   <<control>>
-  +solicitarCaidaMutua(usuarioId, partidoId, motivo)
-  +responderCaidaMutua(usuarioId, partidoId, acepta)
+  +pedirCaidaDeComunAcuerdo(partidoId, motivo)
+  +responderCaida(partidoId, aceptar)
 }
 class ValidadorPartido {
   <<validador>>
-  +validarMotivoOpcional(motivo) booleano
+  +validarMotivo(motivo) booleano
 }
 class PartidoRepository {
   <<repositorio>>
-  +solicitarCaidaMutua(partidoId, capitanId, motivo)
-  +responderCaidaMutua(partidoId, capitanId, acepta)
-}
-class AvisoRepository {
-  <<repositorio>>
-  +notificarSolicitudORespuestaCaidaMutua(partidoId, acepta)
+  +pedirCaida(partidoId, motivo)
+  +responderCaida(partidoId, aceptar)
+  +verificarVentanaMenosDe24hYPedidoUnico(partidoId) booleano
+  +tirarDeComunAcuerdoSinFalta(partidoId)
+  +registrarRechazoCaidaMutua(partidoId)
 }
 class Partido {
   <<entidad>>
   +id: uuid
-  +solicitudCaidaMutuaDeId: uuid [0..1]
+  +rango: rangoFechaHora
+  +horaExacta: fechaHora [0..1]
+  +tiradoEn: fechaHora [0..1]
   +motivoCaida: texto [0..1]
+  +caidaMutua: booleano
+  +pedidoCaidaEquipoId: uuid [0..1]
+  +pedidoCaidaMotivo: texto [0..1]
+  +pedidoCaidaEn: fechaHora [0..1]
+  +pedidoCaidaRespondidoEn: fechaHora [0..1]
+  +pedidoCaidaAceptado: booleano [0..1]
+  +horaDeInicio() fechaHora
   +fase() FasePartido
 }
 class Aviso {
   <<entidad>>
   +id: uuid
-  +usuarioId: uuid
+  +userId: uuid
   +tipo: TipoAviso
+  +parametros: jsonb
 }
-PantallaPartidos ..> PartidoService : solicita o responde caída de común acuerdo
-PartidoService ..> ValidadorPartido : valida motivo opcional
-PartidoService ..> PartidoRepository : ejecuta request_mutual_drop o answer_mutual_drop
-PartidoRepository ..> Partido : registra solicitud o pasa a PartidoCaido sin falta
-PartidoRepository ..> AvisoRepository : avisa a contraparte y planteles
-AvisoRepository ..> Aviso : persiste avisos
+class FasePartido {
+  <<enumeracion>>
+  PorJugarse
+  EsperandoResultado
+  Jugado
+  Caido
+  EnConflicto
+  NoPresentado
+}
+PantallaPartidos ..> PartidoService
+PartidoService ..> ValidadorPartido
+PartidoService ..> PartidoRepository
+PartidoRepository ..> Partido
+PartidoRepository ..> Aviso
+Partido ..> FasePartido
 ```
 
 ---
 
 ### UC-D11 · Cargar el resultado
 
-**Requerimientos:** `RF-D13`, `RF-D14`, `RNF-D01`, `RNF-D02` · **Pantalla:** [P-D02 · Partidos](../partidos/03-pantallas.md) (`/partidos`) · **Secuencia:** [`uc-d11-cargar-resultado.md`](../partidos/04-diagramas-secuencia/uc-d11-cargar-resultado.md)
+> Especificación: [UC-D11](../partidos/02-casos-de-uso.md#uc-d11--cargar-el-resultado) · Pantalla: [P2 · Partidos](../partidos/03-pantallas.md#p2--partidos) · Secuencia: [S11 · Cargar el resultado](../partidos/04-diagramas-secuencia/uc-d11-cargar-resultado.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaPartidos {
   <<boundary>>
-  +ingresarMarcador(partidoId, golesPropios, golesRival)
-  +confirmarMarcadorDelRival(partidoId)
-  +corregirMarcadorPropio(partidoId, golesPropios, golesRival)
+  +mostrarContanosComoSalio(partido)
+  +confirmarMarcador(partidoId, golesAFavor, golesEnContra)
+  +tocarConfirmarResultadoRival(partidoId, golesEspejados)
+  +mostrarEsperandoConfirmacionRival()
+  +mostrarEnHistorial(desenlace)
+  +mostrarError(mensaje)
 }
 class PartidoService {
   <<control>>
-  +cargarResultado(usuarioId, partidoId, golesPropios, golesRival) FasePartido
+  +obtenerPartido(partidoId) Partido
+  +cargarResultado(partidoId, golesAFavor, golesEnContra)
 }
 class ValidadorPartido {
   <<validador>>
-  +validarGoles(golesPropios, golesRival) booleano
+  +validarResultado(golesAFavor, golesEnContra) booleano
 }
 class PartidoRepository {
   <<repositorio>>
-  +registrarResultadoLado(partidoId, capitanId, golesPropios, golesRival) FasePartido
-}
-class AvisoRepository {
-  <<repositorio>>
-  +notificarResultadoCargadoOJugado(partidoId)
+  +obtenerPartido(partidoId) Partido
+  +cargarResultado(partidoId, golesAFavor, golesEnContra)
+  +verificarCapitanYPlazoAbierto(partidoId) booleano
+  +compararConResultadoDelRival(partidoId, golesAFavor, golesEnContra) booleano
 }
 class Partido {
   <<entidad>>
   +id: uuid
+  +rango: rangoFechaHora
+  +horaExacta: fechaHora [0..1]
+  +horaDeInicio() fechaHora
+  +plazoResultado() fechaHora
+  +resultadosCoinciden() booleano
+  +estaEnConflicto() booleano
   +fase() FasePartido
-  +plazo() fechaHora [0..1]
 }
 class LadoPartido {
   <<entidad>>
   +partidoId: uuid
   +equipoId: uuid
-  +golesPropiosCargados: entero [0..1]
-  +golesRivalCargados: entero [0..1]
-  +resultadoCargadoEn: fechaHora [0..1]
+  +golesAFavor: entero [0..1]
+  +golesEnContra: entero [0..1]
+  +resultadoEn: fechaHora [0..1]
+  +cargoResultado() booleano
 }
 class Aviso {
   <<entidad>>
   +id: uuid
-  +usuarioId: uuid
+  +userId: uuid
   +tipo: TipoAviso
+  +parametros: jsonb
 }
-PantallaPartidos ..> PartidoService : envía o confirma marcador
-PartidoService ..> ValidadorPartido : valida goles enteros no negativos
-PartidoService ..> PartidoRepository : ejecuta report_result
-PartidoRepository ..> LadoPartido : guarda goles cargados por el lado
-PartidoRepository ..> Partido : evalúa coincidencia cruzada, plazo de 72 h o SinAcuerdo
-PartidoRepository ..> AvisoRepository : avisa al Capitán rival o a ambos planteles
-AvisoRepository ..> Aviso : persiste avisos
+class FasePartido {
+  <<enumeracion>>
+  PorJugarse
+  EsperandoResultado
+  Jugado
+  Caido
+  EnConflicto
+  NoPresentado
+}
+PantallaPartidos ..> PartidoService
+PartidoService ..> ValidadorPartido
+PartidoService ..> PartidoRepository
+PartidoRepository ..> Partido
+PartidoRepository ..> LadoPartido
+PartidoRepository ..> Aviso
+Partido "1" *-- "2" LadoPartido
+Partido ..> FasePartido
 ```
 
 ---
 
 ### UC-D12 · Reportar que el rival no se presentó
 
-**Requerimientos:** `RF-D15`, `RF-D16`, `RNF-D01`, `RNF-D02` · **Pantalla:** [P-D02 · Partidos](../partidos/03-pantallas.md) (`/partidos`) · **Secuencia:** [`uc-d12-reportar-no-se-presento.md`](../partidos/04-diagramas-secuencia/uc-d12-reportar-no-se-presento.md)
+> Especificación: [UC-D12](../partidos/02-casos-de-uso.md#uc-d12--reportar-que-el-rival-no-se-presentó) · Pantalla: [P2 · Partidos](../partidos/03-pantallas.md#p2--partidos) · Secuencia: [S12 · Reportar no se presentó](../partidos/04-diagramas-secuencia/uc-d12-reportar-no-se-presento.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaPartidos {
   <<boundary>>
-  +pulsarRivalNoSePresento(partidoId)
-  +pulsarNosotrosSiFuimos(partidoId)
+  +tocarNoVinieron(partidoId)
+  +mostrarEsperandoRespuestaRival()
+  +tocarFuimos(partidoId)
+  +mostrarEnHistorialEnConflicto()
+  +mostrarError(mensaje)
 }
 class PartidoService {
   <<control>>
-  +reportarNoPresentacion(usuarioId, partidoId)
-  +contradecirNoPresentacion(usuarioId, partidoId)
+  +reportarAusencia(partidoId)
+  +responderFuimos(partidoId)
 }
 class PartidoRepository {
   <<repositorio>>
-  +registrarReporteNoShow(partidoId, capitanReportanteId)
-  +registrarDescargoSiFuimos(partidoId, capitanAcusadoId)
-  +consolidarNoShowVencido48h(partidoId)
-}
-class AvisoRepository {
-  <<repositorio>>
-  +notificarReporteNoPresentacionOConflicto(partidoId)
+  +reportarNoVinieron(partidoId)
+  +responderFuimos(partidoId)
+  +verificarCapitanPasadaHoraYSinResultadoPropio(partidoId) booleano
+  +registrarReporteNoShowYAbrirPlazo48h(partidoId)
+  +dejarPartidoEnConflictoSinFalta(partidoId)
 }
 class Partido {
   <<entidad>>
   +id: uuid
-  +reporteNoShowDeId: uuid [0..1]
-  +reporteNoShowEn: fechaHora [0..1]
-  +fase() FasePartido
+  +rango: rangoFechaHora
+  +horaExacta: fechaHora [0..1]
+  +horaDeInicio() fechaHora
   +plazo() fechaHora [0..1]
+  +fase() FasePartido
+}
+class LadoPartido {
+  <<entidad>>
+  +partidoId: uuid
+  +equipoId: uuid
+  +noVinieronEn: fechaHora [0..1]
+  +fuimosEn: fechaHora [0..1]
+  +reportoAusencia() booleano
+  +respondioFuimos() booleano
 }
 class Falta {
   <<entidad>>
-  +id: uuid
   +equipoId: uuid
   +partidoId: uuid
-  +tipo: TipoFalta
+  +ocurridaEn: fechaHora
+  +cuentaEn90Dias() booleano
 }
 class Aviso {
   <<entidad>>
   +id: uuid
-  +usuarioId: uuid
+  +userId: uuid
   +tipo: TipoAviso
+  +parametros: jsonb
 }
-PantallaPartidos ..> PartidoService : reporta ausencia o responde descargo
-PartidoService ..> PartidoRepository : ejecuta report_no_show o reply_went
-PartidoRepository ..> Partido : abre ventana de 48 h o marca PartidoEnConflicto sin árbitro
-PartidoRepository ..> Falta : registra NoPresentacion si vence plazo de 48 h sin respuesta
-PartidoRepository ..> AvisoRepository : avisa al plantel acusado o a ambos planteles
-AvisoRepository ..> Aviso : persiste avisos
+class FasePartido {
+  <<enumeracion>>
+  PorJugarse
+  EsperandoResultado
+  Jugado
+  Caido
+  EnConflicto
+  NoPresentado
+}
+PantallaPartidos ..> PartidoService
+PartidoService ..> PartidoRepository
+PartidoRepository ..> Partido
+PartidoRepository ..> LadoPartido
+PartidoRepository ..> Falta
+PartidoRepository ..> Aviso
+Partido "1" *-- "2" LadoPartido
+Partido ..> FasePartido
 ```
 
 ---
 
 ### UC-D13 · Calificar al rival
 
-**Requerimientos:** `RF-D17`, `RF-D18`, `RNF-D01` · **Pantalla:** [P-D02 · Partidos](../partidos/03-pantallas.md) (`/partidos`) · **Secuencia:** [`uc-d13-calificar-rival.md`](../partidos/04-diagramas-secuencia/uc-d13-calificar-rival.md)
+> Especificación: [UC-D13](../partidos/02-casos-de-uso.md#uc-d13--calificar-al-rival) · Pantalla: [P2 · Partidos](../partidos/03-pantallas.md#p2--partidos) · Secuencia: [S13 · Calificar al rival](../partidos/04-diagramas-secuencia/uc-d13-calificar-rival.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaPartidos {
   <<boundary>>
-  +mostrarFormularioCalificacion(partidoId)
-  +enviarCalificacion(partidoId, respeto, comentarioPrivado)
+  +mostrarCalificarRival(partidoId)
+  +elegirEstrellasYComentario(estrellas, comentario)
+  +confirmarCalificacion(partidoId, estrellas, comentario)
+  +mostrarYaCalificaste()
+  +mostrarError(mensaje)
 }
 class PartidoService {
   <<control>>
-  +calificarRival(usuarioId, partidoId, respeto, comentarioPrivado)
+  +obtenerEstadoDeCalificacion(partidoId)
+  +calificarRival(partidoId, estrellas, comentario)
 }
 class ValidadorPartido {
   <<validador>>
-  +validarCalificacion(respeto, comentarioPrivado) booleano
+  +validarCalificacion(estrellas, comentario) booleano
 }
 class CalificacionRepository {
   <<repositorio>>
-  +guardarCalificacion(partidoId, capitanId, respeto, comentarioPrivado) uuid
-}
-class AvisoRepository {
-  <<repositorio>>
-  +notificarCalificacionRevelada(partidoId)
+  +obtenerEstadoDeCalificacion(partidoId)
+  +calificar(partidoId, estrellas, comentario)
+  +verificarCapitanPartidoJugadoYVentana7Dias(partidoId) booleano
+  +guardarCalificacionUnica(partidoId, estrellas, comentario)
 }
 class Calificacion {
   <<entidad>>
@@ -895,87 +1102,107 @@ class Calificacion {
   +partidoId: uuid
   +equipoEvaluadorId: uuid
   +equipoEvaluadoId: uuid
-  +respeto: entero
-  +comentarioPrivado: texto [0..1]
+  +estrellas: entero
+  +comentario: texto [0..1]
   +creadaEn: fechaHora
-  +esVisibleEnPromedio() booleano
+  +estaRevelada() booleano
+}
+class Partido {
+  <<entidad>>
+  +id: uuid
+  +plazoCalificacion() fechaHora
+  +fase() FasePartido
 }
 class Aviso {
   <<entidad>>
   +id: uuid
-  +usuarioId: uuid
+  +userId: uuid
   +tipo: TipoAviso
+  +parametros: jsonb
 }
-PantallaPartidos ..> PartidoService : envía puntaje de respeto y comentario privado
-PartidoService ..> ValidadorPartido : valida rango de estrellas y longitud de comentario
-PartidoService ..> CalificacionRepository : ejecuta rate_rival
-CalificacionRepository ..> Calificacion : guarda dentro de ventana de 7 días con revelación cruzada
-CalificacionRepository ..> AvisoRepository : avisa cuando ambas calificaciones quedan visibles
-AvisoRepository ..> Aviso : persiste avisos
+PantallaPartidos ..> PartidoService
+PartidoService ..> ValidadorPartido
+PartidoService ..> CalificacionRepository
+CalificacionRepository ..> Calificacion
+CalificacionRepository ..> Partido
+CalificacionRepository ..> Aviso
+Partido "1" *-- "0..2" Calificacion
 ```
 
 ---
 
 ### UC-D14 · Ver mis partidos
 
-**Requerimientos:** `RF-D07`, `RF-D19` · **Pantalla:** [P-D02 · Partidos](../partidos/03-pantallas.md) (`/partidos`) · **Secuencia:** [`uc-d14-ver-mis-partidos.md`](../partidos/04-diagramas-secuencia/uc-d14-ver-mis-partidos.md)
+> Especificación: [UC-D14](../partidos/02-casos-de-uso.md#uc-d14--ver-mis-partidos) · Pantalla: [P2 · Partidos](../partidos/03-pantallas.md#p2--partidos) · Secuencia: [S14 · Ver mis partidos](../partidos/04-diagramas-secuencia/uc-d14-ver-mis-partidos.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaPartidos {
   <<boundary>>
-  +abrirMisPartidos()
-  +filtrarPorEquipo(equipoId)
-  +mostrarBandejas(propuestas, porCoordinar, proximos, pendientesResultado, historial)
+  +abrirPartidos()
+  +ordenarYArmarSecciones(propuestas, partidos)
+  +mostrarSecciones(teProponenJugar, proximo, contanosComoSalio, masAdelante, historial)
+  +mostrarEstadoVacio(esCapitan)
 }
 class PartidoService {
   <<control>>
-  +consultarBandejasPartidos(usuarioId, equipoFiltroId) BandejasPartidos
+  +consultarMisPartidos(usuarioId)
 }
 class EquipoRepository {
   <<repositorio>>
-  +listarPorIntegrante(usuarioId) Equipo[]
+  +listarEquiposDelUsuario(usuarioId) Equipo[]
 }
 class PropuestaRepository {
   <<repositorio>>
-  +listarPropuestasPorEquipos(equiposIds) Propuesta[]
+  +listarPropuestasRecibidas(usuarioId) Propuesta[]
 }
 class PartidoRepository {
   <<repositorio>>
-  +listarPartidosPorEquipos(equiposIds) Partido[]
-  +obtenerWhatsappCapitanRival(partidoId, solicitanteId) texto
+  +listarPartidos(equiposIds) Partido[]
+  +obtenerWhatsappDelRival(partidoId) texto
 }
 class Equipo {
   <<entidad>>
   +id: uuid
   +nombre: texto
+  +modalidad: Modalidad
 }
 class Propuesta {
   <<entidad>>
   +id: uuid
-  +fecha: fecha
-  +turno: Turno
+  +franjaEmisoraId: uuid
+  +franjaReceptoraId: uuid
+  +rangoComun: rangoFechaHora
+  +venceEn() fechaHora
   +estado() EstadoPropuesta
 }
 class Partido {
   <<entidad>>
   +id: uuid
-  +fecha: fecha
-  +turno: Turno
-  +modalidad: Modalidad
-  +canchaElegida: texto [0..1]
-  +horaExacta: hora [0..1]
+  +rango: rangoFechaHora
+  +cancha: texto [0..1]
+  +horaExacta: fechaHora [0..1]
+  +horaDeInicio() fechaHora
   +fase() FasePartido
   +plazo() fechaHora [0..1]
 }
-PantallaPartidos ..> PartidoService : solicita bandejas de partidos y propuestas
-PartidoService ..> EquipoRepository : obtiene equipos que integra el usuario
-PartidoService ..> PropuestaRepository : consulta propuestas pendientes de esos equipos
-PartidoService ..> PartidoRepository : consulta partidos, fase calculada y WhatsApp rival para Capitanes
+class FasePartido {
+  <<enumeracion>>
+  PorJugarse
+  EsperandoResultado
+  Jugado
+  Caido
+  EnConflicto
+  NoPresentado
+}
+PantallaPartidos ..> PartidoService
+PartidoService ..> EquipoRepository
+PartidoService ..> PropuestaRepository
+PartidoService ..> PartidoRepository
 EquipoRepository ..> Equipo
 PropuestaRepository ..> Propuesta
 PartidoRepository ..> Partido
+Partido ..> FasePartido
 ```
 
 ---
@@ -984,12 +1211,13 @@ PartidoRepository ..> Partido
 
 | Clase | Estereotipo | Implementación en el repo | Estado |
 |---|---|---|---|
-| `PantallaBuscarRival` / `PantallaPartidos` | `«boundary»` | `src/app/partidos/page.tsx`, `src/app/buscar-rival/page.tsx` | Implementadas |
+| `PantallaBuscarRival` / `PantallaPartidos` | `«boundary»` | `src/app/partidos/buscar/page.tsx`, `src/app/partidos/page.tsx` y formularios de acción en `src/components/matches/` | Implementadas |
+| `OpcionesBusqueda` / `OpcionesPartido` | `«boundary»` | `SPORT_MODALITIES` (`src/utils/modality.ts`), `TIME_SLOTS` y horas de inicio (`src/utils/matches.ts`) | Implementados |
 | `WhatsApp` | `«boundary»` | `whatsappLink` (`src/utils/whatsapp.ts`) | Implementado |
-| `OpcionesBusqueda` / `OpcionesPartido` | `«proveedor de opciones»` | `TIME_SLOTS`, rangos horarios por turno (`src/utils/matches.ts`) | Implementados |
-| `BusquedaService` / `PartidoService` | `«control»` | Server Actions en `src/app/partidos/actions.ts` | Implementados |
-| `ValidadorPartido` | `«validador»` | Validadores de franjas, propuestas, coordinación, marcadores y calificaciones (`src/utils/matches.ts`) | Implementado |
-| `BusquedaRepository` / `PropuestaRepository` | `«repositorio»` | Tablas `public.rival_searches`, `proposals`; funciones `save_rival_search`, `cancel_rival_search`, `compatible_rivals`, `send_proposal`, `respond_proposal` | Implementados |
-| `PartidoRepository` / `CalificacionRepository` | `«repositorio»` | Tablas `public.matches`, `match_sides`, `ratings`, `team_faults`; funciones `coordinate_match`, `confirm_going`, `drop_match`, `request_mutual_drop`, `answer_mutual_drop`, `report_result`, `report_no_show`, `reply_went`, `rate_rival`, `match_phase`, `rival_captain_whatsapp` | Implementados |
-| `AvisoRepository` | `«repositorio»` | Tabla `public.notices` | Implementado |
-| `BusquedaDeRival` / `Franja` / `Propuesta` / `Partido` / `LadoPartido` / `Calificacion` / `Falta` | `«entidad»` | Esquema `20261028000004_rival_search.sql` a `20261028000011_ratings.sql` | Implementadas |
+| `BusquedaService` / `PartidoService` | `«control»` | Server Actions en `src/app/partidos/actions.ts` y `src/app/partidos/buscar/actions.ts` | Implementados |
+| `ValidadorPartido` | `«validador»` | `parseSearchSlots`, `parseProposalTarget`, `parseCoordinateForm`, `parseDropReason`, `parseResultForm`, `parseRatingForm` (`src/utils/matches.ts`) | Implementado |
+| `EquipoRepository` | `«repositorio»` | Consultas de pertenencia y capitanías en `public.teams` y `public.team_members` | Implementado |
+| `BusquedaRepository` / `PropuestaRepository` | `«repositorio»` | Tablas `public.rival_searches`, `search_slots`, `proposals`; funciones `save_rival_search`, `compatible_rivals`, `send_proposal`, `respond_proposal`, `proposal_status` (`20261028000003..06`) | Implementados |
+| `PartidoRepository` | `«repositorio»` | Tablas `public.matches`, `match_sides`, `team_faults`; funciones `coordinate_match`, `confirm_going`, `drop_match`, `request_mutual_drop`, `answer_mutual_drop`, `report_result`, `report_no_show`, `reply_went`, `match_phase`, `match_deadline`, `rival_captain_whatsapp` (`20261028000006..09`) | Implementado |
+| `CalificacionRepository` | `«repositorio»` | Tabla `public.ratings`; funciones `rate_rival`, `my_match_rating_status` (`20261028000009_match_results.sql`) | Implementado |
+| `BusquedaDeRival` / `Franja` / `Propuesta` / `Partido` / `LadoPartido` / `Calificacion` / `Falta` | `«entidad»` | Esquema `20261028000003_rival_searches.sql` a `20261028000017_team_public_history.sql` | Implementadas |

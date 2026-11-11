@@ -7,35 +7,40 @@
 
 ## Modelo de dominio del módulo
 
-Vista estructural de las entidades y enumeraciones que comparten los casos de uso `UC-B01` a `UC-B06`.
+Vista estructural de las entidades, relaciones de composición/asociación y enumeraciones que comparten los casos de uso `UC-B01` a `UC-B06`.
 
 ```mermaid
 classDiagram
-direction TB
 class Torneo {
   <<entidad>>
   +id: uuid
-  +userId: uuid
+  +organizadorId: uuid
   +nombre: texto
   +modalidad: Modalidad
-  +cierreInscripcion: fecha
+  +zonaId: texto
+  +fechaCierreInscripcion: fecha
   +fechaInicio: fecha
   +fechaFin: fecha
-  +precio: dinero [0..1]
-  +cupo: entero [0..1]
+  +direccion: texto
+  +whatsapp: texto [0..1]
+  +instagram: texto [0..1]
+  +precio: decimal [0..1]
+  +cupoMaximo: entero [0..1]
   +descripcion: texto [0..1]
   +reglamento: texto [0..1]
-  +direccionSede: texto
-  +contactoWhatsapp: texto [0..1]
-  +contactoInstagram: texto [0..1]
   +flyerUrl: texto [0..1]
   +verificadoEn: fechaHora
-  +observado: booleano [0..1]
+  +observado: booleano
+  +creadoEn: fechaHora
   +estado() EstadoTorneo
   +cantidadInscriptos() entero
+  +cuposRestantes() entero
   +quedanUltimosCupos() booleano
   +antiguedadVerificacion() NivelAntiguedad
   +precioVisible() texto
+  +tieneContacto() booleano
+  +mensajeSugeridoWhatsApp() texto
+  +esOrganizador(usuarioId) booleano
 }
 class InscripcionPublica {
   <<entidad>>
@@ -43,46 +48,59 @@ class InscripcionPublica {
   +torneoId: uuid
   +equipoId: uuid [0..1]
   +nombreEquipo: texto
+  +creadaEn: fechaHora
   +esVinculada() booleano
+  +esPorNombre() booleano
 }
 class PerfilOrganizador {
   <<entidad>>
   +id: uuid
   +nombre: texto
+  +zonaId: texto [0..1]
   +fotoUrl: texto [0..1]
   +creadoEn: fechaHora
   +organizaDesde() texto
-}
-class ReporteTorneo {
-  <<entidad>>
-  +id: uuid
-  +torneoId: uuid
-  +usuarioId: uuid
-  +motivo: MotivoReporteTorneo
-  +estado: EstadoReporte
-  +creadoEn: fechaHora
 }
 class Zona {
   <<entidad>>
   +id: texto
   +nombre: texto
+  +corredorId: texto
+  +orden: entero
 }
 class Corredor {
   <<entidad>>
   +id: texto
   +nombre: texto
+  +regionId: texto
+  +orden: entero
 }
 class Region {
   <<entidad>>
   +id: texto
   +nombre: texto
 }
+class ReporteTorneo {
+  <<entidad>>
+  +id: uuid
+  +torneoId: uuid
+  +autorId: uuid
+  +motivo: MotivoReporteTorneo
+  +creadoEn: fechaHora
+  +resueltoEn: fechaHora [0..1]
+  +estaPendiente() booleano
+}
 class Modalidad {
   <<enumeracion>>
   Futbol5
+  Futbol6
   Futbol7
   Futbol8
+  Futbol9
   Futbol11
+  Femenino
+  Mixto
+  Senior
 }
 class EstadoTorneo {
   <<enumeracion>>
@@ -93,50 +111,44 @@ class EstadoTorneo {
 }
 class NivelAntiguedad {
   <<enumeracion>>
-  AlDia
+  Vigente
   Ambar30Dias
-  RojoSinConfirmar60Dias
+  Rojo60DiasSinConfirmar
 }
 class MotivoReporteTorneo {
   <<enumeracion>>
-  YaNoExiste
-  DatosIncorrectos
-  NoEsUnTorneo
+  DatosFalsos
+  NoExiste
+  Estafa
+  Inapropiado
 }
-class EstadoReporte {
-  <<enumeracion>>
-  Pendiente
-  Descartado
-  Resuelto
-}
-Torneo "0..*" --> "1" PerfilOrganizador : organizador
-Torneo "0..*" --> "1" Zona : se juega en
-Torneo "1" *-- "0..*" InscripcionPublica : equipos anotados
-Torneo "1" --> "0..*" ReporteTorneo : recibe
-PerfilOrganizador "0..*" --> "0..1" Zona : zona opcional
-Zona "1..*" --> "1" Corredor : pertenece a
-Corredor "1..*" --> "1" Region : pertenece a
+PerfilOrganizador "1" --> "0..*" Torneo
+Torneo "1" *-- "0..*" InscripcionPublica
+Torneo "0..*" --> "1" Zona
+Zona "1..*" --> "1" Corredor
+Corredor "1..*" --> "1" Region
+Torneo "1" *-- "0..*" ReporteTorneo
 Torneo ..> Modalidad
-Torneo ..> EstadoTorneo : calcula al leer
-Torneo ..> NivelAntiguedad : calcula al leer
+Torneo ..> EstadoTorneo
+Torneo ..> NivelAntiguedad
 ReporteTorneo ..> MotivoReporteTorneo
-ReporteTorneo ..> EstadoReporte
 ```
 
 ---
 
 ## Clases por caso de uso
 
-### UC-B01 · Ver el catálogo de torneos
+### UC-B01 · Ver catálogo de torneos
 
-**Requerimientos:** `RF-B01` a `RF-B07`, `RF-B25` · **Pantalla:** [P1 · Catálogo](../catalogo-de-torneos/03-pantallas.md#p1--catálogo) (`/`) · **Secuencia:** [S01 · Ver el catálogo](../catalogo-de-torneos/04-diagramas-secuencia/uc-b01-ver-catalogo.md)
+> Especificación: [UC-B01](../catalogo-de-torneos/02-casos-de-uso.md#uc-b01--ver-catálogo-de-torneos) · Pantalla: [P1 · Catálogo de torneos](../catalogo-de-torneos/03-pantallas.md#p1--catálogo-de-torneos) · Secuencia: [S01 · Ver catálogo](../catalogo-de-torneos/04-diagramas-secuencia/uc-b01-ver-catalogo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PaginaCatalogo {
   <<boundary>>
   +abrirCatalogo()
+  +mostrarEsqueletosCarga()
+  +calcularAntiguedadVerificacion(torneo) NivelAntiguedad
   +mostrarTarjetas(torneos)
   +mostrarSinTorneos()
   +mostrarErrorCarga()
@@ -144,38 +156,39 @@ class PaginaCatalogo {
 }
 class TorneoService {
   <<control>>
-  +consultarCatalogoVigente() Torneo[]
-  +calcularAntiguedadDeVerificacion(torneo) NivelAntiguedad
+  +listarTorneos() Torneo[]
+  +calcularAntiguedadVerificacion(torneo) NivelAntiguedad
 }
 class TorneoRepository {
   <<repositorio>>
-  +listarTorneosVigentes() Torneo[]
+  +listarTorneos() Torneo[]
 }
 class Torneo {
   <<entidad>>
   +id: uuid
   +nombre: texto
   +modalidad: Modalidad
+  +zonaId: texto
   +fechaInicio: fecha
-  +precio: dinero [0..1]
-  +cupo: entero [0..1]
+  +precio: decimal [0..1]
   +flyerUrl: texto [0..1]
   +verificadoEn: fechaHora
+  +observado: booleano
   +estado() EstadoTorneo
-  +cantidadInscriptos() entero
-  +quedanUltimosCupos() booleano
   +antiguedadVerificacion() NivelAntiguedad
   +precioVisible() texto
 }
-class Zona {
-  <<entidad>>
-  +id: texto
-  +nombre: texto
-}
-class Corredor {
-  <<entidad>>
-  +id: texto
-  +nombre: texto
+class Modalidad {
+  <<enumeracion>>
+  Futbol5
+  Futbol6
+  Futbol7
+  Futbol8
+  Futbol9
+  Futbol11
+  Femenino
+  Mixto
+  Senior
 }
 class EstadoTorneo {
   <<enumeracion>>
@@ -186,111 +199,115 @@ class EstadoTorneo {
 }
 class NivelAntiguedad {
   <<enumeracion>>
-  AlDia
+  Vigente
   Ambar30Dias
-  RojoSinConfirmar60Dias
+  Rojo60DiasSinConfirmar
 }
-PaginaCatalogo ..> TorneoService : solicita catálogo vigente
-TorneoService ..> TorneoRepository : consulta torneos activos
-TorneoRepository ..> Torneo : excluye Finalizados y ordena por fechaInicio
-Torneo "0..*" --> "1" Zona : se juega en
-Zona "1..*" --> "1" Corredor : pertenece a
-Torneo ..> EstadoTorneo : calcula al leer
-Torneo ..> NivelAntiguedad : calcula antigüedad
+PaginaCatalogo ..> TorneoService
+TorneoService ..> TorneoRepository
+TorneoRepository ..> Torneo
+Torneo ..> Modalidad
+Torneo ..> EstadoTorneo
+Torneo ..> NivelAntiguedad
 ```
 
 ---
 
-### UC-B02 · Filtrar torneos y compartir la búsqueda
+### UC-B02 · Filtrar torneos
 
-**Requerimientos:** `RF-B08` a `RF-B13` · **Pantalla:** [P1 · Catálogo](../catalogo-de-torneos/03-pantallas.md#p1--catálogo) · **Secuencia:** [S02 · Filtrar torneos](../catalogo-de-torneos/04-diagramas-secuencia/uc-b02-filtrar-torneos.md)
+> Especificación: [UC-B02](../catalogo-de-torneos/02-casos-de-uso.md#uc-b02--filtrar-torneos) · Pantalla: [P1 · Catálogo de torneos](../catalogo-de-torneos/03-pantallas.md#p1--catálogo-de-torneos) · Secuencia: [S02 · Filtrar torneos](../catalogo-de-torneos/04-diagramas-secuencia/uc-b02-filtrar-torneos.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FiltrosCatalogo {
   <<boundary>>
   +abrirCatalogo(filtrosURL)
-  +elegirFiltro(modalidad, estado, zonaId)
-  +escribirEnURL(modalidad, estado, zonaId)
+  +elegirFiltros(modalidad, estado)
+  +escribirEnURL(modalidad, estado)
+  +compartirURL()
 }
 class OpcionesTorneo {
-  <<proveedor de opciones>>
+  <<boundary>>
   +listarModalidades() Modalidad[]
   +listarEstados() EstadoTorneo[]
 }
+class PaginaCatalogo {
+  <<boundary>>
+  +abrirCatalogo(modalidad, estado)
+  +mostrarTarjetas(torneos)
+  +mostrarSinResultados()
+  +mostrarErrorCarga()
+}
 class TorneoService {
   <<control>>
-  +filtrarCatalogo(modalidad, estado, zonaId) Torneo[]
+  +obtenerOpcionesFiltros()
+  +filtrarTorneos(modalidad, estado) Torneo[]
 }
 class ValidadorTorneo {
   <<validador>>
-  +validarFiltrosCatalogo(modalidad, estado, zonaId) booleano
-}
-class ZonaRepository {
-  <<repositorio>>
-  +listarZonas() Zona[]
+  +validarFiltros(modalidad, estado) booleano
 }
 class TorneoRepository {
   <<repositorio>>
-  +listarTorneos(modalidad, estado, zonaId) Torneo[]
+  +listarTorneos(modalidad, estado) Torneo[]
 }
 class Torneo {
   <<entidad>>
   +id: uuid
   +nombre: texto
   +modalidad: Modalidad
-  +fechaInicio: fecha
+  +zonaId: texto
   +estado() EstadoTorneo
-}
-class Zona {
-  <<entidad>>
-  +id: texto
-  +nombre: texto
 }
 class Modalidad {
   <<enumeracion>>
   Futbol5
+  Futbol6
   Futbol7
   Futbol8
+  Futbol9
   Futbol11
+  Femenino
+  Mixto
+  Senior
 }
 class EstadoTorneo {
   <<enumeracion>>
   Abierto
   Cerrado
   EnCurso
+  Finalizado
 }
-FiltrosCatalogo ..> OpcionesTorneo : obtiene modalidades y estados fijos
-FiltrosCatalogo ..> TorneoService : solicita filtrado con parámetros URL
-TorneoService ..> ValidadorTorneo : valida filtros recibidos
-TorneoService ..> ZonaRepository : consulta Zonas disponibles
-TorneoService ..> TorneoRepository : filtra torneos con criterios combinados
-TorneoRepository ..> Torneo : recupera coincidencias
-ZonaRepository ..> Zona : recupera Zonas
-OpcionesTorneo ..> Modalidad
-OpcionesTorneo ..> EstadoTorneo
+FiltrosCatalogo ..> OpcionesTorneo
+FiltrosCatalogo ..> PaginaCatalogo
+PaginaCatalogo ..> TorneoService
+TorneoService ..> OpcionesTorneo
+TorneoService ..> ValidadorTorneo
+TorneoService ..> TorneoRepository
+TorneoRepository ..> Torneo
+Torneo ..> Modalidad
+Torneo ..> EstadoTorneo
 ```
 
 ---
 
-### UC-B03 · Ver la ficha pública de un torneo
+### UC-B03 · Ver ficha del torneo
 
-**Requerimientos:** `RF-B14` a `RF-B20` · **Pantalla:** [P2 · Ficha del torneo](../catalogo-de-torneos/03-pantallas.md#p2--ficha-del-torneo) (`/torneos/{id}`) · **Secuencia:** [S03 · Ver la ficha](../catalogo-de-torneos/04-diagramas-secuencia/uc-b03-ver-ficha-torneo.md)
+> Especificación: [UC-B03](../catalogo-de-torneos/02-casos-de-uso.md#uc-b03--ver-ficha-del-torneo) · Pantalla: [P2 · Ficha del torneo](../catalogo-de-torneos/03-pantallas.md#p2--ficha-del-torneo) · Secuencia: [S03 · Ver ficha del torneo](../catalogo-de-torneos/04-diagramas-secuencia/uc-b03-ver-ficha-torneo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FichaTorneo {
   <<boundary>>
   +abrirFichaTorneo(torneoId)
+  +calcularAntiguedadYUltimosCupos(torneo)
+  +agregarBarraDueno()
   +mostrarFicha(torneo, organizador, inscriptos)
-  +mostrarBarraDueno()
   +mostrarNoEncontrado()
 }
 class TorneoService {
   <<control>>
-  +consultarFichaPublica(torneoId) DetallePublicoTorneo
+  +consultarFichaTorneo(torneoId, usuarioId)
 }
 class TorneoRepository {
   <<repositorio>>
@@ -307,101 +324,106 @@ class InscripcionRepository {
 class Torneo {
   <<entidad>>
   +id: uuid
-  +userId: uuid
+  +organizadorId: uuid
   +nombre: texto
   +modalidad: Modalidad
-  +cierreInscripcion: fecha
+  +zonaId: texto
+  +fechaCierreInscripcion: fecha
   +fechaInicio: fecha
   +fechaFin: fecha
-  +precio: dinero [0..1]
-  +cupo: entero [0..1]
+  +direccion: texto
+  +precio: decimal [0..1]
+  +cupoMaximo: entero [0..1]
   +descripcion: texto [0..1]
   +reglamento: texto [0..1]
-  +direccionSede: texto
   +flyerUrl: texto [0..1]
   +verificadoEn: fechaHora
+  +observado: booleano
   +estado() EstadoTorneo
   +cantidadInscriptos() entero
+  +cuposRestantes() entero
   +quedanUltimosCupos() booleano
   +antiguedadVerificacion() NivelAntiguedad
+  +esOrganizador(usuarioId) booleano
 }
 class PerfilOrganizador {
   <<entidad>>
   +id: uuid
   +nombre: texto
+  +fotoUrl: texto [0..1]
+  +creadoEn: fechaHora
+  +organizaDesde() texto
 }
 class InscripcionPublica {
   <<entidad>>
   +id: uuid
+  +torneoId: uuid
   +equipoId: uuid [0..1]
   +nombreEquipo: texto
   +esVinculada() booleano
 }
-class Zona {
-  <<entidad>>
-  +id: texto
-  +nombre: texto
-}
-FichaTorneo ..> TorneoService : solicita ficha pública del torneo
-TorneoService ..> TorneoRepository : obtiene torneo con Estado y cupos
-TorneoService ..> PerfilRepository : obtiene datos públicos del organizador
-TorneoService ..> InscripcionRepository : consulta inscriptos públicos
-TorneoRepository ..> Torneo : consulta por id
-PerfilRepository ..> PerfilOrganizador : consulta pública
-InscripcionRepository ..> InscripcionPublica : proyecta nombres y vínculo
-Torneo "0..*" --> "1" PerfilOrganizador : organizador
-Torneo "1" *-- "0..*" InscripcionPublica : anotados
-Torneo "0..*" --> "1" Zona : se juega en
+FichaTorneo ..> TorneoService
+TorneoService ..> TorneoRepository
+TorneoService ..> PerfilRepository
+TorneoService ..> InscripcionRepository
+TorneoRepository ..> Torneo
+PerfilRepository ..> PerfilOrganizador
+InscripcionRepository ..> InscripcionPublica
+PerfilOrganizador "1" --> "0..*" Torneo
+Torneo "1" *-- "0..*" InscripcionPublica
 ```
 
 ---
 
 ### UC-B04 · Contactar al organizador
 
-**Requerimientos:** `RF-B21`, `RF-B22` · **Pantalla:** [P2 · Ficha del torneo](../catalogo-de-torneos/03-pantallas.md#p2--ficha-del-torneo) · **Secuencia:** [S04 · Contactar al organizador](../catalogo-de-torneos/04-diagramas-secuencia/uc-b04-contactar-organizador.md)
+> Especificación: [UC-B04](../catalogo-de-torneos/02-casos-de-uso.md#uc-b04--contactar-al-organizador) · Pantalla: [P2 · Ficha del torneo](../catalogo-de-torneos/03-pantallas.md#p2--ficha-del-torneo) · Secuencia: [S04 · Contactar al organizador](../catalogo-de-torneos/04-diagramas-secuencia/uc-b04-contactar-organizador.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FichaTorneo {
   <<boundary>>
   +mostrarBotonesContacto(torneo)
-  +contactarPorWhatsApp(numero, nombreTorneo)
-  +verInstagram(usuario)
+  +pulsarContactarWhatsApp()
+  +armarLinkWaMe(numero, nombreTorneo) texto
+  +pulsarVerInstagram()
   +mostrarSinContacto()
-  -armarLinkWaMe(numero, nombreTorneo) texto
-}
-class Torneo {
-  <<entidad>>
-  +nombre: texto
-  +contactoWhatsapp: texto [0..1]
-  +contactoInstagram: texto [0..1]
 }
 class WhatsApp {
   <<boundary>>
-  +abrirChatConMensaje(enlaceWaMe)
+  +abrirChatConOrganizador(enlaceWaMe)
+  +mostrarMensajeSugerido(texto)
 }
 class Instagram {
   <<boundary>>
-  +abrirPerfil(usuario)
+  +abrirPerfilOrganizador(usuario)
 }
-FichaTorneo ..> Torneo : lee canales de contacto
-FichaTorneo ..> WhatsApp : redirige por deep link wa.me
-FichaTorneo ..> Instagram : abre perfil público
+class Torneo {
+  <<entidad>>
+  +id: uuid
+  +nombre: texto
+  +whatsapp: texto [0..1]
+  +instagram: texto [0..1]
+  +tieneContacto() booleano
+  +mensajeSugeridoWhatsApp() texto
+}
+FichaTorneo ..> Torneo
+FichaTorneo ..> WhatsApp
+FichaTorneo ..> Instagram
 ```
 
 ---
 
-### UC-B05 · Ver la página pública del organizador
+### UC-B05 · Ver página del organizador
 
-**Requerimientos:** `RF-B23` · **Pantalla:** [P3 · Página del organizador](../catalogo-de-torneos/03-pantallas.md#p3--página-del-organizador) (`/organizadores/{id}`) · **Secuencia:** [S05 · Ver al organizador](../catalogo-de-torneos/04-diagramas-secuencia/uc-b05-ver-organizador.md)
+> Especificación: [UC-B05](../catalogo-de-torneos/02-casos-de-uso.md#uc-b05--ver-página-del-organizador) · Pantalla: [P3 · Página del organizador](../catalogo-de-torneos/03-pantallas.md#p3--página-del-organizador) · Secuencia: [S05 · Ver página del organizador](../catalogo-de-torneos/04-diagramas-secuencia/uc-b05-ver-organizador.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PaginaOrganizador {
   <<boundary>>
   +abrirPaginaOrganizador(organizadorId)
+  +separarVigentesYFinalizados(torneos)
   +mostrarPagina(perfil, vigentes, finalizados)
   +mostrarSinTorneos()
   +mostrarErrorTorneos()
@@ -409,8 +431,8 @@ class PaginaOrganizador {
 }
 class TorneoService {
   <<control>>
-  +consultarPaginaOrganizador(organizadorId) DatosPaginaOrganizador
-  +separarVigentesYTrayectoria(torneos)
+  +consultarPaginaOrganizador(organizadorId)
+  +separarVigentesYFinalizados(torneos)
 }
 class PerfilRepository {
   <<repositorio>>
@@ -424,6 +446,7 @@ class PerfilOrganizador {
   <<entidad>>
   +id: uuid
   +nombre: texto
+  +zonaId: texto [0..1]
   +fotoUrl: texto [0..1]
   +creadoEn: fechaHora
   +organizaDesde() texto
@@ -431,80 +454,92 @@ class PerfilOrganizador {
 class Torneo {
   <<entidad>>
   +id: uuid
+  +organizadorId: uuid
   +nombre: texto
   +modalidad: Modalidad
+  +zonaId: texto
   +fechaInicio: fecha
-  +fechaFin: fecha
   +estado() EstadoTorneo
+  +antiguedadVerificacion() NivelAntiguedad
 }
-class Zona {
-  <<entidad>>
-  +id: texto
-  +nombre: texto
+class EstadoTorneo {
+  <<enumeracion>>
+  Abierto
+  Cerrado
+  EnCurso
+  Finalizado
 }
-PaginaOrganizador ..> TorneoService : solicita perfil y torneos del organizador
-TorneoService ..> PerfilRepository : lee columnas públicas del perfil
-TorneoService ..> TorneoRepository : lista torneos del organizador
-PerfilRepository ..> PerfilOrganizador : obtiene por id
-TorneoRepository ..> Torneo : incluye vigentes y Finalizados
-PerfilOrganizador "0..*" --> "0..1" Zona : zona opcional
-Torneo "0..*" --> "1" Zona : se juega en
+PaginaOrganizador ..> TorneoService
+TorneoService ..> PerfilRepository
+TorneoService ..> TorneoRepository
+PerfilRepository ..> PerfilOrganizador
+TorneoRepository ..> Torneo
+PerfilOrganizador "1" --> "0..*" Torneo
+Torneo ..> EstadoTorneo
 ```
 
 ---
 
 ### UC-B06 · Reportar un torneo
 
-**Requerimientos:** `RF-B24` · **Pantalla:** [P2 · Ficha del torneo](../catalogo-de-torneos/03-pantallas.md#p2--ficha-del-torneo) · **Secuencia:** [S06 · Reportar un torneo](../catalogo-de-torneos/04-diagramas-secuencia/uc-b06-reportar-torneo.md)
+> Especificación: [UC-B06](../catalogo-de-torneos/02-casos-de-uso.md#uc-b06--reportar-un-torneo) · Pantalla: [P2 · Ficha del torneo](../catalogo-de-torneos/03-pantallas.md#p2--ficha-del-torneo) · Secuencia: [S06 · Reportar un torneo](../catalogo-de-torneos/04-diagramas-secuencia/uc-b06-reportar-torneo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FichaTorneo {
   <<boundary>>
   +tocarReportar()
-  +enviarReporte(torneoId, motivo)
+  +mostrarMotivos(motivos)
+  +elegirMotivoYEnviar(torneoId, motivo)
   +mostrarConfirmacionReporte()
-  +mostrarErrorReporte(mensaje)
+  +mostrarError(mensaje)
 }
 class OpcionesReporte {
-  <<proveedor de opciones>>
+  <<boundary>>
   +listarMotivos() MotivoReporteTorneo[]
 }
 class ReporteService {
   <<control>>
-  +reportarTorneo(torneoId, motivo)
+  +obtenerMotivosReporte() MotivoReporteTorneo[]
+  +reportarTorneo(torneoId, motivo, usuarioId)
 }
 class ValidadorTorneo {
   <<validador>>
-  +validarMotivoReporte(motivo) booleano
+  +validarMotivo(motivo) booleano
 }
 class ReporteRepository {
   <<repositorio>>
   +crearReporte(torneoId, motivo, usuarioId) ReporteTorneo
-  -verificarUnicoPorUsuarioYTorneo(torneoId, usuarioId) booleano
+  +verificarSesionYReporteUnico(torneoId, usuarioId) booleano
 }
 class ReporteTorneo {
   <<entidad>>
   +id: uuid
   +torneoId: uuid
-  +usuarioId: uuid
+  +autorId: uuid
   +motivo: MotivoReporteTorneo
-  +estado: EstadoReporte
   +creadoEn: fechaHora
+  +estaPendiente() booleano
+}
+class Torneo {
+  <<entidad>>
+  +id: uuid
+  +nombre: texto
 }
 class MotivoReporteTorneo {
   <<enumeracion>>
-  YaNoExiste
-  DatosIncorrectos
-  NoEsUnTorneo
+  DatosFalsos
+  NoExiste
+  Estafa
+  Inapropiado
 }
-FichaTorneo ..> OpcionesReporte : carga motivos antes de elegir
-FichaTorneo ..> ReporteService : envía motivo elegido
-ReporteService ..> ValidadorTorneo : valida motivo
-ReporteService ..> ReporteRepository : solicita alta de reporte
-ReporteRepository ..> ReporteTorneo : crea único por usuario y torneo
-OpcionesReporte ..> MotivoReporteTorneo
+FichaTorneo ..> OpcionesReporte
+FichaTorneo ..> ReporteService
+ReporteService ..> OpcionesReporte
+ReporteService ..> ValidadorTorneo
+ReporteService ..> ReporteRepository
+ReporteRepository ..> ReporteTorneo
+Torneo "1" *-- "0..*" ReporteTorneo
 ReporteTorneo ..> MotivoReporteTorneo
 ```
 
@@ -514,19 +549,16 @@ ReporteTorneo ..> MotivoReporteTorneo
 
 | Clase | Estereotipo | Implementación en el repo | Estado |
 |---|---|---|---|
-| `PaginaCatalogo` | `«boundary»` | `src/app/page.tsx`, `src/components/TournamentList.tsx`, `TournamentCard.tsx`, `VerificationBadge.tsx`, `TournamentFlyer.tsx` | Parcial (sin paginar) |
-| `FiltrosCatalogo` | `«boundary»` | `src/components/Filters.tsx` | Parcial (modalidad y estado) |
-| `FichaTorneo` | `«boundary»` | `src/app/torneos/[id]/page.tsx` | Parcial |
+| `PaginaCatalogo` | `«boundary»` | `src/app/page.tsx` + `src/components/TournamentList.tsx` + `src/components/TournamentCard.tsx` | Parcial (faltan Zona, precio «Gratis»/«Consultar», antigüedad y Observado en tarjeta) |
+| `FiltrosCatalogo` | `«boundary»` | `src/components/Filters.tsx` | Parcial (faltan filtros de Zona, Estado y Precio; hoy tiene `city`/`maxPrice`) |
+| `FichaTorneo` | `«boundary»` | `src/app/torneos/[id]/page.tsx` + `src/app/torneos/[id]/loading.tsx` | Implementada (falta botón «Reportar») |
 | `PaginaOrganizador` | `«boundary»` | `src/app/organizadores/[id]/page.tsx` | Implementada |
-| `WhatsApp` / `Instagram` | `«boundary»` | `whatsappLink` (`src/utils/whatsapp.ts`) y `https://instagram.com/` | Implementados |
-| `OpcionesTorneo` | `«proveedor de opciones»` | `SPORT_MODALITIES` (`src/utils/modality.ts`) y lista de estados en `src/components/Filters.tsx` | Implementado |
-| `OpcionesReporte` | `«proveedor de opciones»` | — (diseño objetivo de UC-B06) | **Pendiente** |
-| `TorneoService` | `«control»` | Coordinación de consultas en `src/app/page.tsx`, `src/app/torneos/[id]/page.tsx`, `src/app/organizadores/[id]/page.tsx` | Implementado |
-| `ReporteService` | `«control»` | — (diseño objetivo de UC-B06) | **Pendiente** |
-| `ValidadorTorneo` | `«validador»` | Validación de filtros, modalidades y motivos de reporte | Parcial |
-| `TorneoRepository` | `«repositorio»` | Consultas sobre `public.tournaments` con RLS y funciones `status` e `inscriptions_count` (`20260930000002_tournaments_computed_status.sql`) | Implementado |
-| `InscripcionRepository` | `«repositorio»` | Vista pública `public.tournament_inscriptions` (`20261007000000_inscriptions.sql`, `20261014000004_linked_inscriptions.sql`) | Implementado |
-| `PerfilRepository` | `«repositorio»` | Lectura pública de `public.profiles` (`20260928000002_profiles.sql`) | Implementado |
-| `ReporteRepository` | `«repositorio»` | — (previsto para UC-B06 y UC-F03) | **Pendiente** |
-| `Torneo` / `InscripcionPublica` / `PerfilOrganizador` / `ReporteTorneo` | `«entidad»` | `public.tournaments`, `public.tournament_inscriptions`, `public.profiles` | Implementadas (salvo `ReporteTorneo`) |
-| `Zona` / `Corredor` / `Region` | `«entidad»` | `public.zones`, `public.corridors`, `public.regions` | Implementadas |
+| `OpcionesTorneo` / `OpcionesReporte` | `«boundary»` | `SPORT_MODALITIES` (`src/utils/modality.ts`), `STATUS_FILTERS` (`src/utils/tournament-status.ts`) | Implementados (falta `OpcionesReporte`) |
+| `WhatsApp` / `Instagram` | `«boundary»` | `whatsappLink` (`src/utils/whatsapp.ts`), `instagramUrl` (`src/utils/instagram.ts`) | Implementados |
+| `TorneoService` / `ReporteService` | `«control»` | Consultas RSC en `TournamentList`, `torneos/[id]/page.tsx`, `organizadores/[id]/page.tsx` | Implementado (`ReporteService` pendiente) |
+| `ValidadorTorneo` | `«validador»` | Validación de parámetros de búsqueda y motivos de reporte | Parcial |
+| `TorneoRepository` | `«repositorio»` | Vista `public.tournaments_with_status` (`20261028000010_tournaments_with_status.sql`) | Implementado |
+| `PerfilRepository` | `«repositorio»` | Tabla `public.profiles` (lectura pública) | Implementado |
+| `InscripcionRepository` | `«repositorio»` | Vista `public.public_inscriptions` (`20261001000000_inscriptions.sql`, `20261028000002_teams.sql`) | Implementado |
+| `ReporteRepository` | `«repositorio»` | Tabla de reportes de torneo con unicidad `(tournament_id, reporter_id)` | **Pendiente** |
+| `Torneo` / `InscripcionPublica` / `PerfilOrganizador` | `«entidad»` | `tournaments_with_status`, `public_inscriptions`, `profiles` + `tournament-status.ts` y `tournament-verification.ts` | Implementadas |

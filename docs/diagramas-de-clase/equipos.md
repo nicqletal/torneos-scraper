@@ -7,117 +7,144 @@
 
 ## Modelo de dominio del módulo
 
-Vista estructural de las entidades y enumeraciones que comparten los casos de uso `UC-C01` a `UC-C10`.
+Vista estructural de las entidades, relaciones de composición/asociación y enumeraciones que comparten los casos de uso `UC-C01` a `UC-C10`.
 
 ```mermaid
 classDiagram
-direction TB
 class Equipo {
   <<entidad>>
   +id: uuid
   +nombre: texto
+  +zonaId: texto
   +modalidad: Modalidad
   +nivel: NivelEquipo
   +escudoUrl: texto [0..1]
-  +disueltoEn: fechaHora [0..1]
   +creadoEn: fechaHora
+  +actualizadoEn: fechaHora
+  +disueltoEn: fechaHora [0..1]
+  +estaActivo() booleano
   +estaDisuelto() booleano
-  +cantidadJugadores() entero
+  +esCapitan(usuarioId) booleano
+  +esIntegrante(usuarioId) booleano
 }
 class IntegrantePlantel {
   <<entidad>>
   +teamId: uuid
   +userId: uuid
-  +esCapitan: booleano
-  +unidoEn: fechaHora
+  +rol: RolPlantel
+  +incorporadoEn: fechaHora
+  +esCapitan() booleano
+  +antiguedadVisible() texto
 }
 class InvitacionEquipo {
   <<entidad>>
   +teamId: uuid
   +token: texto
-  +venceEn: fechaHora
+  +creadaPor: uuid
   +creadaEn: fechaHora
-  +esVigente() booleano
+  +venceEn: fechaHora
+  +estaVigente() booleano
+  +urlCompleta() texto
 }
 class ResumenHistorialPublico {
   <<entidad>>
-  +teamId: uuid
-  +partidosJugados: entero
-  +faltasUltimos90Dias: entero
-  +conflictos: entero
-  +rivalesEnConflicto: entero
+  +equipoId: uuid
+  +jugados: entero
+  +noPresentado: entero
   +promedioEstrellas: decimal [0..1]
-  +cantidadCalificaciones: entero
+  +totalCalificaciones: entero
+  +tieneCalificacionesSuficientes() booleano
 }
 class PartidoCerradoPublico {
   <<entidad>>
-  +matchId: uuid
-  +fecha: fecha
+  +partidoId: uuid
+  +fecha: fechaHora
   +rivalId: uuid
   +nombreRival: texto
-  +zonaRival: texto
-  +desenlace: texto
+  +modalidad: Modalidad
+  +estadoVisible: EstadoPartidoCerrado
+  +golesPropios: entero [0..1]
+  +golesRival: entero [0..1]
+}
+class TorneoVinculado {
+  <<entidad>>
+  +torneoId: uuid
+  +nombre: texto
+  +modalidad: Modalidad
+  +zonaId: texto
+  +estado: EstadoTorneo
 }
 class ReporteEquipo {
   <<entidad>>
   +id: uuid
   +equipoId: uuid
-  +usuarioId: uuid
+  +autorId: uuid
   +motivo: MotivoReporteEquipo
-  +estado: EstadoReporte
   +creadoEn: fechaHora
+  +resueltoEn: fechaHora [0..1]
+  +estaPendiente() booleano
 }
-class Perfil {
+class PerfilJugador {
   <<entidad>>
   +id: uuid
   +nombre: texto
   +fotoUrl: texto [0..1]
 }
-class ContactoPerfil {
-  <<entidad>>
-  +userId: uuid
-  +whatsapp: texto [0..1]
-}
 class Zona {
   <<entidad>>
   +id: texto
   +nombre: texto
-}
-class Corredor {
-  <<entidad>>
-  +id: texto
-  +nombre: texto
+  +corredorId: texto
+  +orden: entero
 }
 class Modalidad {
   <<enumeracion>>
   Futbol5
+  Futbol6
   Futbol7
   Futbol8
+  Futbol9
   Futbol11
+  Femenino
+  Mixto
+  Senior
 }
 class NivelEquipo {
   <<enumeracion>>
   Recreativo
-  Intermedio
+  Amateur
   Competitivo
+}
+class RolPlantel {
+  <<enumeracion>>
+  Capitan
+  Jugador
+}
+class EstadoPartidoCerrado {
+  <<enumeracion>>
+  Jugado
+  EnConflicto
+  NoPresentado
 }
 class MotivoReporteEquipo {
   <<enumeracion>>
-  ViolenciaOAgresiones
-  CuentaFalsa
-  AbusoDeCalificaciones
+  NombreEscudoOfensivo
+  NoExisteSpam
+  MalComportamiento
+  Otro
 }
-Equipo "1" *-- "1..*" IntegrantePlantel : plantel privado
-IntegrantePlantel "0..*" --> "1" Perfil : jugador o capitán
-Perfil "1" *-- "1" ContactoPerfil : WhatsApp privado
-Equipo "1" *-- "0..1" InvitacionEquipo : único link vigente
-Equipo "0..*" --> "1" Zona : se ubica en
-Zona "1..*" --> "1" Corredor : pertenece a
-Equipo "1" --> "1" ResumenHistorialPublico : resumen público
-Equipo "1" --> "0..5" PartidoCerradoPublico : últimos cerrados
-Equipo "1" --> "0..*" ReporteEquipo : recibe
+Equipo "1" *-- "1..*" IntegrantePlantel
+IntegrantePlantel "0..*" --> "1" PerfilJugador
+Equipo "1" *-- "0..1" InvitacionEquipo
+Equipo "0..*" --> "1" Zona
+Equipo "1" *-- "1" ResumenHistorialPublico
+ResumenHistorialPublico "1" *-- "0..10" PartidoCerradoPublico
+Equipo "0..*" --> "0..*" TorneoVinculado
+Equipo "1" *-- "0..*" ReporteEquipo
 Equipo ..> Modalidad
 Equipo ..> NivelEquipo
+IntegrantePlantel ..> RolPlantel
+PartidoCerradoPublico ..> EstadoPartidoCerrado
 ReporteEquipo ..> MotivoReporteEquipo
 ```
 
@@ -125,34 +152,37 @@ ReporteEquipo ..> MotivoReporteEquipo
 
 ## Clases por caso de uso
 
-### UC-C01 · Crear equipo
+### UC-C01 · Crear un equipo
 
-**Requerimientos:** `RF-C01` a `RF-C06`, `RF-C27` · **Pantalla:** [P1 · Crear equipo](../equipos/03-pantallas.md#p1--crear-equipo) (`/crear-equipo`) · **Secuencia:** [S01 · Crear equipo](../equipos/04-diagramas-secuencia/uc-c01-crear-equipo.md)
+> Especificación: [UC-C01](../equipos/02-casos-de-uso.md#uc-c01--crear-un-equipo) · Pantalla: [P2 · Crear equipo](../equipos/03-pantallas.md#p2--crear-equipo) · Secuencia: [S01 · Crear equipo](../equipos/04-diagramas-secuencia/uc-c01-crear-equipo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FormularioCrearEquipo {
   <<boundary>>
   +abrirCrearEquipo()
-  +confirmarCreacion(nombre, zonaId, modalidad, nivel, escudo)
-  +mostrarAvisoFaltaWhatsapp()
+  +mostrarAvisoSinWhatsapp()
   +mostrarAvisoLimiteCapitanias()
+  +mostrarFormulario(zonas, modalidades, niveles)
+  +completarDatosYSeleccionar(nombre, zonaId, modalidad, nivel, escudo)
+  +confirmarCreacion()
   +mostrarErrores(errores)
+  +abrirFichaEquipo(equipoId)
+  +abrirEditarConAvisoEscudo(equipoId)
 }
 class OpcionesEquipo {
-  <<proveedor de opciones>>
+  <<boundary>>
   +listarModalidades() Modalidad[]
   +listarNiveles() NivelEquipo[]
 }
 class EquipoService {
   <<control>>
-  +prepararCreacionEquipo(usuarioId) DatosFormularioEquipo
+  +consultarRequisitosYOpciones(usuarioId)
   +crearEquipo(nombre, zonaId, modalidad, nivel, escudo) uuid
 }
 class ValidadorEquipo {
   <<validador>>
-  +validarDatosEquipo(nombre, zonaId, modalidad, nivel) booleano
+  +validarDatos(nombre, zonaId, modalidad, nivel) booleano
   +validarEscudo(escudo) booleano
 }
 class ZonaRepository {
@@ -161,24 +191,28 @@ class ZonaRepository {
 }
 class EquipoRepository {
   <<repositorio>>
-  +consultarRequisitos(usuarioId) RequisitosCreacion
+  +consultarRequisitos(usuarioId)
   +crearEquipo(datos, usuarioId) uuid
+  +comprobarWhatsappYLimiteCapitanias(usuarioId) booleano
+  +guardarEquipoYCapitan(datos, usuarioId) uuid
   +guardarEscudo(equipoId, escudo)
-  -comprobarWhatsappYLimiteCapitanias(usuarioId)
 }
 class Equipo {
   <<entidad>>
   +id: uuid
   +nombre: texto
+  +zonaId: texto
   +modalidad: Modalidad
   +nivel: NivelEquipo
   +escudoUrl: texto [0..1]
+  +estaActivo() booleano
 }
 class IntegrantePlantel {
   <<entidad>>
   +teamId: uuid
   +userId: uuid
-  +esCapitan: booleano
+  +rol: RolPlantel
+  +esCapitan() booleano
 }
 class Zona {
   <<entidad>>
@@ -188,88 +222,103 @@ class Zona {
 class Modalidad {
   <<enumeracion>>
   Futbol5
+  Futbol6
   Futbol7
   Futbol8
+  Futbol9
   Futbol11
+  Femenino
+  Mixto
+  Senior
 }
 class NivelEquipo {
   <<enumeracion>>
   Recreativo
-  Intermedio
+  Amateur
   Competitivo
 }
-FormularioCrearEquipo ..> OpcionesEquipo : obtiene modalidades y niveles fijos
-FormularioCrearEquipo ..> EquipoService : consulta requisitos/Zonas y envía creación
-EquipoService ..> ZonaRepository : carga Zonas disponibles
-EquipoService ..> ValidadorEquipo : valida datos y escudo
-EquipoService ..> EquipoRepository : verifica requisitos, ejecuta alta y sube escudo
-EquipoRepository ..> Equipo : crea en transacción
-Equipo "1" *-- "1" IntegrantePlantel : creador como Capitán
-Equipo "0..*" --> "1" Zona : se ubica en
-OpcionesEquipo ..> Modalidad
-OpcionesEquipo ..> NivelEquipo
+FormularioCrearEquipo ..> OpcionesEquipo
+FormularioCrearEquipo ..> EquipoService
+EquipoService ..> OpcionesEquipo
+EquipoService ..> ZonaRepository
+EquipoService ..> ValidadorEquipo
+EquipoService ..> EquipoRepository
+EquipoRepository ..> Equipo
+EquipoRepository ..> IntegrantePlantel
+ZonaRepository ..> Zona
+Equipo "1" *-- "1..*" IntegrantePlantel
+Equipo "0..*" --> "1" Zona
+Equipo ..> Modalidad
+Equipo ..> NivelEquipo
 ```
 
 ---
 
-### UC-C02 · Invitar jugadores al equipo
+### UC-C02 · Invitar jugadores por link
 
-**Requerimientos:** `RF-C07`, `RF-C25` · **Pantalla:** [P4 · Equipo, vista del Capitán](../equipos/03-pantallas.md#p4--equipo-vista-del-jugador-y-del-capitán) · **Secuencia:** [S02 · Invitar jugadores](../equipos/04-diagramas-secuencia/uc-c02-invitar-jugadores.md)
+> Especificación: [UC-C02](../equipos/02-casos-de-uso.md#uc-c02--invitar-jugadores-por-link) · Pantalla: [P3 · Ficha del equipo](../equipos/03-pantallas.md#p3--ficha-del-equipo) · Secuencia: [S02 · Invitar jugadores](../equipos/04-diagramas-secuencia/uc-c02-invitar-jugadores.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FichaEquipo {
   <<boundary>>
   +abrirFichaEquipo(equipoId)
+  +mostrarInvitacionOBoton(invitacion)
   +pulsarGenerarORegenerarLink(equipoId)
+  +mostrarLinkParaCopiar(enlace)
   +copiarLink()
-  +mostrarLinkVigente(enlace, vencimiento)
   +mostrarError(mensaje)
 }
 class EquipoService {
   <<control>>
-  +consultarInvitacionVigente(equipoId) InvitacionEquipo
+  +obtenerInvitacionVigente(equipoId) InvitacionEquipo
   +generarInvitacion(equipoId) InvitacionEquipo
 }
 class EquipoRepository {
   <<repositorio>>
   +obtenerInvitacionVigente(equipoId) InvitacionEquipo
   +regenerarInvitacion(equipoId) InvitacionEquipo
-  -verificarCapitanYEquipoActivo(equipoId)
+  +verificarCapitanYEquipoActivo(equipoId) booleano
+  +crearTokenYReemplazarAnterior(equipoId) InvitacionEquipo
 }
 class InvitacionEquipo {
   <<entidad>>
   +teamId: uuid
   +token: texto
+  +creadaPor: uuid
+  +creadaEn: fechaHora
   +venceEn: fechaHora
-  +esVigente() booleano
+  +estaVigente() booleano
+  +urlCompleta() texto
 }
 class Equipo {
   <<entidad>>
   +id: uuid
   +disueltoEn: fechaHora [0..1]
-  +estaDisuelto() booleano
+  +estaActivo() booleano
 }
-FichaEquipo ..> EquipoService : consulta o pide regenerar link
-EquipoService ..> EquipoRepository : lee y regenera invitación
-EquipoRepository ..> InvitacionEquipo : crea token a 7 días y reemplaza el anterior
-Equipo "1" *-- "0..1" InvitacionEquipo : único link por equipo
+FichaEquipo ..> EquipoService
+EquipoService ..> EquipoRepository
+EquipoRepository ..> InvitacionEquipo
+EquipoRepository ..> Equipo
+Equipo "1" *-- "0..1" InvitacionEquipo
 ```
 
 ---
 
 ### UC-C03 · Unirse a un equipo con el link
 
-**Requerimientos:** `RF-C08` a `RF-C10`, `RF-C27` · **Pantalla:** [P6 · Unirse al equipo](../equipos/03-pantallas.md#p6--unirse-al-equipo) (`/unirse/{token}`) · **Secuencia:** [S03 · Unirse al equipo](../equipos/04-diagramas-secuencia/uc-c03-unirse-al-equipo.md)
+> Especificación: [UC-C03](../equipos/02-casos-de-uso.md#uc-c03--unirse-a-un-equipo-con-el-link) · Pantalla: [P5 · Invitación al equipo](../equipos/03-pantallas.md#p5--invitación-al-equipo) · Secuencia: [S03 · Unirse al equipo](../equipos/04-diagramas-secuencia/uc-c03-unirse-al-equipo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class PantallaUnirse {
   <<boundary>>
   +abrirInvitacion(token)
+  +pedirIniciarSesion(destino)
+  +mostrarInvitacion()
   +pulsarUnirmeAlEquipo(token)
+  +abrirFichaEquipo(equipoId)
   +mostrarErrorLinkInvalido()
 }
 class EquipoService {
@@ -278,59 +327,62 @@ class EquipoService {
 }
 class ValidadorEquipo {
   <<validador>>
-  +validarFormatoToken(token) booleano
+  +validarToken(token) booleano
 }
 class EquipoRepository {
   <<repositorio>>
   +incorporarAlPlantel(token) uuid
-  -validarTokenVencimientoYEquipoActivo(token) booleano
+  +validarTokenVencimientoYEquipoActivo(token) booleano
+  +insertarIntegranteSiNoEsta(equipoId, usuarioId)
 }
 class InvitacionEquipo {
   <<entidad>>
   +teamId: uuid
   +token: texto
   +venceEn: fechaHora
-  +esVigente() booleano
-}
-class Equipo {
-  <<entidad>>
-  +id: uuid
-  +disueltoEn: fechaHora [0..1]
-  +estaDisuelto() booleano
+  +estaVigente() booleano
 }
 class IntegrantePlantel {
   <<entidad>>
   +teamId: uuid
   +userId: uuid
-  +esCapitan: booleano
+  +rol: RolPlantel
+  +incorporadoEn: fechaHora
 }
-PantallaUnirse ..> EquipoService : confirma unión con botón
-EquipoService ..> ValidadorEquipo : valida formato del token
-EquipoService ..> EquipoRepository : solicita incorporación al Plantel
-EquipoRepository ..> InvitacionEquipo : verifica vigencia
-EquipoRepository ..> Equipo : verifica activo
-EquipoRepository ..> IntegrantePlantel : inserta como Jugador
+class Equipo {
+  <<entidad>>
+  +id: uuid
+  +disueltoEn: fechaHora [0..1]
+  +estaActivo() booleano
+}
+PantallaUnirse ..> EquipoService
+EquipoService ..> ValidadorEquipo
+EquipoService ..> EquipoRepository
+EquipoRepository ..> InvitacionEquipo
+EquipoRepository ..> IntegrantePlantel
+EquipoRepository ..> Equipo
+Equipo "1" *-- "1..*" IntegrantePlantel
+Equipo "1" *-- "0..1" InvitacionEquipo
 ```
 
 ---
 
-### UC-C04 · Ver la página pública del equipo
+### UC-C04 · Ver la página pública de un equipo
 
-**Requerimientos:** `RF-C11` a `RF-C14`, `RF-C25` · **Pantallas:** [P3 · Vista pública](../equipos/03-pantallas.md#p3--equipo-vista-pública) y [P4 · Vista del Jugador y del Capitán](../equipos/03-pantallas.md#p4--equipo-vista-del-jugador-y-del-capitán) (`/equipos/{id}`) · **Secuencia:** [S04 · Ver la página del equipo](../equipos/04-diagramas-secuencia/uc-c04-ver-pagina-equipo.md)
+> Especificación: [UC-C04](../equipos/02-casos-de-uso.md#uc-c04--ver-la-página-pública-de-un-equipo) · Pantalla: [P3 · Ficha del equipo](../equipos/03-pantallas.md#p3--ficha-del-equipo) · Secuencia: [S04 · Ver página de equipo](../equipos/04-diagramas-secuencia/uc-c04-ver-pagina-equipo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FichaEquipo {
   <<boundary>>
   +abrirFichaEquipo(equipoId)
-  +mostrarFichaPublica(equipo, torneos, historial)
-  +mostrarPlantelYAccionesSegunRol(plantel)
+  +mostrarFicha(fichaPublica, plantel)
+  +mostrarAccionesGestion()
   +mostrarNoEncontrado()
 }
 class EquipoService {
   <<control>>
-  +consultarFichaEquipo(equipoId)
+  +consultarFichaPublica(equipoId)
 }
 class EquipoRepository {
   <<repositorio>>
@@ -350,80 +402,94 @@ class Equipo {
   <<entidad>>
   +id: uuid
   +nombre: texto
+  +zonaId: texto
   +modalidad: Modalidad
   +nivel: NivelEquipo
   +escudoUrl: texto [0..1]
   +disueltoEn: fechaHora [0..1]
-  +estaDisuelto() booleano
-  +cantidadJugadores() entero
+  +estaActivo() booleano
 }
 class IntegrantePlantel {
   <<entidad>>
+  +teamId: uuid
   +userId: uuid
-  +nombreJugador: texto
-  +esCapitan: booleano
-}
-class ResumenHistorialPublico {
-  <<entidad>>
-  +partidosJugados: entero
-  +faltasUltimos90Dias: entero
-  +conflictos: entero
-  +rivalesEnConflicto: entero
-  +promedioEstrellas: decimal [0..1]
-}
-class PartidoCerradoPublico {
-  <<entidad>>
-  +fecha: fecha
-  +nombreRival: texto
-  +zonaRival: texto
-  +desenlace: texto
+  +rol: RolPlantel
+  +incorporadoEn: fechaHora
+  +antiguedadVisible() texto
 }
 class TorneoVinculado {
   <<entidad>>
   +torneoId: uuid
-  +nombreTorneo: texto
+  +nombre: texto
+  +modalidad: Modalidad
+  +zonaId: texto
   +estado: EstadoTorneo
 }
-FichaEquipo ..> EquipoService : solicita ficha del equipo
-EquipoService ..> EquipoRepository : lee datos públicos y Plantel
-EquipoService ..> InscripcionRepository : lee torneos vinculados
-EquipoService ..> HistorialRepository : lee resumen y últimos cerrados
+class ResumenHistorialPublico {
+  <<entidad>>
+  +equipoId: uuid
+  +jugados: entero
+  +noPresentado: entero
+  +promedioEstrellas: decimal [0..1]
+  +totalCalificaciones: entero
+  +tieneCalificacionesSuficientes() booleano
+}
+class PartidoCerradoPublico {
+  <<entidad>>
+  +partidoId: uuid
+  +fecha: fechaHora
+  +rivalId: uuid
+  +nombreRival: texto
+  +modalidad: Modalidad
+  +estadoVisible: EstadoPartidoCerrado
+  +golesPropios: entero [0..1]
+  +golesRival: entero [0..1]
+}
+FichaEquipo ..> EquipoService
+EquipoService ..> EquipoRepository
+EquipoService ..> InscripcionRepository
+EquipoService ..> HistorialRepository
 EquipoRepository ..> Equipo
 EquipoRepository ..> IntegrantePlantel
 InscripcionRepository ..> TorneoVinculado
 HistorialRepository ..> ResumenHistorialPublico
 HistorialRepository ..> PartidoCerradoPublico
+Equipo "1" *-- "1..*" IntegrantePlantel
+Equipo "1" *-- "1" ResumenHistorialPublico
+ResumenHistorialPublico "1" *-- "0..10" PartidoCerradoPublico
 ```
 
 ---
 
-### UC-C05 · Editar equipo
+### UC-C05 · Editar datos del equipo
 
-**Requerimientos:** `RF-C01`, `RF-C02`, `RF-C16`, `RF-C25` · **Pantalla:** [P5 · Editar equipo](../equipos/03-pantallas.md#p5--editar-equipo) (`/equipos/{id}/editar`) · **Secuencia:** [S05 · Editar equipo](../equipos/04-diagramas-secuencia/uc-c05-editar-equipo.md)
+> Especificación: [UC-C05](../equipos/02-casos-de-uso.md#uc-c05--editar-datos-del-equipo) · Pantalla: [P4 · Editar equipo](../equipos/03-pantallas.md#p4--editar-equipo) · Secuencia: [S05 · Editar equipo](../equipos/04-diagramas-secuencia/uc-c05-editar-equipo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FormularioEditarEquipo {
   <<boundary>>
   +abrirEditarEquipo(equipoId)
-  +confirmarCambios(equipoId, nombre, zonaId, modalidad, nivel, escudo, quitarEscudo)
+  +mostrarFormulario(equipo, zonas, modalidades, niveles)
+  +cambiarDatos(nombre, zonaId, modalidad, nivel, escudo, quitarEscudo)
+  +confirmarCambios()
+  +volverAFichaConConfirmacion(equipoId)
   +mostrarErrores(errores)
 }
 class OpcionesEquipo {
-  <<proveedor de opciones>>
+  <<boundary>>
   +listarModalidades() Modalidad[]
   +listarNiveles() NivelEquipo[]
 }
 class EquipoService {
   <<control>>
-  +cargarEquipoEditable(equipoId) DatosEdicionEquipo
+  +cargarDatosEdicion(equipoId)
   +editarEquipo(equipoId, nombre, zonaId, modalidad, nivel, escudo, quitarEscudo)
 }
 class ValidadorEquipo {
   <<validador>>
-  +validarDatosEquipo(nombre, zonaId, modalidad, nivel) booleano
-  +validarEscudo(escudo) booleano
+  +validarDatos(nombre, zonaId, modalidad, nivel) booleano
+  +validarEscudo(escudo, quitarEscudo) booleano
 }
 class ZonaRepository {
   <<repositorio>>
@@ -434,45 +500,48 @@ class EquipoRepository {
   +obtenerEquipoEditable(equipoId) Equipo
   +esCapitan(equipoId) booleano
   +guardarEquipoActivo(equipoId, datos, escudo, quitarEscudo)
-  -subirEscudoNuevo(escudo) texto
-  -retirarEscudoAnterior(ruta)
+  +subirEscudoNuevo(escudo) texto
+  +retirarSubidaEscudo(ruta)
+  +retirarEscudoAnterior(ruta)
 }
 class Equipo {
   <<entidad>>
   +id: uuid
   +nombre: texto
+  +zonaId: texto
   +modalidad: Modalidad
   +nivel: NivelEquipo
   +escudoUrl: texto [0..1]
   +disueltoEn: fechaHora [0..1]
+  +estaActivo() booleano
 }
 class Zona {
   <<entidad>>
   +id: texto
   +nombre: texto
 }
-FormularioEditarEquipo ..> OpcionesEquipo : carga modalidades y niveles fijos
-FormularioEditarEquipo ..> EquipoService : solicita datos actuales y envía cambios
-EquipoService ..> ZonaRepository : obtiene Zonas disponibles
-EquipoService ..> ValidadorEquipo : valida datos y escudo
-EquipoService ..> EquipoRepository : verifica Capitán y actualiza equipo activo
-EquipoRepository ..> Equipo : persiste cambios
-Equipo "0..*" --> "1" Zona : se ubica en
+FormularioEditarEquipo ..> OpcionesEquipo
+FormularioEditarEquipo ..> EquipoService
+EquipoService ..> OpcionesEquipo
+EquipoService ..> ZonaRepository
+EquipoService ..> ValidadorEquipo
+EquipoService ..> EquipoRepository
+EquipoRepository ..> Equipo
+ZonaRepository ..> Zona
+Equipo "0..*" --> "1" Zona
 ```
 
 ---
 
 ### UC-C06 · Pasar la capitanía
 
-**Requerimientos:** `RF-C05`, `RF-C17`, `RF-C20`, `RF-C21`, `RF-C27` · **Pantalla:** [P4 · Equipo, vista del Capitán](../equipos/03-pantallas.md#p4--equipo-vista-del-jugador-y-del-capitán) · **Secuencia:** [S06 · Pasar la capitanía](../equipos/04-diagramas-secuencia/uc-c06-pasar-capitania.md)
+> Especificación: [UC-C06](../equipos/02-casos-de-uso.md#uc-c06--pasar-la-capitanía) · Pantalla: [P3 · Ficha del equipo](../equipos/03-pantallas.md#p3--ficha-del-equipo) · Secuencia: [S06 · Pasar capitanía](../equipos/04-diagramas-secuencia/uc-c06-pasar-capitania.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FichaEquipo {
   <<boundary>>
-  +elegirHacerCapitan(equipoId, integranteId)
-  +confirmarTransferencia()
+  +elegirIntegranteYConfirmar(equipoId, integranteId)
   +mostrarPlantelActualizado()
   +mostrarError(mensaje)
 }
@@ -480,90 +549,106 @@ class EquipoService {
   <<control>>
   +pasarCapitania(equipoId, integranteId)
 }
+class ValidadorEquipo {
+  <<validador>>
+  +validarTransferenciaCapitania(equipoId, integranteId) booleano
+}
 class EquipoRepository {
   <<repositorio>>
   +transferirCapitania(equipoId, integranteId)
-  -verificarDestinatarioEnPlantel(equipoId, integranteId) booleano
-  -comprobarWhatsappYLimiteCapitanias(integranteId) booleano
-}
-class Equipo {
-  <<entidad>>
-  +id: uuid
-  +disueltoEn: fechaHora [0..1]
+  +serializarYVerificarCapitanYActivo(equipoId) booleano
+  +verificarDestinatarioEnPlantel(equipoId, integranteId) booleano
+  +comprobarWhatsappYLimiteCapitanias(integranteId) booleano
+  +cambiarCapitanEnTransaccion(equipoId, integranteId)
 }
 class IntegrantePlantel {
   <<entidad>>
   +teamId: uuid
   +userId: uuid
-  +esCapitan: booleano
+  +rol: RolPlantel
+  +esCapitan() booleano
 }
-class ContactoPerfil {
+class Equipo {
   <<entidad>>
-  +userId: uuid
-  +whatsapp: texto [0..1]
+  +id: uuid
+  +disueltoEn: fechaHora [0..1]
+  +estaActivo() booleano
 }
-FichaEquipo ..> EquipoService : solicita transferencia de capitanía
-EquipoService ..> EquipoRepository : ordena transferir capitanía
-EquipoRepository ..> Equipo : serializa y verifica activo
-EquipoRepository ..> IntegrantePlantel : transfiere esCapitan en transacción
-EquipoRepository ..> ContactoPerfil : exige WhatsApp cargado
+class RolPlantel {
+  <<enumeracion>>
+  Capitan
+  Jugador
+}
+FichaEquipo ..> EquipoService
+EquipoService ..> ValidadorEquipo
+EquipoService ..> EquipoRepository
+EquipoRepository ..> IntegrantePlantel
+EquipoRepository ..> Equipo
+Equipo "1" *-- "1..*" IntegrantePlantel
+IntegrantePlantel ..> RolPlantel
 ```
 
 ---
 
-### UC-C07 · Sacar a un jugador del plantel
+### UC-C07 · Sacar un jugador del equipo
 
-**Requerimientos:** `RF-C18`, `RF-C20`, `RF-C21`, `RF-C25` · **Pantalla:** [P4 · Equipo, vista del Capitán](../equipos/03-pantallas.md#p4--equipo-vista-del-jugador-y-del-capitán) · **Secuencia:** [S07 · Sacar a un jugador](../equipos/04-diagramas-secuencia/uc-c07-sacar-jugador.md)
+> Especificación: [UC-C07](../equipos/02-casos-de-uso.md#uc-c07--sacar-un-jugador-del-equipo) · Pantalla: [P3 · Ficha del equipo](../equipos/03-pantallas.md#p3--ficha-del-equipo) · Secuencia: [S07 · Sacar jugador](../equipos/04-diagramas-secuencia/uc-c07-sacar-jugador.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FichaEquipo {
   <<boundary>>
-  +elegirSacarJugador(equipoId, integranteId)
-  +confirmarExpulsion()
-  +mostrarPlantelActualizado()
+  +elegirIntegranteYConfirmar(equipoId, integranteId)
+  +mostrarPlantelSinJugador()
   +mostrarError(mensaje)
 }
 class EquipoService {
   <<control>>
   +sacarJugador(equipoId, integranteId)
 }
+class ValidadorEquipo {
+  <<validador>>
+  +validarExpulsion(equipoId, integranteId) booleano
+}
 class EquipoRepository {
   <<repositorio>>
   +quitarIntegrante(equipoId, integranteId)
-  -verificarNoEsPropioCapitan(equipoId, integranteId) booleano
-}
-class Equipo {
-  <<entidad>>
-  +id: uuid
-  +disueltoEn: fechaHora [0..1]
+  +serializarYVerificarCapitanYActivo(equipoId) booleano
+  +verificarNoEsPropioCapitan(equipoId, integranteId) booleano
+  +retirarDelPlantel(equipoId, integranteId)
 }
 class IntegrantePlantel {
   <<entidad>>
   +teamId: uuid
   +userId: uuid
-  +esCapitan: booleano
+  +rol: RolPlantel
+  +esCapitan() booleano
 }
-FichaEquipo ..> EquipoService : solicita sacar integrante
-EquipoService ..> EquipoRepository : ordena quitar integrante
-EquipoRepository ..> Equipo : serializa y verifica activo
-EquipoRepository ..> IntegrantePlantel : retira del Plantel
+class Equipo {
+  <<entidad>>
+  +id: uuid
+  +disueltoEn: fechaHora [0..1]
+  +estaActivo() booleano
+}
+FichaEquipo ..> EquipoService
+EquipoService ..> ValidadorEquipo
+EquipoService ..> EquipoRepository
+EquipoRepository ..> IntegrantePlantel
+EquipoRepository ..> Equipo
+Equipo "1" *-- "1..*" IntegrantePlantel
 ```
 
 ---
 
 ### UC-C08 · Salir del equipo
 
-**Requerimientos:** `RF-C19` a `RF-C21`, `RF-C25` · **Pantalla:** [P4 · Equipo, vista del Jugador](../equipos/03-pantallas.md#p4--equipo-vista-del-jugador-y-del-capitán) · **Secuencia:** [S08 · Salir del equipo](../equipos/04-diagramas-secuencia/uc-c08-salir-del-equipo.md)
+> Especificación: [UC-C08](../equipos/02-casos-de-uso.md#uc-c08--salir-del-equipo) · Pantalla: [P3 · Ficha del equipo](../equipos/03-pantallas.md#p3--ficha-del-equipo) · Secuencia: [S08 · Salir del equipo](../equipos/04-diagramas-secuencia/uc-c08-salir-del-equipo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FichaEquipo {
   <<boundary>>
-  +pulsarSalirDelEquipo(equipoId)
-  +confirmarSalida()
+  +pulsarSalirDelEquipoYConfirmar(equipoId)
   +abrirMisEquipos()
   +mostrarError(mensaje)
 }
@@ -574,38 +659,42 @@ class EquipoService {
 class EquipoRepository {
   <<repositorio>>
   +quitarPropiaPertenencia(equipoId)
-  -verificarIntegranteNoCapitan(equipoId) booleano
-}
-class Equipo {
-  <<entidad>>
-  +id: uuid
-  +disueltoEn: fechaHora [0..1]
+  +serializarYVerificarEquipoActivo(equipoId) booleano
+  +verificarIntegranteNoCapitan(equipoId) booleano
+  +retirarPertenencia(equipoId, usuarioId)
 }
 class IntegrantePlantel {
   <<entidad>>
   +teamId: uuid
   +userId: uuid
-  +esCapitan: booleano
+  +rol: RolPlantel
+  +esCapitan() booleano
 }
-FichaEquipo ..> EquipoService : solicita salir del equipo
-EquipoService ..> EquipoRepository : ordena retirar pertenencia propia
-EquipoRepository ..> Equipo : verifica activo
-EquipoRepository ..> IntegrantePlantel : retira pertenencia propia
+class Equipo {
+  <<entidad>>
+  +id: uuid
+  +disueltoEn: fechaHora [0..1]
+  +estaActivo() booleano
+}
+FichaEquipo ..> EquipoService
+EquipoService ..> EquipoRepository
+EquipoRepository ..> IntegrantePlantel
+EquipoRepository ..> Equipo
+Equipo "1" *-- "1..*" IntegrantePlantel
 ```
 
 ---
 
-### UC-C09 · Disolver equipo
+### UC-C09 · Disolver el equipo
 
-**Requerimientos:** `RF-C22` a `RF-C25` · **Pantalla:** [P4 · Equipo, vista del Capitán](../equipos/03-pantallas.md#p4--equipo-vista-del-jugador-y-del-capitán) · **Secuencia:** [S09 · Disolver equipo](../equipos/04-diagramas-secuencia/uc-c09-disolver-equipo.md)
+> Especificación: [UC-C09](../equipos/02-casos-de-uso.md#uc-c09--disolver-el-equipo) · Pantalla: [P3 · Ficha del equipo](../equipos/03-pantallas.md#p3--ficha-del-equipo) · Secuencia: [S09 · Disolver equipo](../equipos/04-diagramas-secuencia/uc-c09-disolver-equipo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FichaEquipo {
   <<boundary>>
-  +tildarConfirmacionIrreversible()
-  +pulsarDisolverEquipo(equipoId, confirmacion)
+  +tildarCasillaYConfirmar(equipoId, confirmacion)
+  +pedirConfirmacionDefinitiva()
   +mostrarFichaDisuelta()
   +mostrarError(mensaje)
 }
@@ -620,7 +709,8 @@ class ValidadorEquipo {
 class EquipoRepository {
   <<repositorio>>
   +disolver(equipoId)
-  -marcarDisueltoEInvalidarInvitacion(equipoId)
+  +serializarYVerificarCapitanYActivo(equipoId) booleano
+  +marcarDisueltoEInvalidarInvitacion(equipoId)
 }
 class PartidoRepository {
   <<repositorio>>
@@ -628,15 +718,13 @@ class PartidoRepository {
 }
 class BusquedaRepository {
   <<repositorio>>
-  +cancelarBusquedasYPropuestasActivas(equipoId)
-}
-class AvisoRepository {
-  <<repositorio>>
-  +registrarAvisoCancelacion(usuarioId, parametros)
+  +cancelarBusquedasActivas(equipoId)
+  +cancelarPropuestasPendientesYAvisar(equipoId)
 }
 class Equipo {
   <<entidad>>
   +id: uuid
+  +nombre: texto
   +disueltoEn: fechaHora [0..1]
   +estaDisuelto() booleano
 }
@@ -645,78 +733,81 @@ class InvitacionEquipo {
   +teamId: uuid
   +token: texto
 }
-class Aviso {
-  <<entidad>>
-  +id: uuid
-  +tipo: TipoAviso
-}
-FichaEquipo ..> EquipoService : envía confirmación de disolución
-EquipoService ..> ValidadorEquipo : valida confirmación expresa
-EquipoService ..> EquipoRepository : ejecuta disolución transaccional
-EquipoRepository ..> PartidoRepository : comprueba ausencia de partidos pendientes
-EquipoRepository ..> BusquedaRepository : cancela búsquedas y propuestas pendientes
-BusquedaRepository ..> AvisoRepository : notifica contrapartes afectadas
-AvisoRepository ..> Aviso : persiste aviso
-EquipoRepository ..> Equipo : marca disueltoEn
-EquipoRepository ..> InvitacionEquipo : invalida link vigente
+FichaEquipo ..> EquipoService
+EquipoService ..> ValidadorEquipo
+EquipoService ..> EquipoRepository
+EquipoRepository ..> PartidoRepository
+EquipoRepository ..> BusquedaRepository
+EquipoRepository ..> Equipo
+EquipoRepository ..> InvitacionEquipo
+Equipo "1" *-- "0..1" InvitacionEquipo
 ```
 
 ---
 
 ### UC-C10 · Reportar un equipo
 
-**Requerimientos:** `RF-C26` · **Pantalla:** [P3 · Equipo, vista pública](../equipos/03-pantallas.md#p3--equipo-vista-pública) · **Secuencia:** [S10 · Reportar un equipo](../equipos/04-diagramas-secuencia/uc-c10-reportar-equipo.md)
+> Especificación: [UC-C10](../equipos/02-casos-de-uso.md#uc-c10--reportar-un-equipo) · Pantalla: [P3 · Ficha del equipo](../equipos/03-pantallas.md#p3--ficha-del-equipo) · Secuencia: [S10 · Reportar equipo](../equipos/04-diagramas-secuencia/uc-c10-reportar-equipo.md)
 
 ```mermaid
 classDiagram
-direction TB
 class FichaEquipo {
   <<boundary>>
   +abrirFichaEquipo(equipoId)
+  +mostrarFichaConOSinBotonReportar(puedeReportar)
   +tocarReportar()
-  +enviarReporte(equipoId, motivo)
+  +elegirMotivoYEnviar(equipoId, motivo)
   +mostrarConfirmacionReporte()
   +mostrarError(mensaje)
 }
 class OpcionesReporte {
-  <<proveedor de opciones>>
+  <<boundary>>
   +listarMotivos() MotivoReporteEquipo[]
 }
 class EquipoService {
   <<control>>
-  +verificarHabilitacionReporte(usuarioId, equipoId) booleano
+  +puedeReportar(usuarioId, equipoId) booleano
+  +obtenerMotivosReporte() MotivoReporteEquipo[]
   +reportarEquipo(equipoId, motivo)
 }
 class ValidadorEquipo {
   <<validador>>
-  +validarMotivoReporte(motivo) booleano
+  +validarMotivo(motivo) booleano
 }
 class ReporteRepository {
   <<repositorio>>
   +puedeReportar(usuarioId, equipoId) booleano
   +crearReporte(equipoId, motivo, usuarioId) ReporteEquipo
+  +verificarSesionYPartidoJugadoEnComun(usuarioId, equipoId) booleano
 }
 class ReporteEquipo {
   <<entidad>>
   +id: uuid
   +equipoId: uuid
-  +usuarioId: uuid
+  +autorId: uuid
   +motivo: MotivoReporteEquipo
-  +estado: EstadoReporte
   +creadoEn: fechaHora
+  +estaPendiente() booleano
+}
+class Equipo {
+  <<entidad>>
+  +id: uuid
+  +nombre: texto
 }
 class MotivoReporteEquipo {
   <<enumeracion>>
-  ViolenciaOAgresiones
-  CuentaFalsa
-  AbusoDeCalificaciones
+  NombreEscudoOfensivo
+  NoExisteSpam
+  MalComportamiento
+  Otro
 }
-FichaEquipo ..> OpcionesReporte : carga motivos antes de elegir
-FichaEquipo ..> EquipoService : consulta habilitación y envía motivo elegido
-EquipoService ..> ValidadorEquipo : valida motivo
-EquipoService ..> ReporteRepository : comprueba partido jugado en común y crea reporte
-ReporteRepository ..> ReporteEquipo : persiste reporte pendiente
-OpcionesReporte ..> MotivoReporteEquipo
+FichaEquipo ..> OpcionesReporte
+FichaEquipo ..> EquipoService
+EquipoService ..> OpcionesReporte
+EquipoService ..> ValidadorEquipo
+EquipoService ..> ReporteRepository
+ReporteRepository ..> ReporteEquipo
+Equipo "1" *-- "0..*" ReporteEquipo
 ReporteEquipo ..> MotivoReporteEquipo
 ```
 
@@ -726,18 +817,18 @@ ReporteEquipo ..> MotivoReporteEquipo
 
 | Clase | Estereotipo | Implementación en el repo | Estado |
 |---|---|---|---|
-| `FormularioCrearEquipo` / `FormularioEditarEquipo` | `«boundary»` | `src/app/crear-equipo/page.tsx`, `src/app/equipos/[id]/editar/page.tsx`, `src/components/TeamForm.tsx` | Implementadas |
-| `FichaEquipo` | `«boundary»` | `src/app/equipos/[id]/page.tsx`, `CopyLinkButton.tsx`, `ConfirmButton.tsx` | Implementada |
-| `PantallaUnirse` | `«boundary»` | `src/app/unirse/[token]/page.tsx` | Implementada |
-| `OpcionesEquipo` | `«proveedor de opciones»` | `SPORT_MODALITIES` (`src/utils/modality.ts`) y `TEAM_LEVELS` (`src/utils/teams.ts`) | Implementado |
-| `OpcionesReporte` | `«proveedor de opciones»` | — (diseño objetivo de UC-C10) | **Pendiente** |
-| `EquipoService` | `«control»` | Server Actions en `src/app/crear-equipo/actions.ts`, `src/app/equipos/[id]/actions.ts`, `src/app/unirse/[token]/actions.ts` | Implementado (falta UC-C10) |
-| `ValidadorEquipo` | `«validador»` | `parseTeamForm` (`src/utils/team-form.ts`), `parseCrest` (`src/utils/team-crest.ts`) | Implementado |
-| `ZonaRepository` | `«repositorio»` | `getZoneGroups()` en `src/components/ZoneSelect.tsx` (`public.zones`, `corridors`, `regions`) | Implementado |
-| `EquipoRepository` | `«repositorio»` | Tablas `public.teams`, `team_members`, `team_invites`; funciones `create_team`, `join_team`, `leave_team`, `remove_team_member`, `transfer_captaincy`, `regenerate_team_invite`, `get_team_invite`, `dissolve_team`, `is_team_captain`; `saveTeam` (`src/utils/supabase/team.ts`) y bucket `team-crests` | Implementado |
-| `InscripcionRepository` | `«repositorio»` | Vista pública `public.tournament_inscriptions` + `public.tournaments` | Implementado |
-| `HistorialRepository` | `«repositorio»` | Vistas `public.team_record` y `public.team_match_history` (`20261028000012_team_history.sql`) | Implementado |
-| `PartidoRepository` / `BusquedaRepository` / `AvisoRepository` | `«repositorio»` | Consultados dentro de `dissolve_team` (`20261028000006_matches.sql`: `matches`, `match_phase`, `rival_searches`, `cancel_proposals`, `notices`) | Implementados |
-| `ReporteRepository` | `«repositorio»` | — (diseño objetivo de UC-C10) | **Pendiente** |
-| `Equipo` / `IntegrantePlantel` / `InvitacionEquipo` | `«entidad»` | `public.teams`, `public.team_members`, `public.team_invites` | Implementadas |
-| `ResumenHistorialPublico` / `PartidoCerradoPublico` / `ReporteEquipo` | `«entidad»` | Vistas `public.team_record` y `public.team_match_history` | Implementadas (salvo `ReporteEquipo`) |
+| `FormularioCrearEquipo` | `«boundary»` | `src/app/equipos/crear/page.tsx` + `src/components/TeamForm.tsx` | Implementada |
+| `FichaEquipo` | `«boundary»` | `src/app/equipos/[id]/page.tsx` + `InviteLinkBox.tsx`, `MemberActions.tsx`, `LeaveTeamForm.tsx`, `DissolveTeamForm.tsx` | Implementada (falta botón «Reportar» de UC-C10) |
+| `FormularioEditarEquipo` | `«boundary»` | `src/app/equipos/[id]/editar/page.tsx` + `src/components/TeamForm.tsx` | Implementada |
+| `PantallaUnirse` | `«boundary»` | `src/app/equipos/unirse/[token]/page.tsx` | Implementada |
+| `OpcionesEquipo` / `OpcionesReporte` | `«boundary»` | `SPORT_MODALITIES` (`src/utils/modality.ts`), `TEAM_LEVELS` (`src/utils/teams.ts`) | Implementados (`OpcionesReporte` pendiente) |
+| `EquipoService` | `«control»` | Server Actions en `src/app/equipos/crear/actions.ts`, `src/app/equipos/[id]/actions.ts`, `src/app/equipos/[id]/editar/actions.ts`, `src/app/equipos/unirse/[token]/actions.ts` | Implementado (falta `reportarEquipo`) |
+| `ValidadorEquipo` | `«validador»` | `parseTeamForm`, `parseCrest`, `parseRemoveCrest`, `parseInviteToken`, `parseMemberTarget`, `parseDissolveConfirmation` (`src/utils/teams.ts`) | Implementado |
+| `ZonaRepository` | `«repositorio»` | `getZoneGroups()` en `src/components/ZoneSelect.tsx` (`public.zones`) | Implementado |
+| `EquipoRepository` | `«repositorio»` | Tablas `public.teams`, `team_members`, `team_invites`; funciones `create_team`, `regenerate_team_invite`, `join_team`, `transfer_captaincy`, `remove_team_member`, `leave_team`, `dissolve_team`; bucket `crests` (`src/utils/supabase/crest.ts`) | Implementado |
+| `InscripcionRepository` | `«repositorio»` | Vista `public.public_inscriptions` filtrada por `team_id` | Implementado |
+| `HistorialRepository` | `«repositorio»` | Funciones `public.team_public_record` y `public.team_recent_matches` (`20261028000017_team_public_history.sql`) | Implementado |
+| `PartidoRepository` / `BusquedaRepository` | `«repositorio»` | Verificación y cancelaciones invocadas dentro de `public.dissolve_team` (`20261028000015_dissolve_team_matches.sql`) | Implementados |
+| `ReporteRepository` | `«repositorio»` | Tabla de reportes de equipo | **Pendiente** |
+| `Equipo` / `IntegrantePlantel` / `InvitacionEquipo` | `«entidad»` | `public.teams`, `public.team_members`, `public.team_invites` (`20261028000002_teams.sql`) | Implementadas |
+| `ResumenHistorialPublico` / `PartidoCerradoPublico` | `«entidad»` | Retorno de `team_public_record` y `team_recent_matches` | Implementadas |
