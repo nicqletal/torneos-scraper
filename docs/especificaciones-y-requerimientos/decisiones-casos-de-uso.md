@@ -62,6 +62,8 @@ Revisión de [casos-de-uso.pdf](../casos-de-uso/casos-de-uso.pdf) (módulos A–
 
 ### Vista previa de Promoción (18/11/2026)
 
+- **Gestión guiada (18/11/2026):** Datos del Torneo reemplaza el formulario de secciones simultáneas por seis pasos: El torneo, Contacto, Fechas y cupo, Flyer, Más información y Revisar y guardar. Sidebar en escritorio y navegación horizontal compacta en móvil. Se conservan campos y archivo al navegar, se validan los campos al avanzar y se guardan todos los cambios al final. La creación conserva su recorrido actual; Inscripciones y Baja mantienen sus flujos propios. Este acuerdo reemplaza la distribución anterior en dos columnas de secciones.
+
 - **Sugerencia de promoción (18/11/2026):** en el inicio, una cuenta con al menos un Torneo propio no Finalizado puede ver una sugerencia flotante que lleva a su vista previa. Se cierra con × y se recuerda por cuenta en ese navegador. No es un Aviso de la campanita ni una notificación push del sistema operativo; no pide permisos, no envía mensajes y no representa una contratación.
 
 - **Demostración pública acordada el 18/11/2026:** Areia (`areiafutbol`) aparece con Partner (ámbar) y Liga Núñez (`liganunez`) con Growth (celeste), en un bloque anterior al listado y con identificación del plan en sus tarjetas. El bloque y las etiquetas aclaran que son promociones de demostración, no contrataciones reales. Se usan Torneos existentes; no se crean registros ni se cobra. Se respetan los filtros y se excluyen Finalizados. Esta ampliación reemplaza, para estos dos ejemplos, la restricción anterior de no modificar el catálogo público.

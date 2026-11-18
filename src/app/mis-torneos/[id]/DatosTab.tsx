@@ -23,7 +23,7 @@ export async function DatosTab({ id, formColumns, inscriptionsCount, hasFlyer }:
 
       <div className="bg-brand-surface border border-brand-border rounded-sm p-6 md:p-8">
         <TournamentForm
-          wide
+          stepByStep
           action={updateTournament.bind(null, id)}
           zoneGroups={await getZoneGroups()}
           submitLabel="Guardar cambios"

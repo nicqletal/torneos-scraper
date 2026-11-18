@@ -1,7 +1,7 @@
 'use client'
 
-import { useActionState, useState } from 'react'
-import { Save } from 'lucide-react'
+import { useActionState, useRef, useState } from 'react'
+import { ArrowLeft, ArrowRight, Check, Save } from 'lucide-react'
 import { FLYER_TYPES, parseFlyer } from '@/utils/tournament-flyer'
 import { SPORT_MODALITIES } from '@/utils/modality'
 import { VENUE_ADDRESS_REQUIRED } from '@/utils/tournament-form'
@@ -27,7 +27,7 @@ interface TournamentFormProps {
   confirmMessage?: string | null
   // Edición de un torneo que ya tiene flyer: dejar el campo vacío lo conserva.
   hasFlyer?: boolean
-  wide?: boolean
+  stepByStep?: boolean
 }
 
 const labelClass = 'font-sans tracking-wider text-sm text-foreground/60 uppercase'
@@ -35,9 +35,9 @@ const hintClass = 'text-sm text-foreground/70 font-sans'
 const inputClass =
   'px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-sm text-foreground placeholder:text-foreground/25 focus:outline-none focus:border-brand-lime transition-colors'
 
-function Section({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
+function Section({ title, children, hidden = false }: { title: string; children: React.ReactNode; hidden?: boolean }) {
   return (
-    <fieldset className={`flex min-w-0 flex-col gap-4 ${className}`}>
+    <fieldset hidden={hidden} className={hidden ? 'hidden' : 'flex min-w-0 flex-col gap-4'}>
       <legend className="w-full font-sans tracking-wider text-lg text-foreground uppercase border-b border-brand-border pb-2 mb-2">
         {title}
       </legend>
@@ -56,24 +56,100 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
-export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, initialValues = {}, confirmMessage, hasFlyer = false, wide = false }: TournamentFormProps) {
+const STEPS = [
+  { title: 'El torneo', hint: 'Nombre, modalidad y sede' },
+  { title: 'Contacto', hint: 'Cómo te encuentran los equipos' },
+  { title: 'Fechas y cupo', hint: 'Cuándo se juega y cuánto cuesta' },
+  { title: 'Flyer', hint: 'La imagen de tu torneo' },
+  { title: 'Más información', hint: 'Descripción y reglamento' },
+  { title: 'Revisar y guardar', hint: 'Confirmá los datos del torneo' },
+]
+
+export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, initialValues = {}, confirmMessage, hasFlyer = false, stepByStep = false }: TournamentFormProps) {
   const [state, formAction, pending] = useActionState(action, { error: null, values: initialValues })
   const [flyerError, setFlyerError] = useState<string | null>(null)
   const v = state.values
+  const formRef = useRef<HTMLFormElement>(null)
+  const [step, setStep] = useState(0)
+  const [review, setReview] = useState(initialValues)
+
+  function goToStep(next: number) {
+    const form = formRef.current
+    if (!form || pending) return
+    if (next > step) {
+      const fields = form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('fieldset:not([hidden]) input, fieldset:not([hidden]) select, fieldset:not([hidden]) textarea')
+      for (const field of fields) if (!field.reportValidity()) return
+      if (step === 1) {
+        const whatsapp = form.elements.namedItem('contact_whatsapp') as HTMLInputElement
+        const instagram = form.elements.namedItem('contact_instagram') as HTMLInputElement
+        if (!whatsapp.value.trim() && !instagram.value.trim()) {
+          whatsapp.setCustomValidity('Dejá al menos un contacto: WhatsApp o Instagram.')
+          whatsapp.reportValidity()
+          return
+        }
+      }
+    }
+    const values: Record<string, string> = {}
+    new FormData(form).forEach((value, key) => { values[key] = typeof value === 'string' ? value : value.name })
+    setReview(values)
+    setStep(next)
+  }
 
   return (
     // `key` fuerza a React a volver a montar los campos con los valores devueltos:
     // un `defaultValue` nuevo no pisa lo que ya muestra un input montado.
     <form
       key={JSON.stringify(v)}
+      ref={formRef}
+      noValidate={stepByStep}
       action={formAction}
+      onInput={(e) => {
+        const form = e.currentTarget
+        for (const name of ['contact_whatsapp', 'contact_instagram']) {
+          (form.elements.namedItem(name) as HTMLInputElement | null)?.setCustomValidity('')
+        }
+      }}
       onSubmit={(e) => {
+        if (stepByStep) {
+          if (step < STEPS.length - 1) {
+            e.preventDefault()
+            goToStep(step + 1)
+            return
+          }
+          const fields = e.currentTarget.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea')
+          for (const field of fields) {
+            if (!field.checkValidity()) {
+              e.preventDefault()
+              const sections = Array.from(e.currentTarget.querySelectorAll('fieldset'))
+              setStep(sections.findIndex(section => section.contains(field)))
+              requestAnimationFrame(() => field.reportValidity())
+              return
+            }
+          }
+        }
         // Cancelar el submit acá evita que se llame a la Server Action.
         if (confirmMessage && !confirm(confirmMessage)) e.preventDefault()
       }}
-      className={wide ? 'grid grid-cols-1 items-start gap-8 xl:grid-cols-2 xl:gap-x-10' : 'flex flex-col gap-8'}
+      className={stepByStep ? 'grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-10' : 'flex flex-col gap-8'}
     >
-      <Section title="El torneo">
+      {stepByStep && (
+        <nav aria-label="Pasos para gestionar el torneo" className="min-w-0 lg:sticky lg:top-24">
+          <p className="mb-3 text-xs font-mono uppercase tracking-wider text-foreground/60">Datos del torneo · Paso {step + 1} de {STEPS.length}</p>
+          <ol className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible">
+            {STEPS.map((item, index) => (
+              <li key={item.title} className="shrink-0 lg:shrink">
+                <button type="button" disabled={pending || index > step + 1} aria-current={step === index ? 'step' : undefined} onClick={() => goToStep(index)} className={`flex w-full items-center gap-3 border p-3 text-left transition-colors disabled:opacity-50 ${step === index ? 'border-brand-lime bg-brand-lime/5 text-brand-lime' : 'border-brand-border text-foreground/70 hover:border-brand-lime/50'}`}>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center border border-current text-sm">{index < step ? <Check aria-hidden="true" className="h-4 w-4" /> : index + 1}</span>
+                  <span><span className="block font-display text-lg uppercase tracking-wide">{item.title}</span><span className="hidden text-xs text-foreground/60 lg:block">{item.hint}</span></span>
+                </button>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-3 hidden text-xs leading-relaxed text-foreground/60 lg:block">Los cambios se guardan juntos al finalizar. Podés volver a los pasos anteriores para corregirlos.</p>
+        </nav>
+      )}
+      <div className="flex min-w-0 flex-col gap-8">
+      <Section title="El torneo" hidden={stepByStep && step !== 0}>
         <Field label="Nombre">
           <input name="name" type="text" required defaultValue={v.name} placeholder="Copa Amistad Sabatina" className={`ui-input ${inputClass}`} />
         </Field>
@@ -112,7 +188,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
         </Field>
       </Section>
 
-      <Section title="Contacto">
+      <Section title="Contacto" hidden={stepByStep && step !== 1}>
         <p className={hintClass}>Dejá al menos uno: es por donde te van a escribir los equipos.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="WhatsApp" hint="Con código de área y sin el 15.">
@@ -125,7 +201,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
       </Section>
 
       {/* El estado del torneo sale de estas tres fechas y del cupo */}
-      <Section title="Fechas y cupo">
+      <Section title="Fechas y cupo" hidden={stepByStep && step !== 2}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Field label="Cierre de inscripción">
             <input name="inscription_deadline" type="date" required defaultValue={v.inscription_deadline} className={`ui-input ${inputClass}`} />
@@ -148,7 +224,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
         </div>
       </Section>
 
-      <Section title="Flyer (opcional)">
+      <Section title="Flyer (opcional)" hidden={stepByStep && step !== 3}>
         <Field
           label="Imagen"
           hint={`JPG, PNG o WebP, hasta 3 MB.${hasFlyer ? ' Si no elegís otro, queda el que ya subiste.' : ''}`}
@@ -172,7 +248,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
         )}
       </Section>
 
-      <Section title="Más información (opcional)" className={wide ? 'xl:col-span-2 [&>label]:min-w-0 xl:grid xl:grid-cols-2' : ''}>
+      <Section title="Más información (opcional)" hidden={stepByStep && step !== 4}>
         <Field label="Descripción">
           <textarea name="description" rows={4} defaultValue={v.description} placeholder="Premios, horarios, tercer tiempo…" className={`ui-input ${`${inputClass} resize-y`}`} />
         </Field>
@@ -181,22 +257,50 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
         </Field>
       </Section>
 
+      {stepByStep && step === 5 && (
+        <section aria-label="Revisión del torneo" className="flex flex-col gap-5">
+          <h2 className="font-display text-2xl uppercase tracking-wide text-foreground">Revisá antes de guardar</h2>
+          <p className={hintClass}>Comprobá los datos. Podés volver a cualquier paso anterior; todavía no guardaste los cambios.</p>
+          <dl className="grid gap-4 sm:grid-cols-2">
+            {[
+              ['Torneo', review.name],
+              ['Modalidad', SPORT_MODALITIES.find(item => item.value === review.sport_modality)?.label],
+              ['Zona', zoneGroups.flatMap(group => group.zones).find(zone => zone.id === review.zone_id)?.name],
+              ['Sede', review.venue_address],
+              ['Contacto', [review.contact_whatsapp, review.contact_instagram].filter(Boolean).join(' · ')],
+              ['Fechas', `${review.start_date} al ${review.end_date}`],
+              ['Cierre de inscripción', review.inscription_deadline],
+              ['Precio', review.price ? `$ ${review.price}` : 'Consultar'],
+              ['Cupo', review.capacity || 'Sin cupo definido'],
+              ['Flyer', review.flyer || (hasFlyer ? 'Se conserva el flyer actual' : 'Sin flyer')],
+            ].map(([label, value]) => <div key={label} className="min-w-0 border border-brand-border bg-brand-bg p-4"><dt className="text-xs uppercase tracking-wide text-foreground/60">{label}</dt><dd className="mt-2 break-words text-sm font-semibold text-foreground">{value || 'Sin completar'}</dd></div>)}
+          </dl>
+        </section>
+      )}
+
       {/* El error va pegado al botón: el formulario es largo y quien acaba de
           apretar "Publicar" está mirando acá abajo, no arriba de todo. */}
       {state.error && (
-        <p role="alert" className={`animate-enter px-4 py-3 border border-brand-red/40 bg-brand-red/5 text-brand-red text-sm rounded-sm ${wide ? 'xl:col-span-2' : ''}`}>
+        <p role="alert" className="animate-enter px-4 py-3 border border-brand-red/40 bg-brand-red/5 text-brand-red text-sm rounded-sm">
           {state.error}
         </p>
       )}
 
-      <button
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-brand-border pt-5">
+      {stepByStep && step > 0 && <button type="button" disabled={pending} onClick={() => goToStep(step - 1)} className="ui-action press inline-flex items-center gap-2 border border-brand-border px-4 py-3 text-sm text-foreground hover:border-brand-lime disabled:opacity-50"><ArrowLeft aria-hidden="true" className="h-4 w-4" />Anterior</button>}
+      {stepByStep && step < STEPS.length - 1 ? (
+        <button key="next-step" type="button" disabled={pending} onClick={(event) => { event.preventDefault(); goToStep(step + 1) }} className="ui-action press ml-auto inline-flex items-center gap-2 bg-brand-lime px-5 py-3 font-bold text-brand-bg">Continuar<ArrowRight aria-hidden="true" className="h-4 w-4" /></button>
+      ) : <button
+        key="save-tournament"
         type="submit"
         disabled={pending}
-        className={`ui-action press inline-flex items-center justify-center gap-2 py-4 bg-brand-lime hover:bg-foreground disabled:opacity-60 disabled:cursor-wait text-brand-bg font-display font-bold uppercase tracking-wider text-lg rounded-sm cursor-pointer ${wide ? 'xl:col-span-2' : ''}`}
+        className="ui-action press ml-auto inline-flex items-center justify-center gap-2 px-6 py-4 bg-brand-lime hover:bg-foreground disabled:opacity-60 disabled:cursor-wait text-brand-bg font-display font-bold uppercase tracking-wider text-lg rounded-sm cursor-pointer"
       >
         <Save className="w-5 h-5" />
         {pending ? pendingLabel : submitLabel}
-      </button>
+      </button>}
+      </div>
+      </div>
     </form>
   )
 }
