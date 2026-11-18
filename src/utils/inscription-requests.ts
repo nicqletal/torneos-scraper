@@ -5,6 +5,7 @@
 // Las reglas de verdad viven en la base (`request_inscription` y compañía):
 // esto decide qué mostrar.
 import type { TournamentStatus } from './tournament-status.ts'
+import { inscriptionErrorMessage } from './inscriptions.ts'
 
 export interface CaptainTeam {
   id: string
@@ -74,6 +75,16 @@ const USER_FACING_CODES = new Set(['42501', '23505', '55000', 'P0002', '22023', 
 export function requestErrorMessage(error: { code?: string; message: string }): string {
   if (error.code && USER_FACING_CODES.has(error.code)) return `${error.message}.`
   return 'No pudimos guardar el cambio. Probá de nuevo.'
+}
+
+// El error de aceptar o rechazar, en la sección Solicitudes del organizador.
+// Aceptar usa `add_linked_inscription`, así que casi todo se dice igual que en
+// la carga a mano. La excepción es 42501: ahí no es que el torneo no sea suyo
+// (la página ya lo comprobó), sino que la solicitud dejó de estar pendiente
+// porque el capitán la retiró o se resolvió en otra pestaña.
+export function resolveRequestErrorMessage(code: string | undefined): string {
+  if (code === '42501') return 'Esa solicitud ya no está pendiente: el capitán la retiró o ya se resolvió.'
+  return inscriptionErrorMessage(code)
 }
 
 // Contador de "Mis torneos" y de la pestaña Inscripciones; sin pendientes no se muestra.

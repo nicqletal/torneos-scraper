@@ -77,7 +77,7 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
     format(new Date(date + 'T00:00:00'), 'd MMM yyyy', { locale: es })
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-8">
+    <div className="w-full min-w-0 max-w-3xl mx-auto flex flex-col gap-8">
       <BackLink href="/mis-torneos" label="Mis torneos" />
 
       <header className="flex flex-col gap-5">

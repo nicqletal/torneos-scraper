@@ -9,6 +9,7 @@ import { managePath } from '@/utils/tournament-manage'
 import { zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import { levelLabel } from '@/utils/teams'
 import { whatsappLink } from '@/utils/whatsapp'
+import { resolveRequestErrorMessage } from '@/utils/inscription-requests'
 import { SubmitButton } from '@/components/SubmitButton'
 import { ConfirmButton } from '@/components/ConfirmButton'
 import { TeamCrest } from '@/components/TeamCrest'
@@ -125,11 +126,14 @@ export async function InscripcionesTab({ id, name, status, count, capacity, q, e
   const finished = status === 'finalizado'
   const full = remainingSpots(capacity, count) === 0
   const urlError = errorCode !== undefined ? inscriptionErrorMessage(errorCode) : null
-  const requestError = requestErrorCode !== undefined ? inscriptionErrorMessage(requestErrorCode) : null
+  const requestError = requestErrorCode !== undefined ? resolveRequestErrorMessage(requestErrorCode) : null
 
   return (
     <div className="flex flex-col gap-8">
-      {!finished && requests.length > 0 && (
+      {/* Con un error se muestra aunque ya no quede ninguna (el capitán retiró
+          la última, o el torneo finalizó con la pestaña abierta): si no, el
+          mensaje se perdería. */}
+      {((!finished && requests.length > 0) || requestError) && (
         <div className="flex flex-col gap-3">
           <h2 className="font-display tracking-wider text-lg text-foreground uppercase border-b border-brand-border pb-2">
             Solicitudes
@@ -143,7 +147,7 @@ export async function InscripcionesTab({ id, name, status, count, capacity, q, e
             </p>
           )}
           <ol className="flex flex-col gap-2">
-            {requests.map((request) => {
+            {(finished ? [] : requests).map((request) => {
               const team = request.teams
               const record = records.get(team.id)
               const whatsapp = whatsapps.get(team.id)
@@ -260,15 +264,17 @@ export async function InscripcionesTab({ id, name, status, count, capacity, q, e
         {inscriptions.length > 0 ? (
           <ol className="flex flex-col gap-2">
             {inscriptions.map((inscription, index) => (
+              // En mobile los botones (WhatsApp y Dar de baja) bajan juntos a
+              // otra línea en vez de empujar el ancho de la página.
               <li
                 key={inscription.id}
-                className="flex items-center gap-3 px-4 py-3 bg-brand-surface border border-brand-border rounded-sm"
+                className="flex flex-wrap items-center gap-3 px-4 py-3 bg-brand-surface border border-brand-border rounded-sm"
               >
                 <span className="font-display text-xl text-brand-lime/40 font-bold w-8 shrink-0">
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 {inscription.team_id !== null && inscription.teams ? (
-                  <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                  <div className="flex-1 min-w-40 flex flex-col gap-0.5">
                     <Link
                       href={`/equipos/${inscription.team_id}`}
                       className="inline-flex items-center gap-1.5 text-foreground font-semibold text-sm truncate hover:text-brand-lime transition-colors"
@@ -281,28 +287,30 @@ export async function InscripcionesTab({ id, name, status, count, capacity, q, e
                     </span>
                   </div>
                 ) : (
-                  <span className="flex-1 text-foreground font-semibold text-sm">{inscription.team_name}</span>
+                  <span className="flex-1 min-w-40 text-foreground font-semibold text-sm">{inscription.team_name}</span>
                 )}
-                {inscription.team_id !== null && inscription.teams && whatsapps.has(inscription.team_id) && (
-                  <CaptainWhatsapp
-                    whatsapp={whatsapps.get(inscription.team_id)!}
-                    teamName={inscription.teams.name}
-                    tournamentName={name}
-                  />
-                )}
-                {!finished && (
-                  <form action={removeInscription}>
-                    <input type="hidden" name="tournament_id" value={id} />
-                    <input type="hidden" name="id" value={inscription.id} />
-                    <SubmitButton
-                      pendingLabel={<><Ban className="w-3.5 h-3.5" />Dando de baja…</>}
-                      className={`${dangerButtonClass} cursor-pointer`}
-                    >
-                      <Ban className="w-3.5 h-3.5" />
-                      Dar de baja
-                    </SubmitButton>
-                  </form>
-                )}
+                <div className="flex flex-wrap items-center gap-2 ml-auto">
+                  {inscription.team_id !== null && inscription.teams && whatsapps.has(inscription.team_id) && (
+                    <CaptainWhatsapp
+                      whatsapp={whatsapps.get(inscription.team_id)!}
+                      teamName={inscription.teams.name}
+                      tournamentName={name}
+                    />
+                  )}
+                  {!finished && (
+                    <form action={removeInscription}>
+                      <input type="hidden" name="tournament_id" value={id} />
+                      <input type="hidden" name="id" value={inscription.id} />
+                      <SubmitButton
+                        pendingLabel={<><Ban className="w-3.5 h-3.5" />Dando de baja…</>}
+                        className={`${dangerButtonClass} cursor-pointer`}
+                      >
+                        <Ban className="w-3.5 h-3.5" />
+                        Dar de baja
+                      </SubmitButton>
+                    </form>
+                  )}
+                </div>
               </li>
             ))}
           </ol>

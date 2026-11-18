@@ -66,25 +66,25 @@ function TeamRow({
     case 'inscribed':
       return (
         <p className={`flex items-center gap-2 ${note} text-brand-lime`}>
-          <CheckCircle2 className="w-4 h-4" /> {showName && <>{name} · </>}Tu equipo está inscripto
+          <CheckCircle2 className="w-4 h-4 shrink-0" /> <span>{showName && <>{name} · </>}Tu equipo está inscripto</span>
         </p>
       )
     case 'rejected':
       return (
         <p className={`flex items-center gap-2 ${note} text-foreground/70`}>
-          <XCircle className="w-4 h-4" /> {showName && <>{name} · </>}El organizador no aceptó la solicitud
+          <XCircle className="w-4 h-4 shrink-0" /> <span>{showName && <>{name} · </>}El organizador no aceptó la solicitud</span>
         </p>
       )
     case 'expired':
       return (
         <p className={`flex items-center gap-2 ${note} text-foreground/70`}>
-          <Clock className="w-4 h-4" /> {showName && <>{name} · </>}El torneo ya no recibe inscripciones
+          <Clock className="w-4 h-4 shrink-0" /> <span>{showName && <>{name} · </>}El torneo ya no recibe inscripciones</span>
         </p>
       )
     case 'unavailable':
       return (
         <p className={`flex items-center gap-2 ${note} text-foreground/50`}>
-          {name} · {state.reason}
+          <span>{name} · {state.reason}</span>
         </p>
       )
   }
@@ -129,7 +129,7 @@ function PendingRow({
       <input type="hidden" name="request_id" value={requestId} />
       <div className="flex flex-wrap items-center gap-3">
         <span className="flex items-center gap-2 text-[11px] font-mono uppercase text-brand-amber">
-          <Clock className="w-4 h-4" /> {name} · Solicitud enviada
+          <Clock className="w-4 h-4 shrink-0" /> <span>{name} · Solicitud enviada</span>
         </span>
         <SubmitButton pendingLabel="Retirando…" className={`${secondaryButtonClass} cursor-pointer`}>
           Retirar

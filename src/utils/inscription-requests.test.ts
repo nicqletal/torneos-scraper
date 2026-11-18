@@ -3,7 +3,12 @@
 // docs/especificaciones-y-requerimientos/decisiones-casos-de-uso.md.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { captainRequestOptions, pendingRequestsLabel, requestErrorMessage } from './inscription-requests.ts'
+import {
+  captainRequestOptions,
+  pendingRequestsLabel,
+  requestErrorMessage,
+  resolveRequestErrorMessage,
+} from './inscription-requests.ts'
 
 const pibes = { id: 'pibes', name: 'Los Pibes', dissolved: false }
 const floresta = { id: 'floresta', name: 'Real Floresta', dissolved: false }
@@ -96,4 +101,20 @@ test('un capitán suspendido ve sus equipos deshabilitados, con el motivo', () =
     captainRequestOptions(open, [pibes], new Set(), [{ id: 'r-1', team_id: 'pibes', status: 'pendiente' }], true),
     [{ team: pibes, state: { kind: 'pending', requestId: 'r-1' } }]
   )
+})
+
+test('aceptar o rechazar una solicitud que ya no está pendiente lo dice, en vez de hablar del torneo', () => {
+  // El capitán la retiró (o se resolvió en otra pestaña) mientras el
+  // organizador tenía la lista abierta: la base responde 42501.
+  assert.equal(
+    resolveRequestErrorMessage('42501'),
+    'Esa solicitud ya no está pendiente: el capitán la retiró o ya se resolvió.'
+  )
+  // El resto, igual que la carga a mano (mismas reglas de `add_linked_inscription`).
+  assert.equal(
+    resolveRequestErrorMessage('23514'),
+    'El cupo está completo. Subí el cupo desde la pestaña “Datos” para anotar más equipos.'
+  )
+  assert.equal(resolveRequestErrorMessage('22023'), 'Este torneo ya finalizó: sus inscripciones no cambian.')
+  assert.equal(resolveRequestErrorMessage('desconocido'), 'No pudimos guardar el cambio. Probá de nuevo.')
 })
