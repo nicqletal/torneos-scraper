@@ -27,7 +27,7 @@ export function AdminSidebar({ email }: { email?: string }) {
       <div className="p-4 flex items-center justify-between gap-3 border-b border-brand-border">
         <Link href="/admin" onClick={() => setOpen(false)} className="flex items-center gap-3 min-h-11">
           <ShieldCheck className="w-8 h-8 shrink-0 text-brand-lime" aria-hidden="true" />
-          <span><span className="block font-display text-2xl tracking-wide leading-none">Administración</span><span className="block text-sm text-foreground/60 mt-1">Torneos Amateur BA</span></span>
+          <span><span className="block font-display text-2xl tracking-wide leading-none">Administración</span><span className="block text-sm text-foreground/60 mt-1">Matchmaking</span></span>
         </Link>
         <div className="md:hidden">
           <button type="button" aria-label={open ? 'Cerrar navegación de administración' : 'Abrir navegación de administración'} aria-expanded={open} aria-controls={menuId}

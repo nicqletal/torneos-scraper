@@ -1,6 +1,6 @@
 # Módulo Administración · Documentación
 
-Documentación completa del módulo F (Administración) de Torneos Amateur BA, versión del **04/11/2026**. Sigue el mismo orden que la de los módulos [Equipos](../equipos/README.md), [Cuenta y acceso](../cuenta-y-acceso/README.md) y [Catálogo de torneos](../catalogo-de-torneos/README.md):
+Documentación completa del módulo F (Administración) de Matchmaking, versión del **04/11/2026**. Sigue el mismo orden que la de los módulos [Equipos](../equipos/README.md), [Cuenta y acceso](../cuenta-y-acceso/README.md) y [Catálogo de torneos](../catalogo-de-torneos/README.md):
 
 | Paso | Documento | Qué contiene |
 |---|---|---|

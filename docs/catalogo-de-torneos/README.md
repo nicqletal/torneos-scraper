@@ -1,6 +1,6 @@
 # Módulo Catálogo de torneos · Documentación
 
-Documentación completa del módulo B (Catálogo de torneos, público) de Torneos Amateur BA, versión del **04/11/2026**. Sigue el mismo orden que la de los módulos [Equipos](../equipos/README.md) y [Cuenta y acceso](../cuenta-y-acceso/README.md):
+Documentación completa del módulo B (Catálogo de torneos, público) de Matchmaking, versión del **04/11/2026**. Sigue el mismo orden que la de los módulos [Equipos](../equipos/README.md) y [Cuenta y acceso](../cuenta-y-acceso/README.md):
 
 | Paso | Documento | Qué contiene |
 |---|---|---|
@@ -42,7 +42,7 @@ Fuentes, en orden de autoridad: [decisiones-casos-de-uso.md](../especificaciones
 3. **La ficha de un torneo Finalizado muestra los botones de contacto**, aunque `casos-de-uso.md` pide «Este torneo ya terminó» sin botones.
 4. **El 404 de una ficha es el genérico de Next**: en inglés, sin link al catálogo. Se comprobó con una captura.
 5. **La ficha no tiene metadatos propios** para la vista previa de WhatsApp.
-6. **El texto del mensaje de WhatsApp y el nombre del producto difieren** de lo documentado: la interfaz dice «Torneos Scraper»; la documentación, «Torneos BA».
+6. **El texto del mensaje de WhatsApp difiere** de lo documentado (el nombre del producto ya coincide: «Matchmaking»).
 7. **Un valor inválido en un filtro de la URL no se ignora**: lo rechaza la base y se ve el error de carga.
 8. **`casos-de-uso.md` se contradice** sobre los Finalizados: UC-B01 A4 dice que aparecen si se filtra por ese Estado; la regla transversal dice que salen del catálogo. El código hace lo segundo.
 9. **El reporte de torneos (UC-B06)** sigue pendiente: sin tabla, función ni botón.

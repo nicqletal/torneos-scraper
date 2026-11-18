@@ -87,13 +87,13 @@ Versión del **04/11/2026**. Detalla los casos de uso del módulo B de [casos-de
 - **Precondiciones:** el torneo tiene al menos un medio de contacto.
 - **Flujo principal (WhatsApp):**
   1. Toca «Contactar por WhatsApp».
-  2. El sistema abre `wa.me` con el número del organizador y un **mensaje sugerido** (hoy: «Hola, vengo de Torneos Scraper. Me interesa el torneo "[nombre]"!»).
+  2. El sistema abre `wa.me` con el número del organizador y un **mensaje sugerido** (hoy: «Hola, vengo de Matchmaking. Me interesa el torneo "[nombre]"!»).
   3. La persona edita el mensaje si quiere y lo envía desde WhatsApp. **Acá termina el flujo en la app:** la inscripción se arregla afuera y la carga el organizador (UC-E06).
 - **Flujo principal (Instagram):** toca «Ver Instagram» y el sistema abre el perfil del organizador en una pestaña nueva.
 - **Flujos alternativos:**
   - **A1. Falta un medio:** ese botón no se muestra.
   - **A2. No hay ninguno:** «El organizador no suministró datos de contacto directo». Solo puede pasar con torneos viejos: al publicar es obligatorio al menos un contacto.
-  - **A3. Texto del mensaje:** ⚠️ `casos-de-uso.md` documenta otro texto («Hola, vi el torneo [nombre] en Torneos BA y quiero anotar a mi equipo»). El código usa el de arriba.
+  - **A3. Texto del mensaje:** ⚠️ `casos-de-uso.md` documenta otro texto («Hola, vi el torneo [nombre] en Matchmaking y quiero anotar a mi equipo»). El código usa el de arriba.
 - **Postcondición:** la persona está en WhatsApp o Instagram, fuera de la app.
 - **Estado:** Implementado.
 

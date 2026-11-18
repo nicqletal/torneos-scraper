@@ -25,7 +25,7 @@ export default async function AdminLoginPage({ searchParams }: {
       <Link href="/login" className="ui-action inline-flex items-center gap-2 text-foreground/70 hover:text-brand-lime w-fit"><ArrowLeft className="w-4 h-4" aria-hidden="true" />Volver al acceso</Link>
       <div className="flex flex-col gap-3 border-b border-brand-border pb-5">
         <ShieldCheck className="w-10 h-10 text-brand-lime" aria-hidden="true" />
-        <p className="text-sm font-semibold uppercase tracking-widest text-brand-lime">Equipo de Torneos Amateur BA</p>
+        <p className="text-sm font-semibold uppercase tracking-widest text-brand-lime">Equipo de Matchmaking</p>
         <h1 className="font-display text-5xl tracking-wide leading-none">Acceso de administrador</h1>
         <p className="text-base text-foreground/70">Ingresá con una cuenta que tenga el rol de administrador asignado. Este acceso no habilita permisos nuevos.</p>
       </div>

@@ -1,6 +1,6 @@
 # Módulo Organizador · Documentación
 
-Documentación completa del módulo E (Organizador) de Torneos Amateur BA, versión del **04/11/2026**. Sigue el mismo orden que la de los módulos [Equipos](../equipos/README.md), [Cuenta y acceso](../cuenta-y-acceso/README.md), [Catálogo de torneos](../catalogo-de-torneos/README.md) y [Administración](../administracion/README.md):
+Documentación completa del módulo E (Organizador) de Matchmaking, versión del **04/11/2026**. Sigue el mismo orden que la de los módulos [Equipos](../equipos/README.md), [Cuenta y acceso](../cuenta-y-acceso/README.md), [Catálogo de torneos](../catalogo-de-torneos/README.md) y [Administración](../administracion/README.md):
 
 | Paso | Documento | Qué contiene |
 |---|---|---|

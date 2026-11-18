@@ -12,7 +12,7 @@ export function Footer() {
             <Trophy className="w-3.5 h-3.5 text-brand-bg stroke-[2.5]" />
           </div>
           <span className="font-display text-lg tracking-wider uppercase text-foreground font-bold">
-            Torneos Scraper
+            Matchmaking
           </span>
         </div>
         

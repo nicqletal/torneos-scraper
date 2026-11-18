@@ -23,7 +23,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Torneos Scraper | Plataforma de Fútbol Amateur",
+  title: "Matchmaking | Plataforma de Fútbol Amateur",
   description: "Encuentra y organiza torneos de fútbol amateur en tu zona. Rendimiento, estadísticas y pasión amateur.",
 };
 
@@ -77,7 +77,7 @@ export default async function RootLayout({
           <Trophy className="w-4.5 h-4.5 stroke-[2.5]" />
         </div>
         <span className="font-display text-2xl tracking-wider uppercase text-foreground group-hover:text-brand-lime transition-colors">
-          Torneos Scraper
+          Matchmaking
         </span>
       </Link>
 

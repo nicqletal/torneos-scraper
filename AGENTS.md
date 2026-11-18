@@ -12,7 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Contexto del proyecto
 
-**Torneos Amateur BA** — webapp con dos partes:
+**Matchmaking** — webapp con dos partes:
 
 1. **Torneos:** centraliza torneos de fútbol amateur en Buenos Aires (CABA + GBA), hoy dispersos en Instagram. El usuario filtra por zona, modalidad, precio y estado, y el flujo **termina en un deep link a WhatsApp o Instagram del organizador**.
 2. **Equipos y buscar partido:** los equipos publican búsquedas de rival, se proponen partidos, los coordinan y cargan resultados, con historial de presentismo.

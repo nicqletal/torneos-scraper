@@ -1,6 +1,6 @@
 # Diagramas de secuencia
 
-Diagramas de los flujos vigentes de Torneos Amateur BA. La fuente de alcance es [`decisiones-casos-de-uso.md`](../especificaciones-y-requerimientos/decisiones-casos-de-uso.md); los casos originales se consultan en `docs/casos-de-uso/casos-de-uso.pdf`. Cada diagrama representa un caso de uso o una acción específica. Los participantes son conceptuales: `Usuario`, `Navegador`, `UI` (Interfaz), `Localidad` y `Acceso a datos`. `Localidad` figura en todos los diagramas; intercambia mensajes cuando el flujo necesita resolver o mostrar una Zona. `Navegador` y `UI` permanecen como objetos distintos; `UI` nombra la interfaz. `Acceso a datos` encapsula la persistencia y las reglas de acceso, sin nombrar proveedores ni infraestructura.
+Diagramas de los flujos vigentes de Matchmaking. La fuente de alcance es [`decisiones-casos-de-uso.md`](../especificaciones-y-requerimientos/decisiones-casos-de-uso.md); los casos originales se consultan en `docs/casos-de-uso/casos-de-uso.pdf`. Cada diagrama representa un caso de uso o una acción específica. Los participantes son conceptuales: `Usuario`, `Navegador`, `UI` (Interfaz), `Localidad` y `Acceso a datos`. `Localidad` figura en todos los diagramas; intercambia mensajes cuando el flujo necesita resolver o mostrar una Zona. `Navegador` y `UI` permanecen como objetos distintos; `UI` nombra la interfaz. `Acceso a datos` encapsula la persistencia y las reglas de acceso, sin nombrar proveedores ni infraestructura.
 
 ## Cobertura
 

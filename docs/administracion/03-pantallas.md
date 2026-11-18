@@ -34,7 +34,7 @@ Todas las rutas `/admin/…` están protegidas (sesión y rol), **salvo `/admin/
 
 *Captura ✅ vigente, con el error de **acceso denegado** (`/admin/login?error=denied`). Es la misma pantalla sin el aviso rojo cuando se abre normalmente (`pantallas/acceso-administrador.png`).*
 
-**Qué muestra.** Sin la barra del sitio: el link «← Volver al acceso» (a `/login`), el ícono de escudo, «Equipo de Torneos Amateur BA», el título **«Acceso de administrador»** y la bajada «Ingresá con una cuenta que tenga el rol de administrador asignado. Este acceso no habilita permisos nuevos». El formulario:
+**Qué muestra.** Sin la barra del sitio: el link «← Volver al acceso» (a `/login`), el ícono de escudo, «Equipo de Matchmaking», el título **«Acceso de administrador»** y la bajada «Ingresá con una cuenta que tenga el rol de administrador asignado. Este acceso no habilita permisos nuevos». El formulario:
 
 | Campo | Tipo | Obligatorio |
 |---|---|---|
@@ -61,7 +61,7 @@ El botón es «Ingresar como administrador» (con «Verificando acceso…» mien
 
 > ⏳ **Captura pendiente:** requiere una cuenta con el rol de administrador.
 
-**Qué muestra.** El título «Resumen de la plataforma» y «Panel de administración · Torneos Amateur BA»; tres tarjetas con los **contadores reales** de **Torneos**, **Equipos** y **Usuarios**; y dos bloques: **«Seguridad y acceso»** (con el link «Ver acceso de mi cuenta») y **«Próximas etapas»** (explica que Usuarios, contenido, reportes, actividad, soporte, avisos y configuración se implementarán por etapas).
+**Qué muestra.** El título «Resumen de la plataforma» y «Panel de administración · Matchmaking»; tres tarjetas con los **contadores reales** de **Torneos**, **Equipos** y **Usuarios**; y dos bloques: **«Seguridad y acceso»** (con el link «Ver acceso de mi cuenta») y **«Próximas etapas»** (explica que Usuarios, contenido, reportes, actividad, soporte, avisos y configuración se implementarán por etapas).
 
 **Estados:** *normal*; *contador no disponible* (la tarjeta dice «No disponible» y arriba aparece el aviso ámbar «No pudimos cargar todos los contadores…»). Nunca se muestra un cero inventado.
 

@@ -1,6 +1,6 @@
 # Módulo Equipos · Documentación
 
-Documentación completa del módulo de Equipos de Torneos Amateur BA, versión del **04/11/2026**. Sigue el orden pedido para el trabajo de la materia:
+Documentación completa del módulo de Equipos de Matchmaking, versión del **04/11/2026**. Sigue el orden pedido para el trabajo de la materia:
 
 | Paso | Documento | Qué contiene |
 |---|---|---|

@@ -73,7 +73,7 @@ export default async function TournamentDetail({
   const formatDate = (date: string) =>
     format(new Date(date + 'T00:00:00'), "d 'de' MMMM, yyyy", { locale: es })
 
-  const defaultWhatsappMessage = `Hola, vengo de Torneos Scraper. Me interesa el torneo "${tournament.name}"!`
+  const defaultWhatsappMessage = `Hola, vengo de Matchmaking. Me interesa el torneo "${tournament.name}"!`
 
   // La ficha se arma en bloques porque el orden cambia según haya flyer o no
   // (ver el `return`). Se usa `hasFlyer`, igual que <TournamentFlyer>: un

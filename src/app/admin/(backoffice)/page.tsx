@@ -50,7 +50,7 @@ export default async function AdminPage() {
             Resumen de la plataforma
           </h1>
           <p className="text-foreground/70 text-sm mt-1">
-            Panel de administración · Torneos Amateur BA
+            Panel de administración · Matchmaking
           </p>
         </div>
       </div>
