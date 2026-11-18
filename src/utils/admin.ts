@@ -13,7 +13,7 @@ import { ADMIN_LOGIN_PATH } from '@/utils/admin-access'
  * seguridad (la primera es el proxy en `proxy.ts`). Redirige
  * al acceso diferenciado si el usuario no es administrador o no tiene sesión.
  */
-export const requireAdmin = cache(async () => {
+export const requireAdminIdentity = cache(async () => {
   const supabase = await createClient()
   const {
     data: { user },
@@ -28,5 +28,13 @@ export const requireAdmin = cache(async () => {
   if (error || isAdmin !== true) {
     redirect(`${ADMIN_LOGIN_PATH}?error=${error ? 'unavailable' : 'denied'}`)
   }
+  return user
+})
+
+export const requireAdmin = cache(async () => {
+  const user = await requireAdminIdentity()
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('is_verified_admin')
+  if (error || data !== true) redirect('/admin/verificar')
   return user
 })

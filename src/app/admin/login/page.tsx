@@ -16,7 +16,7 @@ export default async function AdminLoginPage({ searchParams }: {
   let error = adminAccessError(params.error)
   if (user) {
     const { data: isAdmin, error: roleError } = await supabase.rpc('is_admin')
-    if (!roleError && isAdmin === true) redirect(next)
+    if (!roleError && isAdmin === true) redirect(`/admin/verificar?next=${encodeURIComponent(next)}`)
     error ??= adminAccessError(roleError ? 'unavailable' : 'denied')
   }
   const fieldClass = 'ui-input w-full px-3 py-3 bg-brand-bg border border-brand-border rounded-sm focus:border-brand-lime'

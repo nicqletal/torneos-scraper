@@ -114,7 +114,9 @@ export function UserMenu({ email, isAdmin = false }: UserMenuProps) {
 
             <div className="h-px bg-brand-border my-1" />
             
-            <form action={logout}>
+            <Link href="/soporte" className="ui-action px-4 py-2 text-foreground/80" onClick={() => setIsOpen(false)}>Soporte</Link>
+<Link href="/mis-reportes" className="ui-action px-4 py-2 text-foreground/80" onClick={() => setIsOpen(false)}>Mis reportes</Link>
+<form action={logout}>
               <button
                 type="submit"
                 onClick={() => setIsOpen(false)}

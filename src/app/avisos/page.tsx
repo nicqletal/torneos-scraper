@@ -1,0 +1,5 @@
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/utils/supabase/server'
+import { noticeText,noticeLink,type NoticeKind } from '@/utils/notices'
+export default async function NoticesPage(){const db=await createClient();const {data:{user}}=await db.auth.getUser();if(!user)redirect('/login?next=/avisos');const {data,error}=await db.from('notices').select('id,kind,params,created_at,read_at').eq('user_id',user.id).order('created_at',{ascending:false}).order('id').limit(30);return <main className="max-w-3xl w-full mx-auto flex flex-col gap-5"><h1 className="font-display text-4xl">Tus Avisos</h1>{error?<p role="alert">No pudimos cargar tus Avisos.</p>:data?.length?data.map(row=><article key={row.id} className="p-5 border border-brand-border"><p>{noticeText(row.kind as NoticeKind,row.params)}</p><Link className="text-brand-lime" href={noticeLink(row.kind as NoticeKind,row.params)}>Ver detalle</Link></article>):<p>Todavía no tenés Avisos.</p>}</main>}

@@ -363,6 +363,7 @@ export default async function EquipoPage({
           </form>
         </section>
       )}
-    </div>
+    {user && <Link href={`/equipos/${team.id}/reportar`} className="text-foreground/70 hover:text-brand-lime">Reportar Equipo</Link>}
+</div>
   )
 }

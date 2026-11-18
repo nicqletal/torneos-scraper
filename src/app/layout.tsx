@@ -50,11 +50,13 @@ export default async function RootLayout({
       supabase
         .from('notices')
         .select('id, kind, params, created_at, read_at')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(30),
       supabase
         .from('notices')
         .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
         .is('read_at', null),
     ]);
     notices = (rows ?? []).map((n) => ({

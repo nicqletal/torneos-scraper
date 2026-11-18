@@ -25,6 +25,7 @@ export type NoticeKind =
   | 'match_in_conflict'
   | 'rating_revealed'
   | 'tournament_withdrawn'
+  | 'admin_message'
 
 // `params` es jsonb: cada disparador usa algunas de estas claves.
 //   rival_name           el otro equipo, visto desde quien recibe el aviso
@@ -93,6 +94,7 @@ export function noticeText(kind: NoticeKind, params: NoticeParams): string {
   const startAt = () => noticeDate(str(params, 'start_at'))
 
   switch (kind) {
+    case 'admin_message': return str(params, 'body')
     case 'proposal_received':
       return `Te propusieron un partido: ${rival} · ${range()}. Respondé antes del ${deadline()} o la propuesta vence.`
     case 'proposal_rejected':
@@ -139,6 +141,10 @@ export function noticeText(kind: NoticeKind, params: NoticeParams): string {
 // El link va a donde está el estado actual: todo lo de Partidos a /partidos;
 // la baja de torneo a la página del equipo, porque la ficha ya devuelve 404.
 export function noticeLink(kind: NoticeKind, params: NoticeParams): string {
+  if (kind === 'admin_message') {
+    const path = str(params, 'href')
+    return /^\/[A-Za-z0-9/_-]*$/.test(path) ? path : '/perfil'
+  }
   if (kind === 'tournament_withdrawn') return `/equipos/${str(params, 'team_id')}`
   return '/partidos'
 }

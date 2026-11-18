@@ -312,6 +312,8 @@ export default async function TournamentDetail({
         </div>
       )}
 
+      {tournament.observed_at && <p className="p-4 border border-brand-amber text-brand-amber">Información reportada en revisión</p>}
+      {user && <Link href={`/torneos/${tournament.id}/reportar`} className="text-foreground/70 hover:text-brand-lime">Reportar torneo</Link>}
       {/* Return link */}
       <BackLink href="/" label="Volver al catálogo" />
 
