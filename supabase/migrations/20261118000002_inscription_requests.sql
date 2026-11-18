@@ -98,9 +98,9 @@ begin
   end if;
 
   -- Lo que ya pasó con este equipo en este torneo va antes que el estado del
-  -- torneo: "ya está anotado" le sirve más al capitán que "no está abierto".
+  -- torneo: "ya está inscripto" le sirve más al capitán que "no está abierto".
   if exists (select 1 from public.inscriptions where tournament_id = t.id and team_id = team.id) then
-    raise exception 'Tu equipo ya está anotado en este torneo' using errcode = '23505';
+    raise exception 'Tu equipo ya está inscripto en este torneo' using errcode = '23505';
   end if;
 
   case (select status from public.inscription_requests where tournament_id = t.id and team_id = team.id)
@@ -341,8 +341,9 @@ $$;
 --     administrador usan esta función). Además del plantel de cada equipo
 --     inscripto, avisa al capitán de cada equipo con una solicitud pendiente,
 --     porque puede haber pagado antes de que lo aceptaran. Un aviso por
---     jugador: quien ya recibe el de un equipo inscripto no recibe otro. El
---     resto queda igual que en 20261117000002_admin_reports_support.sql.
+--     jugador dentro de cada tipo, pero son hechos distintos: un capitán con
+--     un equipo inscripto y otro con una solicitud pendiente recibe los dos.
+--     El resto queda igual que en 20261117000002_admin_reports_support.sql.
 create or replace function public.create_withdrawal_notices(p_tournament_id uuid, p_name text)
 returns void language sql security definer set search_path = '' as $$
   insert into public.notices (user_id, kind, params)
@@ -368,11 +369,6 @@ returns void language sql security definer set search_path = '' as $$
    where ir.tournament_id = p_tournament_id
      and ir.status = 'pendiente'
      and m.user_id is distinct from (select auth.uid())
-     and not exists (
-       select 1 from public.inscriptions i
-         join public.team_members other on other.team_id = i.team_id
-        where i.tournament_id = p_tournament_id and other.user_id = m.user_id
-     )
    order by m.user_id, tm.id;
 $$;
 

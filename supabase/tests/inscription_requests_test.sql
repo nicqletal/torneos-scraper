@@ -135,16 +135,16 @@ select throws_ok(
   'un capitán suspendido no solicita'
 );
 
--- Ya anotado: Ana carga a Real Floresta a mano y Dani no puede solicitar.
+-- Ya inscripto: Ana carga a Real Floresta a mano y Dani no puede solicitar.
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
 select public.add_linked_inscription('11111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000d');
 -- Con eso el cupo (1) se completa y el torneo queda Cerrado, pero "ya está
--- anotado" le sirve más al capitán, así que va primero.
+-- inscripto" le sirve más al capitán, así que va primero.
 select throws_ok(
   $$ select public.request_inscription('11111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa') $$,
-  '23505', 'Tu equipo ya está anotado en este torneo',
-  'un equipo ya anotado no solicita'
+  '23505', 'Tu equipo ya está inscripto en este torneo',
+  'un equipo ya inscripto no solicita'
 );
 
 -- 2. Quién ve las solicitudes y retirar -------------------------------------
@@ -376,7 +376,7 @@ select is(
 
 -- 7. Baja del torneo con solicitudes pendientes ------------------------------
 -- En Copa grande está inscripto Los Pibes (Beto y Caro). Solicitan Nuevos FC
--- (capitán Beto, que ya recibe el aviso por Los Pibes) y Los Otros (capitana Dani).
+-- (capitán Beto, que también recibe el aviso por Los Pibes) y Los Otros (capitana Dani).
 
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
 select public.request_inscription('66666666-6666-6666-6666-666666666666', 'ffffffff-ffff-ffff-ffff-ffffffffffff');
@@ -394,11 +394,13 @@ select results_eq(
   'el capitán de un equipo con una solicitud pendiente recibe un aviso de la baja'
 );
 
+-- Son hechos distintos: su otro equipo pidió entrar y quizás pagó.
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
 select results_eq(
-  $$ select kind::text from public.notices where kind in ('tournament_withdrawn', 'inscription_request_withdrawn') $$,
-  $$ values ('tournament_withdrawn') $$,
-  'quien ya recibe el aviso por un equipo inscripto no recibe otro por la solicitud'
+  $$ select kind::text, params->>'team_name' from public.notices
+      where kind in ('tournament_withdrawn', 'inscription_request_withdrawn') order by kind $$,
+  $$ values ('inscription_request_withdrawn', 'Nuevos FC'), ('tournament_withdrawn', 'Los Pibes') $$,
+  'quien recibe el aviso por un equipo inscripto también recibe el de la solicitud de otro equipo suyo'
 );
 
 -- 8. Contador e interruptor --------------------------------------------------

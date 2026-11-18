@@ -135,7 +135,7 @@ export async function InscripcionesTab({ id, name, status, count, capacity, q, e
             Solicitudes
           </h2>
           <p className="text-foreground/70 text-xs leading-relaxed">
-            Escribile al capitán para arreglar el pago. Aceptarla anota al equipo; rechazarla no se puede deshacer.
+            Escribile al capitán para arreglar el pago. Aceptarla inscribe al equipo; rechazarla no se puede deshacer.
           </p>
           {requestError && (
             <p role="alert" className={`animate-enter ${errorTextClass}`}>
