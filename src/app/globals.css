@@ -234,11 +234,6 @@ html[data-density="amplia"] .tournament-card-title {
 }
 
 @media (min-width: 768px) {
-  html:not([data-density="normal"]):not([data-density="amplia"]) .tournament-grid,
-  html[data-density="compacta"] .tournament-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   html[data-density="normal"] .tournament-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -263,14 +258,6 @@ html[data-density="amplia"] .tournament-card-title {
     height: 26rem;
   }
 
-  html[data-density="compacta"] .tournament-card-body {
-    padding: 1rem;
-  }
-
-  html[data-density="compacta"] .tournament-card-title {
-    font-size: 1.5rem;
-  }
-
   html[data-density="normal"] .tournament-card-flyer {
     height: 11rem;
   }
@@ -281,22 +268,12 @@ html[data-density="amplia"] .tournament-card-title {
 }
 
 @media (min-width: 1280px) {
-  html:not([data-density="normal"]):not([data-density="amplia"]) .tournament-grid,
-  html[data-density="compacta"] .tournament-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
   html[data-density="normal"] .tournament-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   html[data-density="amplia"] .tournament-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  html:not([data-density="normal"]):not([data-density="amplia"]) .tournament-card-flyer,
-  html[data-density="compacta"] .tournament-card-flyer {
-    height: 8rem;
   }
 
   html[data-density="normal"] .tournament-card-flyer {
@@ -307,22 +284,12 @@ html[data-density="amplia"] .tournament-card-title {
     height: 14rem;
   }
 
-  html:not([data-density="normal"]):not([data-density="amplia"]) .tournament-card-body,
-  html[data-density="compacta"] .tournament-card-body {
-    padding: 0.875rem;
-  }
-
   html[data-density="normal"] .tournament-card-body {
     padding: 1.25rem;
   }
 
   html[data-density="amplia"] .tournament-card-body {
     padding: 1.5rem;
-  }
-
-  html:not([data-density="normal"]):not([data-density="amplia"]) .tournament-card-title,
-  html[data-density="compacta"] .tournament-card-title {
-    font-size: 1.375rem;
   }
 
   html[data-density="normal"] .tournament-card-title {

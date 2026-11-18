@@ -140,7 +140,7 @@ export default async function RootLayout({
     </div>
   );
 
-  const themeBootstrap = `(function(){var root=document.documentElement;var path=window.location.pathname;if(path==='/admin'||path.indexOf('/admin/')===0)return;var theme;var density='compacta';try{theme=window.localStorage.getItem('matchmaking-theme');var savedDensity=window.localStorage.getItem('matchmaking-density');if(savedDensity==='compacta'||savedDensity==='normal'||savedDensity==='amplia')density=savedDensity}catch(e){}if(theme!=='light'&&theme!=='dark')theme=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';root.dataset.theme=theme;root.dataset.density=density;})();`
+  const themeBootstrap = `(function(){var root=document.documentElement;var path=window.location.pathname;if(path==='/admin'||path.indexOf('/admin/')===0)return;var theme;var density='normal';try{theme=window.localStorage.getItem('matchmaking-theme');var savedDensity=window.localStorage.getItem('matchmaking-density');if(savedDensity==='normal'||savedDensity==='amplia')density=savedDensity}catch(e){}if(theme!=='light'&&theme!=='dark')theme=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';root.dataset.theme=theme;root.dataset.density=density;})();`
 
   return (
     <html
