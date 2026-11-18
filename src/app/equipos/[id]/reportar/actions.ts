@@ -13,5 +13,5 @@ export async function reportTeam(form: FormData) {
   if (error) redirect(`/equipos/${id}/reportar?error=${error.code === '23505' ? 'duplicado' : 'guardar'}`)
   revalidatePath('/admin/reportes/equipos')
   revalidatePath('/mis-reportes')
-  redirect('/mis-reportes?ok=equipo')
+  redirect('/mis-reportes?tipo=equipos&ok=equipo')
 }

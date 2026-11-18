@@ -73,9 +73,13 @@ select throws_ok($$select public.suspend_account('a0000000-0000-0000-0000-000000
 select lives_ok($$select public.resolve_team_report((select id from public.team_reports where resolution is null limit 1),'suspension','a0000000-0000-0000-0000-000000000003',7,'Responsable identificado tras revisar los hechos')$$,'resuelve y sanciona cuenta explícita');
 select is((select count(*)::integer from public.team_reports where resolution is null),0,'se resolvió el reporte elegido');
 select is((select count(*)::integer from public.account_suspensions),1,'sanción conservada');
+select is((select count(*)::integer from public.matches),0,'Administración no obtiene acceso al detalle privado de Partidos');
+reset role;
 select is((select administrative_drop from public.matches where id='c0000000-0000-0000-0000-000000000002'),true,'Partido futuro cae administrativamente');
 select is((select public.match_drop_fault(m) from public.matches m where id='c0000000-0000-0000-0000-000000000002'),false,'no genera Falta aunque falten diez horas');
 select is((select public.match_phase(m,now()) from public.matches m where id='c0000000-0000-0000-0000-000000000001'),'jugado','Partido Jugado anterior se conserva');
+set local role authenticated;
+select pg_temp.login('a0000000-0000-0000-0000-000000000001','aal2');
 select throws_ok($$select public.suspend_account('a0000000-0000-0000-0000-000000000003',30,'Segunda sanción')$$,'P0001','Levantá la Suspensión vigente antes de aplicar una nueva','no superpone sanciones');
 select pg_temp.login('a0000000-0000-0000-0000-000000000003');
 select throws_ok($$select public.create_team('Otro equipo','palermo','futbol_5','recreativo')$$,'42501',null,'suspendido no crea Equipo por RPC');
@@ -86,7 +90,10 @@ select is((select count(*)::integer from public.account_suspensions),0,'ajeno no
 select pg_temp.login('a0000000-0000-0000-0000-000000000001','aal2');
 select lives_ok($$select public.lift_suspension((select id from public.account_suspensions limit 1),'Revisión de sanción')$$,'se levanta con motivo');
 select is((select count(*)::integer from public.account_suspensions where lifted_at is not null),1,'levantamiento conserva historial');
+reset role;
 select is((select administrative_drop from public.matches where id='c0000000-0000-0000-0000-000000000002'),true,'levantar no reactiva el Partido');
+set local role authenticated;
+select pg_temp.login('a0000000-0000-0000-0000-000000000001','aal2');
 select lives_ok($$select public.suspend_account('a0000000-0000-0000-0000-000000000003',null,'Nueva sanción indefinida')$$,'nueva sanción después de levantar la anterior');
 select is((select count(*)::integer from public.account_suspensions),2,'no se pisa el historial');
 select throws_ok($$insert into public.admin_actions(actor_id,action) values(auth.uid(),'inventado')$$,'42501',null,'sin escritura directa en auditoría');

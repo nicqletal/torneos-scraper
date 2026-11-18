@@ -20,3 +20,10 @@ begin
 end; $$;
 revoke execute on function public.admin_account_protected(uuid),public.admin_team_review(uuid) from public,anon;
 grant execute on function public.admin_account_protected(uuid),public.admin_team_review(uuid) to authenticated;
+
+create function public.suspension_active(s public.account_suspensions)
+returns boolean language sql stable set search_path='' as $$
+ select s.lifted_at is null and s.starts_at<=now() and (s.ends_at is null or s.ends_at>now());
+$$;
+revoke execute on function public.suspension_active(public.account_suspensions) from public,anon;
+grant execute on function public.suspension_active(public.account_suspensions) to authenticated;

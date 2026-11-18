@@ -208,8 +208,8 @@ begin
    where t.id = tournament_id and t.user_id = auth.uid() for update;
   if not found then raise exception 'El torneo no existe o no es tuyo' using errcode = '42501'; end if;
   if current_status = 'finalizado' then raise exception 'Un torneo finalizado no se da de baja' using errcode = '22023'; end if;
-  update public.tournament_reports set resolution = 'baja_organizador', resolved_by = auth.uid(), resolved_at = now()
-    where tournament_id = withdraw_tournament.tournament_id and resolution is null;
+  update public.tournament_reports tr set resolution = 'baja_organizador', resolved_by = auth.uid(), resolved_at = now()
+    where tr.tournament_id = withdraw_tournament.tournament_id and tr.resolution is null;
   perform public.create_withdrawal_notices(tournament_id, v_name);
   delete from public.tournaments where id = tournament_id;
 end; $$;
