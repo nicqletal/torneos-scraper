@@ -24,7 +24,7 @@ export default async function EditarEquipoPage({ params, searchParams }: {
   if (!captain || team.dissolved_at) redirect(`/equipos/${id}`)
 
   return (
-    <div className="max-w-2xl w-full mx-auto flex flex-col gap-7">
+    <div className="max-w-5xl w-full mx-auto flex flex-col gap-7">
       <Link href={`/equipos/${id}`} className="ui-action inline-flex items-center gap-2 text-foreground/80 hover:text-brand-lime w-fit">
         <ArrowLeft className="w-5 h-5" /> Volver al equipo
       </Link>

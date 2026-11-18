@@ -62,6 +62,8 @@ Revisión de [casos-de-uso.pdf](../casos-de-uso/casos-de-uso.pdf) (módulos A–
 
 ### Vista previa de Promoción (18/11/2026)
 
+- **ABM habitual (18/11/2026):** el recorrido guiado también se aplica a Publicar torneo y a Crear/Editar equipo. Torneos comparte seis pasos entre alta y modificación. Equipos comparte Identidad, Forma de jugar y Revisión; la edición precarga los datos y permite conservar, reemplazar o quitar el escudo. No cambian permisos, validaciones de servidor ni acciones de negocio.
+
 - **Gestión guiada (18/11/2026):** Datos del Torneo reemplaza el formulario de secciones simultáneas por seis pasos: El torneo, Contacto, Fechas y cupo, Flyer, Más información y Revisar y guardar. Sidebar en escritorio y navegación horizontal compacta en móvil. Se conservan campos y archivo al navegar, se validan los campos al avanzar y se guardan todos los cambios al final. La creación conserva su recorrido actual; Inscripciones y Baja mantienen sus flujos propios. Este acuerdo reemplaza la distribución anterior en dos columnas de secciones.
 
 - **Sugerencia de promoción (18/11/2026):** en el inicio, una cuenta con al menos un Torneo propio no Finalizado puede ver una sugerencia flotante que lleva a su vista previa. Se cierra con × y se recuerda por cuenta en ese navegador. No es un Aviso de la campanita ni una notificación push del sistema operativo; no pide permisos, no envía mensajes y no representa una contratación.

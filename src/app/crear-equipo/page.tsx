@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Shield } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
-import { TeamForm } from '@/components/TeamForm'
+import { CreateTeamForm } from '@/components/CreateTeamForm'
+import { getZoneGroups } from '@/components/ZoneSelect'
 import { MAX_CAPTAINCIES } from '@/utils/teams'
 import { createTeam } from './actions'
 import { BackLink } from '@/components/BackLink'
@@ -38,7 +39,7 @@ export default async function CrearEquipoPage({
   const reachedLimit = (captaincies?.length ?? 0) >= MAX_CAPTAINCIES
 
   return (
-    <div className="max-w-xl w-full mx-auto flex flex-col gap-8">
+    <div className="max-w-5xl w-full mx-auto flex flex-col gap-6">
       <BackLink href="/mis-equipos" label="Mis equipos" />
 
       <div className="border-b border-brand-border pb-6 flex items-center gap-3">
@@ -47,12 +48,12 @@ export default async function CrearEquipoPage({
         </div>
         <div>
           <h1 className="text-4xl font-display tracking-wider text-foreground uppercase leading-none">Crear equipo</h1>
-          <p className="text-foreground/70 text-sm mt-1">Vas a quedar como capitán. Podés sumar un escudo para identificar a tu equipo.</p>
+          <p className="text-foreground/70 text-sm mt-2">Tu equipo, listo para encontrar rival. Armalo en tres pasos.</p>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 border border-brand-red/40 bg-brand-red/10 text-brand-red text-sm rounded-sm">
+        <div role="alert" className="p-3 border border-brand-red/40 bg-brand-red/10 text-brand-red text-sm rounded-xl">
           {error}
         </div>
       )}
@@ -80,7 +81,7 @@ export default async function CrearEquipoPage({
           o disolvelo.
         </div>
       ) : (
-        <TeamForm action={createTeam} submitLabel="Crear equipo" disabled={!hasWhatsapp} />
+        <CreateTeamForm action={createTeam} groups={await getZoneGroups()} disabled={!hasWhatsapp} />
       )}
     </div>
   )

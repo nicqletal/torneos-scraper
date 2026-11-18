@@ -14,7 +14,7 @@ export default async function CrearTorneoPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-8">
+    <div className="w-full max-w-7xl mx-auto flex flex-col gap-8">
       <BackLink href="/mis-torneos" label="Mis torneos" />
 
       <div className="border-b border-brand-border pb-6 flex flex-col gap-2">
@@ -27,7 +27,7 @@ export default async function CrearTorneoPage() {
       </div>
 
       <div className="bg-brand-surface border border-brand-border rounded-sm p-6 md:p-8">
-        <TournamentForm action={createTournament} zoneGroups={await getZoneGroups()} submitLabel="Publicar torneo" pendingLabel="Publicando…" />
+        <TournamentForm stepByStep action={createTournament} zoneGroups={await getZoneGroups()} submitLabel="Publicar torneo" pendingLabel="Publicando…" />
       </div>
     </div>
   )
