@@ -41,11 +41,15 @@ export default async function Home(props: HomeProps) {
         </span>
       </Link>
 
-      <div className="catalog-layout grid grid-cols-1 items-start gap-5 xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-8">
+      <div className="catalog-layout flex min-w-0 flex-col gap-5">
+        <Suspense fallback={<div className="h-20 animate-pulse rounded-xl border border-brand-border bg-brand-surface" />}>
+          <Filters />
+        </Suspense>
+
         <Suspense fallback={
           <>
-            <div className="catalog-toolbar h-16 animate-pulse border-b border-brand-border xl:col-span-2" />
-            <div className="catalog-results order-3 xl:order-none xl:col-start-2 xl:row-start-2">
+            <div className="catalog-toolbar h-16 animate-pulse border-b border-brand-border" />
+            <div className="catalog-results">
               <div className="tournament-grid">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div 
@@ -59,12 +63,6 @@ export default async function Home(props: HomeProps) {
         }>
           <TournamentList searchParams={searchParams || {}} />
         </Suspense>
-
-        <div className="order-2 xl:sticky xl:top-24 xl:order-none xl:col-start-1 xl:row-start-2">
-          <Suspense fallback={<div className="h-11 rounded-sm border border-brand-border bg-brand-surface animate-pulse xl:h-28" />}>
-            <Filters />
-          </Suspense>
-        </div>
 
       </div>
 

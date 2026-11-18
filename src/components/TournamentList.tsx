@@ -167,7 +167,7 @@ export async function TournamentList({
 
   return (
     <>
-      <div className="catalog-toolbar grid gap-4 border-b border-brand-border pb-4 xl:col-span-2">
+      <div className="catalog-toolbar grid gap-4 border-b border-brand-border pb-4">
         <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center xl:grid-cols-[1fr_auto_1fr]">
           <p className="text-sm text-foreground/70" aria-live="polite">
             Mostrando {firstResult}–{lastResult} de {total} {total === 1 ? 'torneo' : 'torneos'}
@@ -176,7 +176,7 @@ export async function TournamentList({
           <TournamentPagination page={page} pageCount={pageCount} searchParams={searchParamsForLinks} position="top" />
         </div>
       </div>
-      <div className="catalog-results order-3 min-w-0 xl:order-none xl:col-start-2 xl:row-start-2">
+      <div className="catalog-results min-w-0">
         {promotedTournaments.length > 0 && (
           <section aria-label="Torneos promocionados de demostración" className="mb-8 flex flex-col gap-4 border border-brand-border bg-brand-secondary/50 p-4 sm:p-5">
             <div className="flex flex-wrap items-end justify-between gap-2">
