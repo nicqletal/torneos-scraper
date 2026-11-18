@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { ExternalLink } from 'lucide-react'
+import { ArrowUpRight, ExternalLink, Megaphone, TriangleAlert } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { TOURNAMENT_FORM_COLUMNS, type TournamentInput } from '@/utils/tournament-form'
 import { verificationAge, verifyBlock } from '@/utils/tournament-verification'
@@ -72,7 +72,7 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
     format(new Date(date + 'T00:00:00'), 'd MMM yyyy', { locale: es })
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col gap-8">
+    <div className="w-full max-w-7xl mx-auto flex flex-col gap-8">
       <BackLink href="/mis-torneos" label="Mis torneos" />
 
       <header className="flex flex-col gap-5">
@@ -125,6 +125,23 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
         </div>
       </header>
 
+      <Link
+        href={`/mis-torneos/${id}/promocionar`}
+        className="group flex flex-col gap-4 border border-brand-lime/40 bg-brand-lime/5 p-5 rounded-sm transition-colors hover:border-brand-lime sm:flex-row sm:items-center sm:justify-between focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2"
+      >
+        <div className="flex items-start gap-3">
+          <Megaphone aria-hidden="true" className="mt-1 h-6 w-6 shrink-0 text-brand-lime" />
+          <div className="flex flex-col gap-1">
+            <span className="font-display text-xl uppercase tracking-wider text-foreground">Promocioná tu torneo</span>
+            <span className="text-sm text-foreground/70">Descubrí cómo se vería en un espacio destacado.</span>
+          </div>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-lime">
+          Ver vista previa
+          <ArrowUpRight aria-hidden="true" className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+        </span>
+      </Link>
+
       {/* Pestañas: son links, así cada una tiene su URL y andan sin JavaScript. */}
       <nav aria-label="Secciones del torneo" className="flex gap-1 border-b border-brand-border">
         {MANAGE_TABS.map(({ value, label }) => (
@@ -164,10 +181,10 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
       {/* La baja va aparte, al final: no tiene vuelta atrás. Un Finalizado no
           se da de baja: queda como trayectoria. */}
       {status !== 'finalizado' && (
-        <section className="mt-4 pt-6 border-t border-brand-border flex flex-col gap-3">
-          <h2 className="font-display tracking-wider text-lg text-foreground uppercase">Dar de baja</h2>
-          <p className="text-foreground/70 text-xs leading-relaxed max-w-xl">
-            El torneo desaparece del catálogo y su ficha deja de existir. No se puede deshacer.
+        <section className="mt-4 flex flex-col gap-4 rounded-sm border-2 border-brand-red/70 bg-brand-red/5 p-6 sm:p-8" aria-labelledby="withdraw-tournament">
+          <h2 id="withdraw-tournament" className="flex items-center gap-3 font-display tracking-wider text-2xl text-brand-red uppercase"><TriangleAlert aria-hidden="true" className="h-6 w-6 shrink-0" />Dar de baja el torneo</h2>
+          <p className="text-foreground/85 text-sm leading-relaxed max-w-3xl">
+            Esta acción es definitiva. El torneo desaparece del catálogo y su ficha deja de existir. No se puede deshacer. Revisá los equipos inscriptos antes de continuar.
           </p>
           <WithdrawButton
             id={id}

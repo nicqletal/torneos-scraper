@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { MapPin, Users, ArrowRight } from 'lucide-react'
+import { MapPin, Users, ArrowRight, Megaphone } from 'lucide-react'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { priceLabel } from '@/utils/tournament-price'
 import { zoneLabel, type ZoneLabelFields } from '@/utils/zones'
@@ -10,6 +10,7 @@ import { LastSpotsBadge } from './LastSpotsBadge'
 import { isLastSpots } from '@/utils/inscriptions'
 import { modalityLabel, type SportModality } from '@/utils/modality'
 import { FavoriteToggle } from './FavoriteToggle'
+import type { PromotionPlan } from '@/utils/tournament-promotion'
 
 export const organizerImages: Record<string, string> = {
   areiafutbol: '/organizers/areia.jpg',
@@ -52,9 +53,15 @@ export interface TournamentCardProps {
   index: number
   // Antigüedad de verificación; null si no aplica (Finalizado).
   verification: VerificationAge | null
+  // Solo apariencia para la vista previa privada; no activa una Promoción.
+  promoted?: boolean
+  showFavorite?: boolean
+  promotionPlan?: PromotionPlan
 }
 
-export function TournamentCard({ tournament, index, verification }: TournamentCardProps) {
+export function TournamentCard({ tournament, index, verification, promoted = false, showFavorite = true, promotionPlan }: TournamentCardProps) {
+  const isPromoted = promoted || Boolean(promotionPlan)
+  const promotionBorder = promotionPlan === 'partner' ? 'border-brand-amber ring-1 ring-brand-amber/20' : 'border-brand-sky ring-1 ring-brand-sky/20'
   // Format index as scoreboard double-digit (e.g. "01", "02")
   const scoreboardIndex = String(index + 1).padStart(2, '0')
 
@@ -63,8 +70,17 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
     // el botón "Ficha". La entrada es una animación CSS (corre fuera del hilo
     // principal mientras la página carga) escalonada 40ms por card, con tope en
     // la sexta para que ninguna espere más de 200ms.
-    <article style={{ '--i': Math.min(index, 5) } as React.CSSProperties} className="tournament-card group relative flex flex-col bg-brand-surface border border-brand-border hover:border-brand-lime h-full transition-colors animate-card-in [animation-delay:calc(var(--i)*40ms)]">
+    <article style={{ '--i': Math.min(index, 5) } as React.CSSProperties} className={`tournament-card group relative flex flex-col bg-brand-surface border ${isPromoted ? promotionBorder : 'border-brand-border'} hover:border-brand-lime h-full transition-colors animate-card-in [animation-delay:calc(var(--i)*40ms)]`}>
       <Link href={`/torneos/${tournament.id}`} className="flex h-full flex-col focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2">
+      {isPromoted && (
+        <div className={`flex flex-wrap items-center justify-between gap-2 px-4 py-2 text-brand-bg ${promotionPlan === 'partner' ? 'bg-brand-amber' : 'bg-brand-sky'}`}>
+          <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+            <Megaphone aria-hidden="true" className="h-3.5 w-3.5" />
+            Promocionado
+          </span>
+          <span className="text-xs">{promotionPlan ? `${promotionPlan === 'partner' ? 'Partner' : 'Growth'} · Demo` : 'Publicidad'}</span>
+        </div>
+      )}
       {tournament.observed_at && <p className="px-4 py-2 text-sm text-brand-amber border-b border-brand-border">Información reportada en revisión</p>}
       {/* Flyer Header */}
       <div className="tournament-card-flyer relative w-full bg-brand-bg overflow-hidden">
@@ -150,7 +166,7 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
 
       </div>
       </Link>
-      <FavoriteToggle tournamentId={tournament.id} className="absolute right-3 top-3" />
+      {showFavorite && <FavoriteToggle tournamentId={tournament.id} className="absolute right-3 top-3" />}
     </article>
   )
 }

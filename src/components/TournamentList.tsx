@@ -8,6 +8,7 @@ import { ZONE_LABEL_EMBED } from '@/utils/zones'
 import { TournamentCatalogControls } from './TournamentCatalogControls'
 import { TournamentPagination, tournamentPageHref } from './TournamentPagination'
 import { redirect } from 'next/navigation'
+import { demoPromotionPlan } from '@/utils/tournament-promotion'
 
 const PAGE_SIZES = [12, 24, 48] as const
 type PageSize = (typeof PAGE_SIZES)[number]
@@ -154,6 +155,12 @@ export async function TournamentList({
   // recibe hecha: si la calculara la tarjeta, el "ahora" del servidor y el del
   // navegador podrían no coincidir al hidratar.
   const now = new Date()
+  // Selección visual de demostración: datos reales, sin campañas ni pagos.
+  // Reutiliza la consulta del catálogo para respetar sus filtros.
+  const promotedResults = await Promise.all(['areiafutbol', 'liganunez'].map(handle =>
+    makeRowsQuery(selectedStatus, undefined).eq('contact_instagram', handle).limit(1)
+  ))
+  const promotedTournaments = promotedResults.flatMap(result => (result.data ?? []) as Tournament[])
   const firstResult = total === 0 ? 0 : offset + 1
   const lastResult = Math.min(offset + pageSize, total)
   const searchParamsForLinks = { ...awaitedParams, por_pagina: String(pageSize) }
@@ -170,6 +177,19 @@ export async function TournamentList({
         </div>
       </div>
       <div className="catalog-results order-3 min-w-0 xl:order-none xl:col-start-2 xl:row-start-2">
+        {promotedTournaments.length > 0 && (
+          <section aria-label="Torneos promocionados de demostración" className="mb-8 flex flex-col gap-4 border border-brand-border bg-brand-secondary/50 p-4 sm:p-5">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <h2 className="font-display text-2xl uppercase tracking-wide text-foreground">Torneos destacados</h2>
+              <p className="text-xs text-foreground/65">Publicidad · Promociones de demostración</p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {promotedTournaments.map((tournament, index) => (
+                <TournamentCard key={tournament.id} tournament={tournament} index={index} verification={verificationAge(tournament.verified_at, tournament.status, now)} promotionPlan={demoPromotionPlan(tournament)} />
+              ))}
+            </div>
+          </section>
+        )}
         <div className="tournament-grid">
           {tournaments.map((tournament: Tournament, index: number) => (
             <TournamentCard
@@ -177,6 +197,7 @@ export async function TournamentList({
               tournament={tournament}
               index={index}
               verification={verificationAge(tournament.verified_at, tournament.status, now)}
+              promotionPlan={demoPromotionPlan(tournament)}
             />
           ))}
         </div>

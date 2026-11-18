@@ -58,6 +58,9 @@ _Avoid_: foto, portada, banner
 **Últimos cupos**:
 Etiqueta que se muestra sobre un torneo **Abierto** cuando le quedan 2 lugares o menos; no es un estado.
 
+**Promoción**:
+Exposición publicitaria de un **Torneo** en un espacio destacado, identificada con la etiqueta "Promocionado". No certifica al torneo ni cambia su **Estado del torneo** o su **Verificación**.
+
 **Verificación**:
 Confirmación explícita de que un torneo sigue en pie, hecha con el botón "Sigue vigente" por su organizador.
 _Avoid_: actualización (editar un torneo no lo verifica)

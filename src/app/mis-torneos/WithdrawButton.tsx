@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { Ban } from 'lucide-react'
-import { dangerButtonClass, errorTextClass } from '@/components/button-styles'
+import { errorTextClass } from '@/components/button-styles'
 import { withdrawTournament } from './actions'
 
 // "Dar de baja el torneo" con confirmación. No es un <form> a propósito: un
@@ -27,7 +27,7 @@ export function WithdrawButton({ id, confirmMessage }: { id: string; confirmMess
             if (result?.error) setError(result.error)
           })
         }}
-        className={`${dangerButtonClass} cursor-pointer disabled:opacity-40 disabled:cursor-wait`}
+        className="ui-action press inline-flex items-center gap-2 rounded-sm border border-brand-red bg-brand-red/10 px-4 py-3 text-sm font-bold text-brand-red hover:bg-brand-red hover:text-brand-bg cursor-pointer disabled:opacity-40 disabled:cursor-wait"
       >
         <Ban className="w-3.5 h-3.5" />
         {isPending ? 'Dando de baja…' : 'Dar de baja el torneo'}

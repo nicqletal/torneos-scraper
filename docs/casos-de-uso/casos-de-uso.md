@@ -584,6 +584,19 @@ Las dos pantallas son `/partidos` (lo que tenés: propuestas recibidas, próximo
 - **Postcondición:** si el torneo estaba Cerrado por cupo y no pasó el cierre de inscripción, vuelve a **Abierto**.
 - **Estado:** Implementado (`removeInscription`).
 
+### UC-E08 · Consultar la vista previa de Promoción
+
+- **Actor:** Organizador del Torneo.
+- **Precondiciones:** sesión y Torneo propio existente.
+- **Flujo principal:**
+  1. En la gestión del Torneo elige "Promocioná tu torneo".
+  2. Ve una comparación privada entre Publicación gratuita y Con promoción, con los datos reales de su Torneo.
+  3. La alternativa Con promoción ilustra un bloque destacado antes del listado y una tarjeta con la etiqueta "Promocionado", identificada como publicidad.
+- **Flujos alternativos:** sin sesión pasa por Iniciar sesión y conserva el destino; un Torneo ajeno o inexistente devuelve 404.
+- **Reglas:** se identifica como Vista previa y Próximamente. No activa anuncios, registra contrataciones ni cobra. El catálogo público conserva su presentación y orden. Se mantienen Estado del torneo, Verificación y Observado.
+- **Postcondición:** ninguna modificación; el Organizador conoce la propuesta visual.
+- **Estado:** Implementado (`src/app/mis-torneos/[id]/promocionar`). La comercialización sigue pendiente de definición y validación.
+
 ---
 
 ## Módulo F — Administración

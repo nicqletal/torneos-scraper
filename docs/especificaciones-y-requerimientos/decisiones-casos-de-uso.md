@@ -60,6 +60,21 @@ Revisión de [casos-de-uso.pdf](../casos-de-uso/casos-de-uso.pdf) (módulos A–
 - **Organizadores:** cualquier usuario con sesión y sin suspensión.
 - **Carga manual inicial:** si alguien del equipo carga torneos de Instagram para que el catálogo no arranque vacío, lo hace con su propia cuenta, como organizador común, y pone el contacto del organizador real. No existe un tipo de torneo "copiado" ni una "transferencia" (se descartaron el 07/10/2026).
 
+### Vista previa de Promoción (18/11/2026)
+
+- **Sugerencia de promoción (18/11/2026):** en el inicio, una cuenta con al menos un Torneo propio no Finalizado puede ver una sugerencia flotante que lleva a su vista previa. Se cierra con × y se recuerda por cuenta en ese navegador. No es un Aviso de la campanita ni una notificación push del sistema operativo; no pide permisos, no envía mensajes y no representa una contratación.
+
+- **Demostración pública acordada el 18/11/2026:** Areia (`areiafutbol`) aparece con Partner (ámbar) y Liga Núñez (`liganunez`) con Growth (celeste), en un bloque anterior al listado y con identificación del plan en sus tarjetas. El bloque y las etiquetas aclaran que son promociones de demostración, no contrataciones reales. Se usan Torneos existentes; no se crean registros ni se cobra. Se respetan los filtros y se excluyen Finalizados. Esta ampliación reemplaza, para estos dos ejemplos, la restricción anterior de no modificar el catálogo público.
+- **Gestión en escritorio:** la pantalla aprovecha hasta `max-w-7xl` y el formulario distribuye secciones en dos columnas en escritorio amplio, manteniendo una columna en móvil. La Baja conserva su confirmación y se presenta aparte en un recuadro rojo con advertencia de irreversibilidad; no cambia su regla de negocio.
+
+- **Ampliación visual del 18/11/2026:** el CTA del inicio lleva a `/mis-torneos?promocionar=1`, donde el Organizador elige un Torneo propio para abrir su vista previa. Sin sesión se conserva ese destino. Debajo de Próximamente se presentan Starter, Growth y Partner como planes ficticios de ejemplo, con precio a definir y sin contratación. Sus beneficios ilustran una oferta posible; no son reglas comerciales vigentes ni funcionalidades activadas.
+
+- El **Organizador** accede desde "Promocioná tu torneo" en la gestión de un Torneo propio. No se agrega un rol ni un tipo de cuenta.
+- `/mis-torneos/[id]/promocionar` es una comparación privada entre **Publicación gratuita** y **Con promoción**, usando los mismos datos reales del Torneo. Exige sesión y titularidad; un Torneo ajeno o inexistente devuelve 404.
+- La propuesta visual muestra un bloque destacado antes del listado y una tarjeta diferenciada con la etiqueta **Promocionado**, identificada como publicidad. Conserva Estado del torneo, Verificación y la marca Observado; no otorga una certificación.
+- La página indica **Vista previa** y **Próximamente**. Solo demuestra la apariencia: no activa ni guarda Promociones, no modifica el catálogo público ni su orden y no muestra precios, métricas inventadas o un proceso de pago.
+- El modelo comercial propuesto es que el Organizador pague por promocionar un Torneo propio. Contratación, duración, precio, elegibilidad y medición quedan pendientes de definición antes de implementar una Promoción real. No se incluye a sponsors externos en esta etapa.
+
 ### Formulario
 
 | Obligatorio | Opcional |

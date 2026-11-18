@@ -27,6 +27,7 @@ interface TournamentFormProps {
   confirmMessage?: string | null
   // Edición de un torneo que ya tiene flyer: dejar el campo vacío lo conserva.
   hasFlyer?: boolean
+  wide?: boolean
 }
 
 const labelClass = 'font-sans tracking-wider text-sm text-foreground/60 uppercase'
@@ -34,9 +35,9 @@ const hintClass = 'text-sm text-foreground/70 font-sans'
 const inputClass =
   'px-3 py-2.5 bg-brand-bg border border-brand-border rounded-sm text-sm text-foreground placeholder:text-foreground/25 focus:outline-none focus:border-brand-lime transition-colors'
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <fieldset className="flex flex-col gap-4">
+    <fieldset className={`flex min-w-0 flex-col gap-4 ${className}`}>
       <legend className="w-full font-sans tracking-wider text-lg text-foreground uppercase border-b border-brand-border pb-2 mb-2">
         {title}
       </legend>
@@ -55,7 +56,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
-export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, initialValues = {}, confirmMessage, hasFlyer = false }: TournamentFormProps) {
+export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, initialValues = {}, confirmMessage, hasFlyer = false, wide = false }: TournamentFormProps) {
   const [state, formAction, pending] = useActionState(action, { error: null, values: initialValues })
   const [flyerError, setFlyerError] = useState<string | null>(null)
   const v = state.values
@@ -70,7 +71,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
         // Cancelar el submit acá evita que se llame a la Server Action.
         if (confirmMessage && !confirm(confirmMessage)) e.preventDefault()
       }}
-      className="flex flex-col gap-8"
+      className={wide ? 'grid grid-cols-1 items-start gap-8 xl:grid-cols-2 xl:gap-x-10' : 'flex flex-col gap-8'}
     >
       <Section title="El torneo">
         <Field label="Nombre">
@@ -171,7 +172,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
         )}
       </Section>
 
-      <Section title="Más información (opcional)">
+      <Section title="Más información (opcional)" className={wide ? 'xl:col-span-2 [&>label]:min-w-0 xl:grid xl:grid-cols-2' : ''}>
         <Field label="Descripción">
           <textarea name="description" rows={4} defaultValue={v.description} placeholder="Premios, horarios, tercer tiempo…" className={`ui-input ${`${inputClass} resize-y`}`} />
         </Field>
@@ -183,7 +184,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
       {/* El error va pegado al botón: el formulario es largo y quien acaba de
           apretar "Publicar" está mirando acá abajo, no arriba de todo. */}
       {state.error && (
-        <p role="alert" className="animate-enter px-4 py-3 border border-brand-red/40 bg-brand-red/5 text-brand-red text-sm rounded-sm">
+        <p role="alert" className={`animate-enter px-4 py-3 border border-brand-red/40 bg-brand-red/5 text-brand-red text-sm rounded-sm ${wide ? 'xl:col-span-2' : ''}`}>
           {state.error}
         </p>
       )}
@@ -191,7 +192,7 @@ export function TournamentForm({ action, submitLabel, pendingLabel, zoneGroups, 
       <button
         type="submit"
         disabled={pending}
-        className="ui-action press inline-flex items-center justify-center gap-2 py-4 bg-brand-lime hover:bg-foreground disabled:opacity-60 disabled:cursor-wait text-brand-bg font-display font-bold uppercase tracking-wider text-lg rounded-sm cursor-pointer"
+        className={`ui-action press inline-flex items-center justify-center gap-2 py-4 bg-brand-lime hover:bg-foreground disabled:opacity-60 disabled:cursor-wait text-brand-bg font-display font-bold uppercase tracking-wider text-lg rounded-sm cursor-pointer ${wide ? 'xl:col-span-2' : ''}`}
       >
         <Save className="w-5 h-5" />
         {pending ? pendingLabel : submitLabel}

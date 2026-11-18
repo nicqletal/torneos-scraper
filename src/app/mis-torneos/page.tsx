@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Settings2, Trophy, Users } from 'lucide-react'
+import { Plus, Settings2, Users } from 'lucide-react'
 import { BrandMark } from '@/components/BrandMark'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { sortForPanel, verificationAge, verifyBlock } from '@/utils/tournament-verification'
@@ -13,12 +13,13 @@ import { VerifyButton } from './VerifyButton'
 import { BackLink } from '@/components/BackLink'
 import { secondaryButtonClass } from '@/components/button-styles'
 
-export default async function MisTorneosPage() {
+export default async function MisTorneosPage({ searchParams }: { searchParams: Promise<{ promocionar?: string }> }) {
+  const promotionMode = (await searchParams).promocionar === '1'
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login?next=/mis-torneos')
+    redirect(`/login?${new URLSearchParams({ next: promotionMode ? '/mis-torneos?promocionar=1' : '/mis-torneos' })}`)
   }
 
   // `status` e `inscriptions_count` son columnas calculadas: hay que pedirlas.
@@ -55,6 +56,13 @@ export default async function MisTorneosPage() {
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-8">
       <BackLink href="/" label="Volver al catálogo" />
+
+      {promotionMode && (
+        <section className="border border-brand-lime/40 bg-brand-lime/5 p-5">
+          <h2 className="font-display text-2xl uppercase tracking-wide text-brand-lime">Elegí qué torneo querés promocionar</h2>
+          <p className="mt-2 text-sm text-foreground/70">Abrí su vista previa para comparar la publicación gratuita con la propuesta de promoción y conocer los planes de ejemplo. Si todavía no publicaste un torneo, creá el primero para ver cómo quedaría.</p>
+        </section>
+      )}
 
       <div className="border-b border-brand-border pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="flex flex-col gap-2">
@@ -111,6 +119,11 @@ export default async function MisTorneosPage() {
                 </div>
 
                 <div className="flex sm:flex-col gap-2 shrink-0">
+                  {promotionMode && (
+                    <Link href={`/mis-torneos/${tournament.id}/promocionar`} className="ui-action press justify-center border border-brand-lime bg-brand-lime/10 px-3 py-2 text-xs font-bold text-brand-lime rounded-sm">
+                      Ver promoción
+                    </Link>
+                  )}
                   <VerifyButton
                     id={tournament.id}
                     block={verifyBlock(tournament.verified_at, tournament.status, now)}
