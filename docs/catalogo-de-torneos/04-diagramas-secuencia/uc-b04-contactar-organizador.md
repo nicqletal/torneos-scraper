@@ -33,7 +33,7 @@ sequenceDiagram
 
 - **Cada medio es independiente:** si falta uno, su botón no se muestra; si hay ambos, se muestran los dos. Al publicar un torneo es obligatorio al menos un contacto, así que el mensaje «sin datos» solo puede aparecer en torneos viejos.
 - **El link a WhatsApp se arma en la pantalla**, sin llamar al servidor: `https://wa.me/<número>?text=<mensaje>`. El número está guardado solo con dígitos, en formato argentino de celular (`549…`), que es lo que pide `wa.me`. La persona puede editar el mensaje antes de enviarlo.
-- **El mensaje sugerido hoy** es «Hola, vengo de Torneos Scraper. Me interesa el torneo "[nombre]"!». `casos-de-uso.md` documenta otro texto.
+- **El mensaje sugerido hoy** es «Hola, vengo de Matchmaking. Me interesa el torneo "[nombre]"!». `casos-de-uso.md` documenta otro texto.
 - **Instagram:** se abre `instagram.com/<usuario>` (se quita la `@` si la tiene).
 - **La app no inscribe ni cobra.** No hay un «Anotar mi equipo»: eso se descartó y es un límite del producto.
 

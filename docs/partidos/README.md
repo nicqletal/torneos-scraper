@@ -1,6 +1,6 @@
 # Módulo Partidos · Documentación
 
-Documentación completa del módulo D (Partidos: buscar rival) de Torneos Amateur BA, versión del **04/11/2026**. Sigue el mismo orden que la de los demás módulos ([Equipos](../equipos/README.md), [Cuenta y acceso](../cuenta-y-acceso/README.md), [Catálogo de torneos](../catalogo-de-torneos/README.md), [Organizador](../organizador/README.md), [Administración](../administracion/README.md)):
+Documentación completa del módulo D (Partidos: buscar rival) de Matchmaking, versión del **04/11/2026**. Sigue el mismo orden que la de los demás módulos ([Equipos](../equipos/README.md), [Cuenta y acceso](../cuenta-y-acceso/README.md), [Catálogo de torneos](../catalogo-de-torneos/README.md), [Organizador](../organizador/README.md), [Administración](../administracion/README.md)):
 
 | Paso | Documento | Qué contiene |
 |---|---|---|

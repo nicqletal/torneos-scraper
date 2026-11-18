@@ -16,7 +16,7 @@ export async function enrollAdminMfa(): Promise<EnrollmentState> {
     const { error } = await supabase.auth.mfa.unenroll({ factorId: factor.id })
     if (error) return { error: 'No pudimos reiniciar la configuración. Volvé a intentar.' }
   }
-  const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Administración Torneos BA', issuer: 'Torneos Amateur BA' })
+  const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Administración Matchmaking', issuer: 'Matchmaking' })
   if (error) return { error: 'No pudimos preparar el autenticador. Verificá que los dos pasos estén habilitados e intentá de nuevo.' }
   return { factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret }
 }

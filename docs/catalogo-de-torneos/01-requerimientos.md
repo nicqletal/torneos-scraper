@@ -115,7 +115,7 @@ Estas diferencias salieron de comparar `casos-de-uso.md` (marca todo el módulo 
 | Ficha de un Finalizado | Sin botones de contacto; «Este torneo ya terminó». | Muestra los botones de contacto como en cualquier otra ficha. |
 | Torneo dado de baja | 404 con un link al catálogo. | 404 genérico de Next («This page could not be found.»), sin link. |
 | Vista previa al compartir | La página tiene metadatos (flyer, nombre, Zona). | No hay `generateMetadata` en la ficha; usa los metadatos generales del sitio. |
-| Mensaje de WhatsApp | «Hola, vi el torneo [nombre] en Torneos BA y quiero anotar a mi equipo». | «Hola, vengo de Torneos Scraper. Me interesa el torneo "[nombre]"!». También el nombre del producto difiere: la interfaz dice «Torneos Scraper» y la documentación, «Torneos BA». |
+| Mensaje de WhatsApp | «Hola, vi el torneo [nombre] en Matchmaking y quiero anotar a mi equipo». | «Hola, vengo de Matchmaking. Me interesa el torneo "[nombre]"!». |
 | Valor inválido en la URL | Se ignora ese filtro y se mantienen los válidos. | Una clave desconocida se ignora; un valor de `modality` o `status` no se valida antes de consultar. |
 
 ## 6. Reglas de referencia

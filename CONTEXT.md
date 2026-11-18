@@ -1,4 +1,4 @@
-# Torneos Amateur BA
+# Matchmaking
 
 Webapp que centraliza torneos de fútbol amateur de Buenos Aires y ayuda a equipos a encontrar rivales para partidos amistosos. El contacto y los pagos ocurren siempre por fuera de la app (WhatsApp / Instagram).
 
@@ -29,7 +29,7 @@ Usuario que publicó al menos un torneo y lo gestiona desde su **Panel de organi
 _Avoid_: dueño, admin
 
 **Administrador**:
-Integrante del equipo de Torneos BA que modera toda la plataforma desde el **Panel de administración**.
+Integrante del equipo de Matchmaking que modera toda la plataforma desde el **Panel de administración**.
 _Avoid_: admin (a secas, porque se confunde con el organizador), moderador
 
 **Panel de organizador**:

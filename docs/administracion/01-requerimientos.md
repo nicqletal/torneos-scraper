@@ -6,7 +6,7 @@ Fuentes, en orden de autoridad: [decisiones-casos-de-uso.md](../especificaciones
 
 ## 1. Alcance
 
-El módulo es el **backoffice del equipo de Torneos BA**: el **Administrador** entra por un acceso propio, ve un resumen de la plataforma y —cuando se implementen las etapas siguientes— **modera**: resuelve reportes de torneos y de equipos, suspende cuentas y busca usuarios.
+El módulo es el **backoffice del equipo de Matchmaking**: el **Administrador** entra por un acceso propio, ve un resumen de la plataforma y —cuando se implementen las etapas siguientes— **modera**: resuelve reportes de torneos y de equipos, suspende cuentas y busca usuarios.
 
 **Hoy está implementada solo la primera etapa:** el acceso diferenciado, el marco del backoffice (sidebar), el resumen con contadores reales y la pantalla «Seguridad y acceso». **La moderación (UC-F03 a UC-F06) está definida pero sin programar:** no hay tablas, funciones ni pantallas de reportes, suspensiones ni registro de acciones.
 
@@ -28,7 +28,7 @@ El módulo es el **backoffice del equipo de Torneos BA**: el **Administrador** e
 
 | Actor | Quién es | Qué hace en este módulo |
 |---|---|---|
-| **Administrador** | Integrante del equipo de Torneos BA con una fila en `admins` | Entra al backoffice, mira el resumen y (a futuro) modera. |
+| **Administrador** | Integrante del equipo de Matchmaking con una fila en `admins` | Entra al backoffice, mira el resumen y (a futuro) modera. |
 | **Usuario** | Cualquier persona con cuenta | Si intenta entrar al backoffice sin el rol, recibe acceso denegado y **conserva su sesión normal**. |
 | **Sistema** | La app y la base de datos | Verifica el rol en el servidor y calcula los contadores. |
 
@@ -101,7 +101,7 @@ Hay que resolver estas preguntas antes de implementar las etapas pendientes. Al 
 
 ## 6. Reglas de referencia
 
-- **Administrador:** integrante del equipo de Torneos BA; el rol se asigna a mano en la base, nunca desde la app.
+- **Administrador:** integrante del equipo de Matchmaking; el rol se asigna a mano en la base, nunca desde la app.
 - **Suspensión:** sanción sobre una cuenta, por 7 días, 30 días o indefinida; impide crear o publicar cosas nuevas pero no entrar ni mirar. No confundir con el **Bloqueo por faltas**.
 - **Observado:** marca que el administrador pone a un torneo reportado; la ven catálogo y ficha, y solo él la saca.
 - **Términos:** «baja» (nunca «eliminar»); «Equipo disuelto»; el partido «se cae», nunca «se suspende».

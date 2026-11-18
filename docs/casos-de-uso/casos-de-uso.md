@@ -1,4 +1,4 @@
-# Casos de uso de Torneos Amateur BA
+# Casos de uso de Matchmaking
 
 Versión del **17/11/2026** (actualización de Administración y Soporte). Reemplaza a los documentos de casos de uso dispersos en Google Docs (última versión del 27/09/2026, módulos A–F y T) y al PDF `docs/casos-de-uso/casos-de-uso.pdf`. Está escrito a partir de las reglas vigentes en [decisiones-casos-de-uso.md](../especificaciones-y-requerimientos/decisiones-casos-de-uso.md), el glosario [CONTEXT.md](../../CONTEXT.md), los ADR y el código de esta versión. «Implementado» describe el código versionado; la [activación de las migraciones y TOTP](../especificaciones-y-requerimientos/panel-administracion.md#verificación-y-activación) en la base compartida se verifica por separado.
 
@@ -21,7 +21,7 @@ Versión del **17/11/2026** (actualización de Administración y Soporte). Reemp
 | **Jugador** | Usuario que integra el **Plantel** de un equipo. Mira lo del equipo; no opera. |
 | **Capitán** | Único miembro de un equipo que lo gestiona y actúa en su nombre en todo el módulo de Partidos. |
 | **Organizador** | Usuario que publicó al menos un torneo. Lo gestiona desde el **Panel de organizador** ("Mis torneos"). No tiene ningún poder de administración. |
-| **Administrador** | Integrante del equipo de Torneos BA. El rol se asigna a mano en la base, nunca desde la app. Modera desde el **Panel de administración**. |
+| **Administrador** | Integrante del equipo de Matchmaking. El rol se asigna a mano en la base, nunca desde la app. Modera desde el **Panel de administración**. |
 | **Sistema** | La app calculando estados y plazos al momento de leer. No hay tareas programadas: nada ocurre "a las 48 h", ocurre cuando alguien mira la pantalla. |
 
 Límite de producto que atraviesa todo: **la app nunca inscribe ni cobra**. Todo flujo de torneos termina en un deep link a WhatsApp o Instagram del organizador, y toda coordinación de partido se arregla por WhatsApp. La app registra lo acordado.
@@ -160,7 +160,7 @@ Límite de producto que atraviesa todo: **la app nunca inscribe ni cobra**. Todo
 - **Precondiciones:** el torneo no está finalizado y tiene al menos un contacto.
 - **Flujo principal (WhatsApp):**
   1. Toca "Contactar por WhatsApp".
-  2. El sistema abre `wa.me` con el número del organizador y el mensaje sugerido ("Hola, vi el torneo [nombre] en Torneos BA y quiero anotar a mi equipo").
+  2. El sistema abre `wa.me` con el número del organizador y el mensaje sugerido ("Hola, vi el torneo [nombre] en Matchmaking y quiero anotar a mi equipo").
   3. El usuario edita si quiere y envía desde WhatsApp. **Acá termina el flujo en la app**: la inscripción se arregla afuera y la carga el organizador (UC-E06).
 - **Flujo principal (Instagram):** toca "Ver Instagram" y el sistema abre el perfil del organizador.
 - **Flujos alternativos:**

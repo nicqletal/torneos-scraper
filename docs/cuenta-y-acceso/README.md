@@ -1,6 +1,6 @@
 # Módulo Cuenta y acceso · Documentación
 
-Documentación completa del módulo A (Cuenta y acceso) de Torneos Amateur BA, versión del **04/11/2026**. Sigue el mismo orden que la del módulo [Equipos](../equipos/README.md):
+Documentación completa del módulo A (Cuenta y acceso) de Matchmaking, versión del **04/11/2026**. Sigue el mismo orden que la del módulo [Equipos](../equipos/README.md):
 
 | Paso | Documento | Qué contiene |
 |---|---|---|

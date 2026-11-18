@@ -25,7 +25,7 @@ El módulo permite a un **Organizador** **publicar torneos**, **gestionarlos** d
 |---|---|---|
 | **Usuario** | Persona con sesión | Publica un torneo y pasa a ser Organizador. |
 | **Organizador** | Usuario que publicó al menos un torneo | Gestiona sus torneos desde el **Panel de organizador**. No tiene ningún poder de administración. |
-| **Administrador** | Integrante del equipo de Torneos BA | Puede dar de baja un torneo por un reporte (UC-F03); no gestiona torneos ajenos desde este panel. |
+| **Administrador** | Integrante del equipo de Matchmaking | Puede dar de baja un torneo por un reporte (UC-F03); no gestiona torneos ajenos desde este panel. |
 | **Sistema** | La base de datos y la app | Calcula el Estado, la antigüedad y los cupos al leer, y reparte los Avisos de baja. |
 
 ## 3. Requerimientos funcionales
@@ -108,7 +108,6 @@ El módulo permite a un **Organizador** **publicar torneos**, **gestionarlos** d
 | **«Sigue vigente» el mismo día** | El código apaga el botón si se confirmó hace menos de 24 h (`verifyBlock`). La regla no figura en `casos-de-uso.md` ni en las decisiones. Hay que decidir si se documenta. |
 | **Confirmar al editar con equipos anotados** | El código pide confirmación cuando hay equipos anotados. Tampoco figura en las decisiones. |
 | **Marca Observado** | «Sigue vigente» no la saca, pero la marca todavía no existe: depende de UC-F03. |
-| **Nombre del producto en los mensajes** | La interfaz dice «Torneos Scraper»; la documentación, «Torneos BA». |
 
 ## 6. Reglas de referencia
 
