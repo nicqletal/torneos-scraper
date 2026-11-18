@@ -9,6 +9,7 @@ import { TOURNAMENT_FORM_COLUMNS, type TournamentInput } from '@/utils/tournamen
 import { verificationAge, verifyBlock } from '@/utils/tournament-verification'
 import { withdrawConfirmation } from '@/utils/tournament-withdraw'
 import { inscriptionsLabel } from '@/utils/inscriptions'
+import { pendingRequestsLabel } from '@/utils/inscription-requests'
 import { MANAGE_TABS, manageLoginPath, managePath, manageTab } from '@/utils/tournament-manage'
 import { BackLink } from '@/components/BackLink'
 import { secondaryButtonClass } from '@/components/button-styles'
@@ -20,7 +21,7 @@ import { InscripcionesTab } from './InscripcionesTab'
 
 interface GestionTorneoProps {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ tab?: string | string[]; q?: string; error?: string }>
+  searchParams: Promise<{ tab?: string | string[]; q?: string; error?: string; section?: string }>
 }
 
 const keyLabelClass = 'text-foreground/60 text-[10px] uppercase tracking-wider font-mono'
@@ -34,7 +35,7 @@ const keyValueClass = 'font-semibold text-foreground text-sm'
 // en la misma URL. Las rutas viejas `/editar` e `/inscripciones` redirigen acá.
 export default async function GestionTorneoPage({ params, searchParams }: GestionTorneoProps) {
   const { id } = await params
-  const { tab: rawTab, q, error: errorCode } = await searchParams
+  const { tab: rawTab, q, error: errorCode, section } = await searchParams
   const tab = manageTab(rawTab)
 
   const supabase = await createClient()
@@ -50,7 +51,7 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
   // `status` e `inscriptions_count` son columnas calculadas: hay que pedirlas.
   const { data } = await supabase
     .from('tournaments')
-    .select(`${TOURNAMENT_FORM_COLUMNS}, image_url, verified_at, status, inscriptions_count`)
+    .select(`${TOURNAMENT_FORM_COLUMNS}, image_url, verified_at, accepts_requests, status, inscriptions_count, pending_requests_count`)
     .eq('id', id)
     .eq('user_id', user.id)
     .maybeSingle()
@@ -59,12 +60,16 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
     notFound()
   }
 
-  const { image_url, verified_at, status, inscriptions_count, ...formColumns } = data as TournamentInput & {
+  const { image_url, verified_at, accepts_requests, status, inscriptions_count, pending_requests_count, ...formColumns } = data as TournamentInput & {
     image_url: string | null
     verified_at: string
+    accepts_requests: boolean
     status: TournamentStatus
     inscriptions_count: number
+    pending_requests_count: number
   }
+  // Las pendientes de un Finalizado ya no se aceptan: no se cuentan.
+  const requestsLabel = status === 'finalizado' ? null : pendingRequestsLabel(pending_requests_count)
 
   const now = new Date()
   const age = verificationAge(verified_at, status, now)
@@ -72,7 +77,7 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
     format(new Date(date + 'T00:00:00'), 'd MMM yyyy', { locale: es })
 
   return (
-    <div className="w-full max-w-7xl mx-auto flex flex-col gap-8">
+    <div className="w-full min-w-0 max-w-7xl mx-auto flex flex-col gap-8">
       <BackLink href="/mis-torneos" label="Mis torneos" />
 
       <header className="flex flex-col gap-5">
@@ -156,6 +161,11 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
             }`}
           >
             {label}
+            {value === 'inscripciones' && requestsLabel && (
+              <span className="ml-2 px-1.5 py-0.5 bg-brand-amber/15 text-brand-amber text-[10px] font-mono rounded-sm">
+                {requestsLabel}
+              </span>
+            )}
           </Link>
         ))}
       </nav>
@@ -166,15 +176,19 @@ export default async function GestionTorneoPage({ params, searchParams }: Gestio
           formColumns={formColumns}
           inscriptionsCount={inscriptions_count}
           hasFlyer={image_url !== null}
+          acceptsRequests={accepts_requests}
+          errorCode={errorCode}
         />
       ) : (
         <InscripcionesTab
           id={id}
+          name={formColumns.name}
           status={status}
           count={inscriptions_count}
           capacity={formColumns.capacity}
           q={q}
-          errorCode={errorCode}
+          errorCode={section === 'solicitudes' ? undefined : errorCode}
+          requestErrorCode={section === 'solicitudes' ? errorCode : undefined}
         />
       )}
 

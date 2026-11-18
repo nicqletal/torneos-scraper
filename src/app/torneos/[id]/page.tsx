@@ -16,6 +16,8 @@ import { whatsappLink } from '@/utils/whatsapp'
 import { inscriptionsLabel, isLastSpots } from '@/utils/inscriptions'
 import { LastSpotsBadge } from '@/components/LastSpotsBadge'
 import { BackLink } from '@/components/BackLink'
+import { captainRequestOptions, type TeamRequest } from '@/utils/inscription-requests'
+import { CaptainRequests } from './CaptainRequests'
 
 interface TournamentDetailProps {
   params: Promise<{ id: string }>
@@ -69,6 +71,49 @@ export default async function TournamentDetail({
   const justPublished = query.publicado === '1' && isOwner
   // El alta salió pero la subida del flyer no (ver crear-torneo/actions.ts).
   const flyerFailed = justPublished && query.flyer === 'fallo'
+
+  // Solicitudes de inscripción: solo para quien es capitán de algún equipo.
+  // Cada equipo muestra si puede solicitar o cómo quedó (ver
+  // `captainRequestOptions`). Las solicitudes salen de la tabla, que por RLS
+  // solo le muestra al capitán las de sus equipos.
+  let requestOptions: ReturnType<typeof captainRequestOptions> = []
+  if (user) {
+    const { data: captaincies } = await supabase
+      .from('team_members')
+      .select('teams(id, name, dissolved_at)')
+      .eq('user_id', user.id)
+      .eq('is_captain', true)
+    const captainTeams = (captaincies ?? []).flatMap((row) => {
+      const team = row.teams as unknown as { id: string; name: string; dissolved_at: string | null } | null
+      return team ? [{ id: team.id, name: team.name, dissolved: team.dissolved_at !== null }] : []
+    })
+
+    if (captainTeams.length > 0) {
+      const { data: requests } = await supabase
+        .from('inscription_requests')
+        .select('id, team_id, status')
+        .eq('tournament_id', id)
+        .in('team_id', captainTeams.map((team) => team.id))
+      // Una Suspensión vigente: sus equipos aparecen deshabilitados con el
+      // motivo. El titular puede leer las suyas (RLS de account_suspensions).
+      const now = new Date().toISOString()
+      const { data: suspensions } = await supabase
+        .from('account_suspensions')
+        .select('id')
+        .eq('user_id', user.id)
+        .is('lifted_at', null)
+        .lte('starts_at', now)
+        .or(`ends_at.is.null,ends_at.gt.${now}`)
+        .limit(1)
+      requestOptions = captainRequestOptions(
+        { status, acceptsRequests: tournament.accepts_requests },
+        captainTeams.sort((a, b) => a.name.localeCompare(b.name)),
+        new Set((inscriptions ?? []).flatMap((i) => (i.team_id ? [i.team_id as string] : []))),
+        (requests ?? []) as TeamRequest[],
+        (suspensions ?? []).length > 0
+      )
+    }
+  }
 
   const formatDate = (date: string) =>
     format(new Date(date + 'T00:00:00'), "d 'de' MMMM, yyyy", { locale: es })
@@ -170,8 +215,8 @@ export default async function TournamentDetail({
     </div>
   )
 
-  // Contacto: es donde termina el flujo (la app no inscribe), así que va
-  // justo después de precio y fechas, sin tener que leer el reglamento.
+  // Contacto: va justo después de precio y fechas, sin tener que leer el
+  // reglamento. Debajo, el capitán puede mandar una Solicitud de inscripción.
   const contact = (
     <div className="flex flex-col sm:flex-row gap-4">
       {tournament.contact_whatsapp && (
@@ -346,6 +391,7 @@ export default async function TournamentDetail({
             {header}
             {pricing}
             {contact}
+            <CaptainRequests tournamentId={tournament.id} options={requestOptions} />
             {teams}
             {description}
             {rules}
@@ -365,6 +411,7 @@ export default async function TournamentDetail({
           {pricing}
           {venue}
           {contact}
+          <CaptainRequests tournamentId={tournament.id} options={requestOptions} />
           {description}
           {teams}
           {rules}

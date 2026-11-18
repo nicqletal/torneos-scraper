@@ -12,7 +12,7 @@ Revisión de [casos-de-uso.pdf](../casos-de-uso/casos-de-uso.pdf) (módulos A–
 ## Alcance
 
 - **Entran todos los módulos**, incluidos equipos y buscar partido.
-- **La app nunca inscribe ni cobra.** El jugador contacta al organizador por WhatsApp/Instagram, y el organizador carga la inscripción desde su panel.
+- **La app nunca cobra, y la inscripción la crea siempre el organizador.** El jugador contacta al organizador por WhatsApp/Instagram y el organizador carga la inscripción desde su panel, o el capitán manda una **solicitud de inscripción** desde la app y el organizador la acepta (18/11/2026, ver "Solicitudes de inscripción"). El pago se arregla siempre por fuera.
 - **Avisos:** solo una campanita dentro de la app. Nada de email ni push.
 - **Sin tareas programadas por ahora.** Todos los plazos (48 h, 24 h, vencimientos) se calculan cuando alguien mira la pantalla, no los ejecuta un reloj. Todos los avisos se disparan por una acción de un usuario.
 
@@ -21,8 +21,7 @@ Revisión de [casos-de-uso.pdf](../casos-de-uso/casos-de-uso.pdf) (módulos A–
 | Qué | Por qué |
 |---|---|
 | "Elegir perfil de entrada" (Jugar / Organizar) | Una sola cuenta, vista de jugador predeterminada y botón "Soy organizador" |
-| Botón "Anotar mi equipo" del capitán | La inscripción la carga el organizador |
-| El organizador ve el WhatsApp del capitán | Ya lo tiene: el capitán le escribió |
+| Botón "Anotar mi equipo" del capitán | La inscripción la crea el organizador. Desde el 18/11/2026 el capitán puede **solicitarla**, pero no inscribirse solo |
 | Grilla de disponibilidad del equipo (mañana/tarde/noche) | No se traducía a horas; la reemplaza "copiar horarios de la última búsqueda" |
 | Negociación de cancha y hora dentro de la app | Se arregla por WhatsApp; la app solo registra lo acordado |
 | Bloqueo por intentos fallidos de login | Lo cubre Supabase |
@@ -133,6 +132,46 @@ Revisión de [casos-de-uso.pdf](../casos-de-uso/casos-de-uso.pdf) (módulos A–
 - La ficha muestra públicamente los nombres de los equipos inscriptos.
 - **No se puede cargar una inscripción con el cupo completo:** la app la rechaza y sugiere subir el cupo desde Editar.
 - **En un torneo Finalizado no se cargan ni se borran inscripciones.** En Cerrado y En curso, sí: el organizador puede seguir acomodando la lista aunque ya no se inscriba nadie nuevo.
+
+### Solicitudes de inscripción (18/11/2026)
+
+Un capitán pide desde la app que su equipo entre en un torneo, y el organizador la acepta o la rechaza. **No es una inscripción ni ocupa cupo** hasta que se acepta. El pago se arregla por fuera, por WhatsApp.
+
+**Recibir solicitudes**
+- Es opcional por torneo: un interruptor en Datos ("Recibir solicitudes desde la app"), **encendido por defecto**, también en los torneos que ya existían. Apagarlo solo saca el botón de la ficha: no toca las solicitudes que ya llegaron.
+
+**Solicitar (capitán)**
+- La manda **solo el capitán**, en nombre de su equipo, para un torneo **Abierto** con las solicitudes encendidas.
+- No puede si el equipo está disuelto, si ya tiene una inscripción vinculada o una solicitud pendiente en ese torneo, si una solicitud suya a ese torneo fue rechazada, o si el capitán tiene una suspensión vigente.
+- Un equipo bloqueado por faltas **sí** puede solicitar: el bloqueo es de buscar partido, y el organizador ve las faltas para decidir.
+- No se controla la modalidad, la zona ni la cantidad de jugadores: decide el organizador.
+- Todo pasa en la **ficha del torneo**, en el bloque de contacto:
+  - sin sesión o sin ser capitán: solo el contacto, como antes;
+  - capitán: botón "Solicitar inscripción"; con varios equipos, elige cuál, y los que no pueden aparecen deshabilitados con el motivo;
+  - pendiente: "Solicitud enviada · Retirar";
+  - aceptada: "Tu equipo está inscripto";
+  - rechazada: "El organizador no aceptó la solicitud".
+- No hay sección "Mis solicitudes": el capitán se entera por la ficha y por los avisos.
+- **Retirar:** el capitán puede retirarla mientras está pendiente, sin aviso al organizador, y volver a solicitar (eso sí genera un aviso nuevo).
+
+**Gestionar (organizador)**
+- En la pestaña **Inscripciones** de la pantalla de gestión, una sección "Solicitudes" arriba de los inscriptos, de la más vieja a la más nueva. Cada fila: escudo y nombre (link a la página del equipo), zona, nivel, cantidad de jugadores, faltas y conflictos, hace cuánto llegó, botón de WhatsApp al capitán, **Aceptar** y **Rechazar**.
+- La fila de "Mis torneos" y la pestaña muestran cuántas solicitudes pendientes hay ("3 solicitudes").
+- **Aceptar** crea una inscripción vinculada. No pide confirmación (si fue un error, se da de baja la inscripción). Con el cupo completo da el mismo error que la carga a mano: "El cupo está completo: subí el cupo para anotar más equipos".
+- **Rechazar** pide confirmación y no lleva motivo. El equipo ya no puede volver a solicitar en ese torneo; el organizador igual lo puede cargar a mano como inscripción vinculada.
+- Una solicitud pendiente se puede aceptar mientras el torneo **no esté Finalizado** y haya cupo, aunque ya esté Cerrado o En curso. Con el torneo Finalizado deja de contar, y el capitán ve "El torneo ya no recibe inscripciones".
+
+**Avisos**
+- Solicitud nueva → al organizador, con link a la pestaña Inscripciones.
+- Aceptada → al capitán: "Tu equipo 'X' quedó inscripto en 'Y'". El resto del plantel no recibe aviso.
+- Rechazada → al capitán: "El organizador de 'Y' no aceptó la solicitud de 'X'".
+- Baja del torneo → al capitán de cada equipo con una solicitud pendiente: "Se dio de baja el torneo 'Y', al que tu equipo había pedido inscripción. Hablá con el organizador si ya pagaste algo." La confirmación de la baja sigue contando solo los inscriptos.
+- Retirar la solicitud no genera aviso.
+
+**Cambios en el equipo**
+- La solicitud es **del equipo**: si cambia el capitán, sigue pendiente, y el nuevo capitán la ve y la puede retirar.
+- **Disolver** el equipo retira sus solicitudes pendientes sin aviso. Las inscripciones vinculadas ya aceptadas se quedan.
+- Una **suspensión** del capitán no retira las solicitudes ya mandadas: las resuelve el organizador.
 
 ## Equipos
 
@@ -363,12 +402,13 @@ Esta tabla es la base de las reglas de acceso (RLS) de la base de datos.
 | Página del equipo (escudo, nombre, zona, modalidad, nivel, cantidad de jugadores, contador de jugados, faltas y conflictos, estrellas, últimos 5 partidos cerrados) | ✅ | ✅ |
 | Las dos versiones de un partido en conflicto | ✅ | ✅ |
 | Nombres del plantel | ❌ | Solo los integrantes del equipo |
-| WhatsApp de un capitán | ❌ | Solo el capitán rival, con un partido acordado |
+| WhatsApp de un capitán | ❌ | Solo el capitán rival, con un partido acordado; y el organizador de un torneo no Finalizado en el que el equipo tiene una solicitud pendiente o una inscripción vinculada (siempre el capitán actual) |
 | Búsquedas de rival y rivales compatibles | ❌ | Solo capitanes con una búsqueda activa |
 | Propuestas y detalle del partido (cancha, hora) | ❌ | Solo los dos equipos |
 | Comentarios de calificación | ❌ | Solo el administrador |
 | Reportes | ❌ | El administrador; cada usuario ve solo los suyos |
 | Gestión de inscripciones | ❌ | Solo el organizador del torneo |
+| Solicitudes de inscripción | ❌ | El organizador del torneo y el capitán del equipo que la mandó |
 | Conversaciones de Soporte | ❌ | Su autor y Administración con segundo factor |
 | Historial de Suspensiones | ❌ | La cuenta afectada y Administración con segundo factor |
 | Registro de actividad y consulta general de Avisos | ❌ | Solo Administración con segundo factor |

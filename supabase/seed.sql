@@ -12,7 +12,7 @@ begin
    where lower(email) = lower('nicomarichal980@gmail.com');
 
   if organizer_id is null then
-    raise exception 'No existe nicomarichal980@gmail.com en auth.users de esta base; creá la cuenta antes de cargar los torneos demo.';
+    raise notice 'No existe nicomarichal980@gmail.com en auth.users de esta base; creá la cuenta antes de cargar los torneos demo. Se omiten los torneos demo.'; return;
   end if;
 
   insert into public.tournaments (
@@ -52,7 +52,7 @@ declare
   organizer_id uuid;
 begin
   select id into organizer_id from auth.users where lower(email) = lower('nicomarichal980@gmail.com');
-  if organizer_id is null then raise exception 'No existe nicomarichal980@gmail.com en auth.users de esta base.'; end if;
+  if organizer_id is null then raise notice 'No existe nicomarichal980@gmail.com en auth.users de esta base. Se omiten los torneos demo.'; return; end if;
   insert into public.tournaments (name, sport_modality, zone_id, inscription_deadline, start_date, end_date, price, capacity, description, rules, venue_address, contact_instagram, contact_whatsapp, source_url, user_id, verified_at)
   select v.name, v.modality::public.sport_modality, v.zone_id, v.deadline::date, v.start_date::date, v.end_date::date, v.price, v.capacity, v.description, v.rules, v.address, v.instagram, v.whatsapp, v.source_url, organizer_id, now()
   from (values

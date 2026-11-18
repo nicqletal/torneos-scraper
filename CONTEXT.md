@@ -77,8 +77,12 @@ Retiro definitivo de un torneo que todavía no finalizó: desaparece del catálo
 _Avoid_: eliminar, borrar, cancelar
 
 **Inscripción**:
-Registro de un equipo en un torneo, cargado por el organizador desde su panel después de haber arreglado todo con el capitán por fuera de la app.
-_Avoid_: anotarse, inscribirse (el jugador nunca se inscribe desde la app)
+Registro de un equipo en un torneo, que crea siempre el organizador desde su panel: cargándola él mismo o aceptando una **Solicitud de inscripción**.
+_Avoid_: anotarse, inscribirse (un capitán **solicita**; la inscripción existe recién cuando el organizador la crea)
+
+**Solicitud de inscripción**:
+Pedido que hace un **Capitán** desde la app para que su **Equipo** entre en un torneo; no es una **Inscripción** ni ocupa **Cupo** hasta que el organizador la acepta.
+_Avoid_: preinscripción, inscripción pendiente, reserva
 
 **Inscripción vinculada**:
 Inscripción que apunta a un **Equipo** existente en la app.
@@ -204,15 +208,24 @@ _Avoid_: notificación
 - Un torneo **Abierto** pasa a **Cerrado** al vencer el cierre de inscripción o al completar su **Cupo**; si se da de baja una **Inscripción** antes del cierre, vuelve a **Abierto**
 - Todo **Torneo** tiene fecha de fin; al pasarla queda **Finalizado** y sale del catálogo
 - Un torneo **Finalizado** no admite **Baja**: queda para siempre como trayectoria de su organizador
-- La **Baja** la hace el organizador o el administrador, y genera un **Aviso** para el **Plantel** de cada equipo con **Inscripción vinculada** en ese torneo
+- La **Baja** la hace el organizador o el administrador, y genera un **Aviso** para el **Plantel** de cada equipo con **Inscripción vinculada** en ese torneo, y para el **Capitán** de cada equipo con una **Solicitud de inscripción** pendiente
 - Una **Inscripción** la crea siempre el organizador de ese torneo, y puede ser **vinculada** o **por nombre**; las dos cuentan igual para el **Cupo**
 - Solo una **Inscripción vinculada** genera **Avisos** y aparece en la historia del **Equipo**
 - Un **Equipo** tiene como mucho una **Inscripción vinculada** por torneo; el capitán no confirma la vinculación
+- Un torneo **Abierto** recibe **Solicitudes de inscripción** salvo que su organizador las apague; vienen encendidas por defecto, también en los torneos que ya existían
+- Una **Solicitud de inscripción** la manda solo el **Capitán**, para un torneo **Abierto**, y solo si su equipo no está disuelto ni tiene ya una **Inscripción vinculada** o una solicitud pendiente o rechazada en ese torneo
+- Una **Solicitud de inscripción** pendiente se puede aceptar mientras el torneo no esté **Finalizado** y tenga lugar en el **Cupo**, aunque ya esté **Cerrado** o **En curso**; apagar las solicitudes no afecta las que ya llegaron
+- Si el organizador rechaza una **Solicitud de inscripción**, el capitán recibe un **Aviso** y su equipo ya no puede volver a solicitar en ese torneo; el organizador igual lo puede cargar a mano como **Inscripción vinculada**
+- Si el organizador acepta una **Solicitud de inscripción**, se crea una **Inscripción vinculada** y el capitán recibe un **Aviso**; el resto del **Plantel**, no
+- Cada **Solicitud de inscripción** nueva genera un **Aviso** para el organizador del torneo
+- El capitán puede retirar su **Solicitud de inscripción** mientras está pendiente, sin aviso al organizador, y después volver a solicitar
+- Una **Solicitud de inscripción** es del **Equipo**, no de la persona: si cambia el **Capitán**, sigue pendiente a su nombre
+- Un capitán con una **Suspensión** no puede solicitar inscripción, pero las solicitudes que ya había mandado siguen pendientes; un equipo bloqueado por **Faltas** sí puede solicitar
 
 ### Equipos
 
 - Un **Equipo** tiene exactamente un **Capitán**, que no puede salir del **Plantel** sin antes pasar la capitanía
-- Un **Equipo disuelto** no busca rival ni recibe **Inscripciones**, y no se puede reactivar; no se puede disolver un equipo con un partido sin terminar, y disolverlo cancela sus búsquedas de rival
+- Un **Equipo disuelto** no busca rival ni recibe **Inscripciones**, y no se puede reactivar; no se puede disolver un equipo con un partido sin terminar, y disolverlo cancela sus búsquedas de rival y retira sus **Solicitudes de inscripción** pendientes
 
 ### Partidos
 
@@ -250,7 +263,7 @@ _Avoid_: notificación
 
 - "Elegir perfil de entrada (Jugar / Organizar)" y "loguearse como organizador" sugerían dos tipos de cuenta — resuelto: hay una sola cuenta y una sola forma de navegar. Se probó una "vista de organizador" con un switch en la barra ("Soy organizador" / "Volver a jugador") y se descartó: modelaba dos mundos para una sección de dos pantallas, y el botón no se entendía. Si el **Panel de organizador** crece, crece con pestañas dentro de cada torneo, no con un modo global.
 - "panel de admin" se usaba para el panel del organizador — resuelto: son el **Panel de organizador** y el **Panel de administración**, y cada uno tiene su propio rol.
-- "Anotar mi equipo" aparecía como una acción del capitán dentro de la app — resuelto: la **Inscripción** la hace solo el organizador; el capitán lo contacta por WhatsApp.
+- "Anotar mi equipo" aparecía como una acción del capitán dentro de la app — resuelto: la **Inscripción** la hace solo el organizador. Desde el 18/11/2026 el capitán puede mandar una **Solicitud de inscripción**, pero sigue sin inscribirse él: inscribe el organizador al aceptarla.
 - Los estados aparecían con dos listas distintas (con "En curso" y con "Últimos cupos") — resuelto: son 4 estados calculados, y "Últimos cupos" es solo una etiqueta.
 - "Sin confirmar" se usaba para dos cosas: la marca automática por falta de verificación y la marca manual del administrador — resuelto: son la **Antigüedad de verificación** y **Observado**, y "Sigue vigente" solo reinicia la primera.
 - Las franjas podían ser concretas o repetirse ("todos los martes") — resuelto: toda **Franja** es una fecha concreta; "repetir" es solo un atajo del formulario.

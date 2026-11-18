@@ -175,6 +175,47 @@ test('baja de torneo: el texto de las decisiones y link a la página del equipo'
   assert.equal(noticeLink('tournament_withdrawn', params), '/equipos/aaaa-1')
 })
 
+// Solicitudes de inscripción.
+const request = {
+  tournament_id: 't-1',
+  tournament_name: 'Copa Palermo',
+  team_id: 'aaaa-1',
+  team_name: 'Real Floresta',
+}
+
+test('solicitud recibida: al organizador, a la pestaña Inscripciones del torneo', () => {
+  assert.equal(
+    noticeText('inscription_request_received', request),
+    "'Real Floresta' mandó una solicitud de inscripción a 'Copa Palermo'. Escribile al capitán y aceptala o rechazala."
+  )
+  assert.equal(noticeLink('inscription_request_received', request), '/mis-torneos/t-1?tab=inscripciones')
+})
+
+test('solicitud aceptada: al capitán, a la ficha del torneo', () => {
+  assert.equal(
+    noticeText('inscription_request_accepted', request),
+    "Tu equipo 'Real Floresta' quedó inscripto en 'Copa Palermo'."
+  )
+  assert.equal(noticeLink('inscription_request_accepted', request), '/torneos/t-1')
+})
+
+test('solicitud rechazada: al capitán, a la ficha del torneo', () => {
+  assert.equal(
+    noticeText('inscription_request_rejected', request),
+    "El organizador de 'Copa Palermo' no aceptó la solicitud de 'Real Floresta'."
+  )
+  assert.equal(noticeLink('inscription_request_rejected', request), '/torneos/t-1')
+})
+
+test('baja de un torneo con la solicitud pendiente: a la página del equipo', () => {
+  const params = { tournament_name: 'Copa Palermo', team_id: 'aaaa-1', team_name: 'Real Floresta' }
+  assert.equal(
+    noticeText('inscription_request_withdrawn', params),
+    "Se dio de baja el torneo 'Copa Palermo', al que tu equipo Real Floresta había pedido inscripción. Hablá con el organizador si ya pagaste algo."
+  )
+  assert.equal(noticeLink('inscription_request_withdrawn', params), '/equipos/aaaa-1')
+})
+
 test('un rango que termina a medianoche dice "a 24"', () => {
   const params = { rival_name: 'Los Pibes', range_start: '2026-11-05T00:00:00Z', range_end: '2026-11-05T03:00:00Z' }
   assert.equal(

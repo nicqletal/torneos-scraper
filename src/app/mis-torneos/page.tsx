@@ -7,6 +7,8 @@ import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament
 import { sortForPanel, verificationAge, verifyBlock } from '@/utils/tournament-verification'
 import { modalityLabel } from '@/utils/modality'
 import { inscriptionsLabel } from '@/utils/inscriptions'
+import { pendingRequestsLabel } from '@/utils/inscription-requests'
+import { managePath } from '@/utils/tournament-manage'
 import { ZONE_LABEL_EMBED, zoneLabel, type ZoneLabelFields } from '@/utils/zones'
 import { VerificationBadge } from '@/components/VerificationBadge'
 import { VerifyButton } from './VerifyButton'
@@ -25,7 +27,7 @@ export default async function MisTorneosPage({ searchParams }: { searchParams: P
   // `status` e `inscriptions_count` son columnas calculadas: hay que pedirlas.
   const { data, error } = await supabase
     .from('tournaments')
-    .select(`id, name, ${ZONE_LABEL_EMBED}, sport_modality, capacity, verified_at, status, inscriptions_count`)
+    .select(`id, name, ${ZONE_LABEL_EMBED}, sport_modality, capacity, verified_at, status, inscriptions_count, pending_requests_count`)
     .eq('user_id', user.id)
     .order('start_date', { ascending: true })
 
@@ -48,6 +50,7 @@ export default async function MisTorneosPage({ searchParams }: { searchParams: P
       ...t,
       status: t.status as TournamentStatus,
       inscriptions_count: t.inscriptions_count as number,
+      pending_requests_count: t.pending_requests_count as number,
       zones: t.zones as unknown as ZoneLabelFields,
     })),
     now
@@ -115,6 +118,14 @@ export default async function MisTorneosPage({ searchParams }: { searchParams: P
                       {inscriptionsLabel(tournament.inscriptions_count, tournament.capacity)}
                     </span>
                     {age && <VerificationBadge age={age} className="px-2.5 py-1" />}
+                    {tournament.status !== 'finalizado' && pendingRequestsLabel(tournament.pending_requests_count) && (
+                      <Link
+                        href={managePath(tournament.id, 'inscripciones')}
+                        className="px-2.5 py-1 border border-brand-amber/60 text-brand-amber rounded-sm hover:border-brand-amber"
+                      >
+                        {pendingRequestsLabel(tournament.pending_requests_count)}
+                      </Link>
+                    )}
                   </div>
                 </div>
 
