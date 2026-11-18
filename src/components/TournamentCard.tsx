@@ -166,7 +166,7 @@ export function TournamentCard({ tournament, index, verification, promoted = fal
 
       </div>
       </Link>
-      {showFavorite && <FavoriteToggle tournamentId={tournament.id} className="absolute right-3 top-3" />}
+      {showFavorite && <FavoriteToggle tournamentId={tournament.id} className={`absolute right-3 ${isPromoted ? 'top-12' : 'top-3'}`} />}
     </article>
   )
 }
