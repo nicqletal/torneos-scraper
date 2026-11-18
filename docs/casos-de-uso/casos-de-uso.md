@@ -114,8 +114,10 @@ Límite de producto que atraviesa todo: **la app nunca inscribe ni cobra**. Todo
 - **Precondiciones:** ninguna. `/` es el catálogo.
 - **Flujo principal:**
   1. Entra a la portada.
-  2. El sistema lista los torneos no finalizados, paginados, ordenados por fecha de inicio.
-  3. Cada card muestra **Flyer** (o un marcador con el nombre), nombre, zona, modalidad, precio, **Estado del torneo** y **Antigüedad de verificación**.
+  2. El sistema lista los torneos no finalizados, ordenados por prioridad y fecha de inicio, con 12 por página inicialmente. Puede elegir 12, 24 o 48 y navegar las páginas con enlaces numerados, Anterior y Siguiente; se muestra qué rango está viendo del total.
+  3. Puede cambiar el tamaño de las tarjetas entre Compacta, Normal y Amplia. Compacta es el valor inicial; la preferencia se recuerda en ese dispositivo. Los tres tamaños mantienen todos los datos de la tarjeta y ajustan su distribución; en móvil conservan una sola columna.
+  4. Cada card muestra **Flyer** (o un marcador con el nombre), nombre, zona, modalidad, precio, **Estado del torneo** y **Antigüedad de verificación**.
+- **Reglas de URL:** la página (`pagina`) y la cantidad por página (`por_pagina`) se guardan en la URL; cambiar filtros o cantidad por página vuelve a la primera página y conserva la cantidad elegida. El tamaño de las tarjetas es una preferencia local y no se comparte en el link.
 - **Flujos alternativos:**
   - **A1. Precio:** vacío se muestra como "Consultar"; 0, como "Gratis".
   - **A2. Antigüedad de verificación:** desde 30 días completos sin verificar, en ámbar; desde 60, en rojo con "sin confirmar".
@@ -130,7 +132,7 @@ Límite de producto que atraviesa todo: **la app nunca inscribe ni cobra**. Todo
 - **Flujo principal:**
   1. Abre los filtros (panel en el celular, columna lateral en pantalla grande).
   2. Elige modalidad, estado, zona o **Corredor**, precio máximo y fechas de inicio.
-  3. El sistema combina todos los filtros (AND), los escribe en la URL y vuelve a la página 1.
+  3. El sistema combina todos los filtros (AND), los escribe en la URL y vuelve a la página 1, conservando la cantidad por página elegida.
   4. Copia la URL y la comparte; quien la abre ve el mismo listado con los mismos filtros activos.
 - **Flujos alternativos:**
   - **A1. Corredor:** elegir un corredor incluye todas sus zonas.

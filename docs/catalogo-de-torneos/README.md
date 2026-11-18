@@ -1,6 +1,6 @@
 # Módulo Catálogo de torneos · Documentación
 
-Documentación completa del módulo B (Catálogo de torneos, público) de Matchmaking, versión del **04/11/2026**. Sigue el mismo orden que la de los módulos [Equipos](../equipos/README.md) y [Cuenta y acceso](../cuenta-y-acceso/README.md):
+Documentación completa del módulo B (Catálogo de torneos, público) de Matchmaking, actualizada el **18/11/2026**. Sigue el mismo orden que la de los módulos [Equipos](../equipos/README.md) y [Cuenta y acceso](../cuenta-y-acceso/README.md):
 
 | Paso | Documento | Qué contiene |
 |---|---|---|
@@ -15,7 +15,7 @@ Fuentes, en orden de autoridad: [decisiones-casos-de-uso.md](../especificaciones
 
 | Caso de uso | Requerimientos | Pantalla | Diagrama | Estado |
 |---|---|---|---|---|
-| **UC-B01** Ver el catálogo | RF-B01 a B07, B25 | [P1](03-pantallas.md#p1--catálogo) `/` | [S01](04-diagramas-secuencia/uc-b01-ver-catalogo.md) | **Parcial** (sin paginar) |
+| **UC-B01** Ver el catálogo | RF-B01 a B07, B25 | [P1](03-pantallas.md#p1--catálogo) `/` | [S01](04-diagramas-secuencia/uc-b01-ver-catalogo.md) | Implementado |
 | **UC-B02** Filtrar y compartir | RF-B08 a B13 | [P1](03-pantallas.md#p1--catálogo) panel de filtros | [S02](04-diagramas-secuencia/uc-b02-filtrar-torneos.md) | **Parcial** (2 de 5 filtros) |
 | **UC-B03** Ver la ficha | RF-B14 a B20 | [P2](03-pantallas.md#p2--ficha-del-torneo) `/torneos/{id}` | [S03](04-diagramas-secuencia/uc-b03-ver-ficha-torneo.md) | **Parcial** |
 | **UC-B04** Contactar al organizador | RF-B21, B22 | [P2](03-pantallas.md#p2--ficha-del-torneo) | [S04](04-diagramas-secuencia/uc-b04-contactar-organizador.md) | Implementado |
@@ -35,17 +35,16 @@ Fuentes, en orden de autoridad: [decisiones-casos-de-uso.md](../especificaciones
 
 ## Hallazgos y pendientes
 
-**`casos-de-uso.md` marca el módulo B como «Implementado», salvo el reporte. Al compararlo con el código, hay nueve diferencias.** Están detalladas en [«Sin decisión»](01-requerimientos.md#5-sin-decisión-lo-que-casos-de-usomd-dice-y-el-código-no-hace). Las más importantes:
+**`casos-de-uso.md` marca el módulo B como «Implementado», salvo el reporte.** La comparación inicial encontró nueve diferencias; la paginación y el estado vacío ya se resolvieron. Las diferencias restantes están detalladas en [«Sin decisión»](01-requerimientos.md#5-sin-decisión-lo-que-casos-de-usomd-dice-y-el-código-no-hace). Las más importantes:
 
 1. **El catálogo solo filtra por modalidad y estado.** Zona o Corredor, precio máximo y fechas de inicio **no existen en `main`**. `decisiones-casos-de-uso.md` incluso define el parámetro `?zona=` (que acepta una Zona o un Corredor completo). La rama `feat/dynamic-filters` tiene un filtro por Zona y por precio, pero **no está integrada** y es anterior a la tabla `zones`.
-2. **No hay paginación**: se traen todos los torneos de una vez. Con el catálogo creciendo, es la primera deuda de rendimiento.
-3. **La ficha de un torneo Finalizado muestra los botones de contacto**, aunque `casos-de-uso.md` pide «Este torneo ya terminó» sin botones.
-4. **El 404 de una ficha es el genérico de Next**: en inglés, sin link al catálogo. Se comprobó con una captura.
-5. **La ficha no tiene metadatos propios** para la vista previa de WhatsApp.
-6. **El texto del mensaje de WhatsApp difiere** de lo documentado (el nombre del producto ya coincide: «Matchmaking»).
-7. **Un valor inválido en un filtro de la URL no se ignora**: lo rechaza la base y se ve el error de carga.
-8. **`casos-de-uso.md` se contradice** sobre los Finalizados: UC-B01 A4 dice que aparecen si se filtra por ese Estado; la regla transversal dice que salen del catálogo. El código hace lo segundo.
-9. **El reporte de torneos (UC-B06)** sigue pendiente: sin tabla, función ni botón.
+2. **La ficha de un torneo Finalizado muestra los botones de contacto**, aunque `casos-de-uso.md` pide «Este torneo ya terminó» sin botones.
+3. **El 404 de una ficha es el genérico de Next**: en inglés, sin link al catálogo. Se comprobó con una captura.
+4. **La ficha no tiene metadatos propios** para la vista previa de WhatsApp.
+5. **El texto del mensaje de WhatsApp difiere** de lo documentado (el nombre del producto ya coincide: «Matchmaking»).
+6. **Un valor inválido en un filtro de la URL no se ignora**: lo rechaza la base y se ve el error de carga.
+7. **`casos-de-uso.md` se contradice** sobre los Finalizados: UC-B01 A4 dice que aparecen si se filtra por ese Estado; la regla transversal dice que salen del catálogo. El código hace lo segundo.
+8. **El reporte de torneos (UC-B06)** sigue pendiente: sin tabla, función ni botón.
 
 **Capturas:** hay dos vigentes (el catálogo con filtros activos en su estado de error de carga, y el 404 de la ficha). La base de desarrollo no respondía, así que **faltan las que muestran torneos reales**: la lista en [03-pantallas.md](03-pantallas.md#capturas-pendientes).
 

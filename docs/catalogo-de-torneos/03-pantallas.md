@@ -1,15 +1,16 @@
 # Módulo Catálogo de torneos · Pantallas
 
-Versión del **04/11/2026**. Cada pantalla pública de los torneos, con su ruta, el caso, los requerimientos, lo que muestra y la captura. Siguen a los [casos de uso](02-casos-de-uso.md) y preceden a los [diagramas de secuencia](04-diagramas-secuencia/README.md).
+Actualizado el **18/11/2026**. Cada pantalla pública de los torneos, con su ruta, el caso, los requerimientos, lo que muestra y la captura. Siguen a los [casos de uso](02-casos-de-uso.md) y preceden a los [diagramas de secuencia](04-diagramas-secuencia/README.md).
 
 **Estado de las capturas**
 
 | Marca | Significa |
 |---|---|
-| ✅ **Vigente** | Sacada el 04/11/2026 de `main`, con la UI actual, a 1280 px de ancho. |
+| ✅ **Vigente** | Representa la UI actual. |
 | ⏳ **Pendiente** | Todavía no hay captura. Al final están los pasos para sacarla. |
+| 🗂️ **Histórica** | Se conserva como referencia, pero ya no representa la UI actual. |
 
-Las capturas están en [`pantallas/`](pantallas/). **La base de datos de desarrollo no respondía** cuando se sacaron, así que las dos capturas vigentes muestran estados que la app produce justamente cuando la base falla: el catálogo en su estado de error (con el panel de filtros completo y activo) y el 404 de una ficha. Las que muestran torneos reales están pendientes.
+Las capturas están en [`pantallas/`](pantallas/). La captura del catálogo es **histórica**: se sacó antes del rediseño del panel de filtros del 18/11/2026 y muestra el error de carga de la base, no la nueva sidebar ni el drawer. El 404 de la ficha sigue vigente. Faltan capturas nuevas del catálogo con la base disponible, incluida la vista móvil.
 
 ## Mapa de pantallas
 
@@ -29,31 +30,33 @@ Las tres son **públicas**: ninguna está en la lista de rutas protegidas.
 
 ![Catálogo con filtros activos](pantallas/catalogo-filtros-activos.png)
 
-*Captura ✅ vigente. URL: `/?modality=futbol_5&status=abierto`. Muestra el panel de filtros con «Fútbol 5» e «Inscripción abierta» activos y, a la derecha, el **estado de error de carga** («Hubo un error al cargar los torneos deportivos.») porque la base no respondía. Con la base disponible, ahí van las tarjetas.*
+*Captura 🗂️ histórica. URL: `/?modality=futbol_5&status=abierto`. Muestra «Fútbol 5» e «Inscripción abierta» activos y, a la derecha, el **estado de error de carga** («Hubo un error al cargar los torneos deportivos.») porque la base no respondía. Es anterior al rediseño responsive de filtros.*
 
 **Qué muestra.** El título «Encontrá tu próximo torneo» y dos columnas:
 
-- **Panel de filtros** (izquierda, fijo al desplazarse en pantalla grande), con dos grupos de botones:
+- **Filtros**: en escritorio amplio, sidebar angosta a la izquierda y fija al desplazarse. Modalidad y Estado de inscripción empiezan plegados y muestran la selección actual en el encabezado; al desplegarlos aparecen sus opciones. «Limpiar» se muestra cuando hay filtros activos. En móvil y tablet hay un botón «Filtros» que abre un panel lateral desde la derecha, con fondo atenuado; se cierra con X, Escape o al tocar afuera. Los cambios se aplican al elegir una opción y el panel queda abierto para combinar ambos grupos. No se muestran chips de filtros sobre el catálogo. Opciones vigentes:
 
   | Grupo | Opciones | De dónde salen las opciones |
   |---|---|---|
   | **Modalidad de juego** | Todas las modalidades · Fútbol 5 · Fútbol 7 · Fútbol 8 · Fútbol 11 | **Lista fija del código** (`SPORT_MODALITIES`) |
   | **Estado de inscripción** | Todos los estados · Inscripción abierta · En curso · Inscripción cerrada | **Lista fija del código** (en `Filters.tsx`) |
 
-  La opción activa se resalta en lima con una flecha. Elegir una opción reescribe la URL.
-- **Listado** (derecha): una **tarjeta** por torneo, en una grilla de 1 a 3 columnas. Cada tarjeta es un link entero a la ficha y muestra: el flyer (o un marcador) con el **Estado** y, si corresponde, «Últimos cupos»; un número de orden y el nombre; la Zona con su corredor y la modalidad; la **antigüedad de verificación** (ámbar o rojo desde los 30 y 60 días) y el **precio** («Consultar» o «Gratis»); y el botón «Ficha». Los torneos cerrados se ven en escala de grises.
+  La opción activa se marca con un indicador y un fondo sutil. Elegir una opción reescribe la URL, vuelve a la página 1 y conserva la cantidad por página.
+- **Barra de resultados**: rango mostrado y total, selector del tamaño de tarjeta (Compacta, Normal o Amplia) y selector de 12, 24 o 48 torneos por página. Compacta y 12 son los valores iniciales. Página y cantidad se comparten por URL; el tamaño de tarjeta se recuerda en el dispositivo.
+- **Listado** (derecha): una tarjeta por torneo, en una grilla de 1 a 4 columnas según tamaño de tarjeta y ancho de pantalla; en móvil, una sola columna. Los tamaños adaptan Flyer, tipografía y espacios sin ocultar los datos. Cada tarjeta es un link entero a la ficha y muestra: el flyer (o un marcador) con el **Estado** y, si corresponde, «Últimos cupos»; el nombre; la Zona con su corredor y la modalidad; la **antigüedad de verificación** (ámbar o rojo desde los 30 y 60 días) y el **precio** («Consultar» o «Gratis»); y el botón «Ficha». Los torneos cerrados se ven en escala de grises.
+- **Paginación**: rango de resultados, enlaces numerados, Anterior y Siguiente arriba y abajo de la grilla cuando hay más de una página.
 - **Pie:** «¿Organizás torneos? Publicalo» (lleva al panel; sin sesión, a Crear cuenta con el aviso).
 
 **Estados de la pantalla**
 
 | Estado | Qué ve la persona |
 |---|---|
-| Con torneos | La grilla de tarjetas. |
-| Cargando | Esqueletos animados del panel y de seis tarjetas. |
-| Sin resultados | «No hay torneos registrados … Probá cambiando las opciones en el panel lateral o limpiando los filtros de búsqueda». |
+| Con torneos | Conteo/rango, controles de tamaño y página, grilla paginada. |
+| Cargando | Esqueletos animados del panel y de seis tarjetas, con la densidad inicial. |
+| Sin resultados | Mensaje según haya filtros, opción «Ver todos los torneos» y acceso para publicar un torneo. |
 | Error de carga | «Hubo un error al cargar los torneos deportivos.» ✅ (captura de arriba) |
 
-> ⏳ **Pendiente:** la grilla de tarjetas con datos reales, y el estado «Sin resultados». Tampoco hay paginación, ni filtros de Zona, precio o fechas (ver [«Sin decisión»](01-requerimientos.md#5-sin-decisión-lo-que-casos-de-usomd-dice-y-el-código-no-hace)).
+> ⏳ **Pendiente:** faltan los filtros de Zona, precio y fechas de inicio (ver [«Sin decisión»](01-requerimientos.md#5-sin-decisión-lo-que-casos-de-usomd-dice-y-el-código-no-hace)).
 
 ---
 

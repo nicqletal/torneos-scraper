@@ -9,6 +9,21 @@ import { TournamentFlyer } from './TournamentFlyer'
 import { LastSpotsBadge } from './LastSpotsBadge'
 import { isLastSpots } from '@/utils/inscriptions'
 import { modalityLabel, type SportModality } from '@/utils/modality'
+import { FavoriteToggle } from './FavoriteToggle'
+
+export const organizerImages: Record<string, string> = {
+  areiafutbol: '/organizers/areia.jpg',
+  'bdn.sabados': '/organizers/bdn-sabados.jpg',
+  bdntorneos: '/organizers/bdntorneos.jpg',
+  'bdntorneos.fem': '/organizers/bdntorneos-fem.jpg',
+  liganunez: '/organizers/liganunez.jpg',
+  liganunezfem: '/organizers/liganunez-fem.jpg',
+  liganunezplus: '/organizers/liganunez-plus.jpg',
+  ligapuertomadero: '/organizers/ligapuertomadero.jpg',
+  ligatigre: '/organizers/liga-tigre.jpg',
+  'pasion.mas': '/organizers/pasion-mas.jpg',
+  torneosindiana: '/organizers/torneosindiana.jpg',
+}
 
 export interface Tournament {
   id: string
@@ -26,6 +41,7 @@ export interface Tournament {
   capacity: number | null
   contact_whatsapp: string | null
   contact_instagram: string | null
+  source_url?: string | null
   image_url: string | null
   verified_at: string
   updated_at: string
@@ -47,16 +63,15 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
     // el botón "Ficha". La entrada es una animación CSS (corre fuera del hilo
     // principal mientras la página carga) escalonada 40ms por card, con tope en
     // la sexta para que ninguna espere más de 200ms.
-    <Link
-      href={`/torneos/${tournament.id}`}
-      style={{ '--i': Math.min(index, 5) } as React.CSSProperties}
-      className="group flex flex-col bg-brand-surface border border-brand-border hover:border-brand-lime h-full transition-colors animate-card-in [animation-delay:calc(var(--i)*40ms)] focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2"
-    >
+    <article style={{ '--i': Math.min(index, 5) } as React.CSSProperties} className="tournament-card group relative flex flex-col bg-brand-surface border border-brand-border hover:border-brand-lime h-full transition-colors animate-card-in [animation-delay:calc(var(--i)*40ms)]">
+      <Link href={`/torneos/${tournament.id}`} className="flex h-full flex-col focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2">
       {tournament.observed_at && <p className="px-4 py-2 text-sm text-brand-amber border-b border-brand-border">Información reportada en revisión</p>}
       {/* Flyer Header */}
-      <div className="relative h-44 w-full bg-brand-bg overflow-hidden">
+      <div className="tournament-card-flyer relative w-full bg-brand-bg overflow-hidden">
         <TournamentFlyer
           imageUrl={tournament.image_url}
+          demoFlyerUrl={tournament.source_url?.startsWith('demo://') ? `/demo-flyers/${tournament.source_url.split('/').pop()}.svg` : null}
+          organizerImageUrl={tournament.contact_instagram ? organizerImages[tournament.contact_instagram] ?? null : null}
           name={tournament.name}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={index < 3}
@@ -68,29 +83,29 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
         {/* Floating elements inside image */}
         <div className="absolute inset-0 bg-gradient-to-t from-brand-surface via-transparent to-transparent opacity-90" />
         
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-          <span className={`px-2.5 py-1 text-sm font-bold uppercase tracking-widest border font-sans rounded-sm ${statusStyles[tournament.status]}`}>
-            {statusLabels[tournament.status]}
-          </span>
-          {isLastSpots(tournament.status, tournament.capacity, tournament.inscriptions_count) && (
-            <LastSpotsBadge className="px-2.5 py-1 text-sm" />
-          )}
-        </div>
-
         <div className="absolute bottom-3 right-3 text-sm text-foreground/70 bg-brand-bg/80 px-2 py-0.5 border border-brand-border rounded-sm backdrop-blur-xs font-mono">
           REF: #{tournament.id.slice(0, 5).toUpperCase()}
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 border-b border-brand-border px-4 py-2.5">
+        <span className={`px-2 py-1 text-xs font-bold uppercase tracking-wider border rounded-sm ${statusStyles[tournament.status]}`}>
+          {statusLabels[tournament.status]}
+        </span>
+        {isLastSpots(tournament.status, tournament.capacity, tournament.inscriptions_count) && (
+          <LastSpotsBadge className="px-2 py-1 text-xs" />
+        )}
+      </div>
+
       {/* Main Info Body */}
-      <div className="p-5 flex flex-col flex-1">
+      <div className="tournament-card-body flex flex-col flex-1">
         
         {/* Editorial Title Header */}
         <div className="flex items-start mb-4">
           <span className="font-display text-4xl text-brand-lime/30 tracking-wider select-none leading-none mr-3 border-r border-brand-border/40 pr-3 font-bold">
             {scoreboardIndex}
           </span>
-          <h3 className="text-3xl tracking-wide text-foreground line-clamp-2 uppercase font-display leading-none flex-1">
+          <h3 className="tournament-card-title tracking-wide text-foreground uppercase font-display leading-none flex-1">
             {tournament.name}
           </h3>
         </div>
@@ -134,6 +149,8 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
         </div>
 
       </div>
-    </Link>
+      </Link>
+      <FavoriteToggle tournamentId={tournament.id} className="absolute right-3 top-3" />
+    </article>
   )
 }
