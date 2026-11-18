@@ -39,10 +39,21 @@ export async function TournamentList({
 
   const offset = (requestedPage - 1) * pageSize
   const knownOrganizerHandles = Object.keys(organizerImages)
-  const makeQuery = (status: string | undefined, withOrganizerPhoto: boolean | undefined, head = false) => {
+  const makeCountQuery = (status: string | undefined, withOrganizerPhoto: boolean | undefined) => {
     let query = supabase
       .from('tournaments')
-      .select(head ? 'id' : `*, status, inscriptions_count, ${ZONE_LABEL_EMBED}`, { count: 'exact', head })
+      .select('id', { count: 'exact', head: true })
+      .neq('status', 'finalizado')
+    if (awaitedParams.modality) query = query.eq('sport_modality', awaitedParams.modality as string)
+    if (status) query = query.eq('status', status)
+    if (withOrganizerPhoto === true) query = query.in('contact_instagram', knownOrganizerHandles)
+    if (withOrganizerPhoto === false) query = query.or(`contact_instagram.is.null,contact_instagram.not.in.(${knownOrganizerHandles.join(',')})`)
+    return query
+  }
+  const makeRowsQuery = (status: string | undefined, withOrganizerPhoto: boolean | undefined) => {
+    let query = supabase
+      .from('tournaments')
+      .select(`*, status, inscriptions_count, ${ZONE_LABEL_EMBED}`)
       .neq('status', 'finalizado')
     if (awaitedParams.modality) query = query.eq('sport_modality', awaitedParams.modality as string)
     if (status) query = query.eq('status', status)
@@ -68,7 +79,7 @@ export async function TournamentList({
       ]
 
   const cohortCounts = await Promise.all(cohorts.map(async cohort => {
-    let query = makeQuery(cohort.status, cohort.withOrganizerPhoto, true)
+    let query = makeCountQuery(cohort.status, cohort.withOrganizerPhoto)
     if (cohort.excludeOpen) query = query.neq('status', 'abierto')
     return query
   }))
@@ -87,7 +98,7 @@ export async function TournamentList({
   }).filter(page => page.take > 0)
 
   const pageResults = await Promise.all(pageQueries.map(async ({ cohort, cohortOffset, take }) => {
-    let query = makeQuery(cohort.status, cohort.withOrganizerPhoto)
+    let query = makeRowsQuery(cohort.status, cohort.withOrganizerPhoto)
     if (cohort.excludeOpen) query = query.neq('status', 'abierto')
     return query.range(cohortOffset, cohortOffset + take - 1)
   }))
