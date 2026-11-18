@@ -16,7 +16,7 @@ const actions = {
   cierre_soporte: 'Cerró una consulta de soporte',
   configuracion_actualizada: 'Actualizó Configuración',
   mfa_verificado: 'Verificó el segundo factor',
-  contrasena_actualizada: 'Actualizó su contraseña',
+  contrasena_actualizada: 'Cambio de contraseña',
   cierre_sesion_solicitado: 'Solicitó cerrar la sesión actual',
   cierre_global_solicitado: 'Solicitó cerrar todas sus sesiones',
 } as const
@@ -67,7 +67,7 @@ export default async function AdminActivityPage({ searchParams }: { searchParams
       {data?.length ? <ol className="flex flex-col gap-3">{data.map(item => <li key={item.id} className="p-5 bg-brand-surface border border-brand-border rounded-sm flex flex-col gap-3">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2"><h2 className="font-semibold text-lg">{actions[item.action as keyof typeof actions] ?? item.action}</h2><time dateTime={item.created_at} className="text-sm text-foreground/60">{new Date(item.created_at).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', dateStyle: 'medium', timeStyle: 'short' })}</time></div>
         <dl className="grid sm:grid-cols-2 gap-3 text-sm"><div><dt className="text-foreground/60">Administrador</dt><dd><Link href={`/admin/usuarios/${item.actor_id}`} className="text-brand-lime hover:underline">{names.get(item.actor_id) ?? 'Cuenta no disponible'}</Link> <span className="text-foreground/50">· {item.actor_id.slice(0, 8)}</span></dd></div><div><dt className="text-foreground/60">Torneo</dt><dd>{item.tournament_id ? <Link href={`/admin/contenido/torneos/${item.tournament_id}`} className="text-brand-lime hover:underline">{item.tournament_name}</Link> : item.tournament_name}</dd></div></dl>
-        {item.resource_type !== 'torneo' && <p>Recurso: {item.resource_label ?? item.resource_type} · {item.result === 'requested' ? 'Solicitud registrada' : 'Completado'}</p>}
+        <p>Recurso: {item.resource_label ?? item.tournament_name ?? item.resource_type} · {item.result === 'requested' ? 'Solicitud registrada' : item.result === 'failed' ? 'Falló' : 'Completado'}</p>
         {Object.keys(item.metadata ?? {}).length > 0 && <details><summary>Datos de la decisión</summary><pre className="text-sm whitespace-pre-wrap break-all">{JSON.stringify(item.metadata, null, 2)}</pre></details>}
         {item.note && <div className="text-sm"><span className="text-foreground/60">Motivo: </span><span className="whitespace-pre-wrap">{item.note}</span></div>}
       </li>)}</ol> : <p className="p-6 border border-brand-border rounded-sm text-foreground/70">No hay acciones para estos filtros.</p>}

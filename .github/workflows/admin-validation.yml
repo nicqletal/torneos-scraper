@@ -20,6 +20,47 @@ jobs:
         run: supabase start
       - name: Verificar permisos y reglas con pgTAP
         run: supabase test db
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Preparar dependencias y navegador de pruebas
+        run: |
+          npm install --global pnpm@11.5.0
+          pnpm install --frozen-lockfile
+          npm install --prefix /tmp/admin-browser playwright@1.62.1
+          /tmp/admin-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Configurar únicamente el Supabase local de pruebas
+        run: |
+          supabase status -o env > /tmp/admin-supabase.env
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          values={}
+          for line in Path('/tmp/admin-supabase.env').read_text().splitlines():
+            if '=' in line:
+              k,v=line.split('=',1); values[k]=v.strip().strip('"')
+          Path('.env.local').write_text('NEXT_PUBLIC_SUPABASE_URL='+values['API_URL']+'\nNEXT_PUBLIC_SUPABASE_ANON_KEY='+values['ANON_KEY']+'\n')
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+            f.write('ADMIN_TEST_API_URL='+values['API_URL']+'\nADMIN_TEST_SERVICE_KEY='+values['SERVICE_ROLE_KEY']+'\nADMIN_E2E_MODULES=/tmp/admin-browser\n')
+          PY
+      - name: Verificar TypeScript y pruebas
+        run: |
+          pnpm exec tsc --noEmit
+          pnpm test
+      - name: Compilar y abrir aplicación de pruebas
+        run: |
+          pnpm build
+          nohup pnpm start > /tmp/admin-app.log 2>&1 &
+      - name: Probar MFA y operación administrativa en navegador
+        run: node scripts/test-admin-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: admin-browser-results
+          path: |
+            output/admin-browser
+            /tmp/admin-app.log
+          if-no-files-found: ignore
       - name: Detener entorno local
         if: always()
         run: supabase stop --no-backup

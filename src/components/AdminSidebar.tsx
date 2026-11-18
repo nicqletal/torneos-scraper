@@ -7,7 +7,6 @@ import { ShieldCheck, LayoutDashboard, Users, Trophy, Flag, Activity, LifeBuoy, 
 import { closeAdminSession } from '@/app/admin/(backoffice)/seguridad/actions'
 
 const current = [
-  { label: 'Configuración', href: '/admin/configuracion', icon: Settings },
   { label: 'Resumen', href: '/admin', icon: LayoutDashboard },
   { label: 'Usuarios', href: '/admin/usuarios', icon: Users },
   { label: 'Torneos y equipos', href: '/admin/contenido', icon: Trophy },
@@ -16,6 +15,7 @@ const current = [
   { label: 'Soporte', href: '/admin/soporte', icon: LifeBuoy },
   { label: 'Avisos', href: '/admin/avisos', icon: Bell },
   { label: 'Seguridad y acceso', href: '/admin/seguridad', icon: ShieldCheck },
+  { label: 'Configuración', href: '/admin/configuracion', icon: Settings },
 ]
 
 export function AdminSidebar({ email }: { email?: string }) {
@@ -44,8 +44,8 @@ export function AdminSidebar({ email }: { email?: string }) {
         <nav aria-label="Navegación de administración" className="flex flex-col gap-5 px-3 py-5 flex-1 md:min-h-0 md:overflow-y-auto">
           <ul className="flex flex-col gap-1">
             {current.map(item => <li key={item.href}>
-              <Link href={item.href} onClick={() => setOpen(false)} aria-current={pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'page' : undefined}
-                className={`ui-action w-full gap-3 px-3 py-2 rounded-sm transition-colors ${pathname === item.href || pathname.startsWith(`${item.href}/`) ? 'bg-brand-lime/10 text-brand-lime' : 'text-foreground/80 hover:bg-brand-surface hover:text-foreground'}`}>
+              <Link href={item.href} onClick={() => setOpen(false)} aria-current={pathname === item.href || (item.href !== '/admin' && pathname.startsWith(`${item.href}/`)) ? 'page' : undefined}
+                className={`ui-action w-full gap-3 px-3 py-2 rounded-sm transition-colors ${pathname === item.href || (item.href !== '/admin' && pathname.startsWith(`${item.href}/`)) ? 'bg-brand-lime/10 text-brand-lime' : 'text-foreground/80 hover:bg-brand-surface hover:text-foreground'}`}>
                 <item.icon className="w-4 h-4 shrink-0" aria-hidden="true" />{item.label}
               </Link>
             </li>)}

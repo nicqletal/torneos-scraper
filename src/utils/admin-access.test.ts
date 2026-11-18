@@ -8,7 +8,7 @@ test('administración: solo el login exacto queda fuera de la protección', () =
 })
 test('administración: retorno solo a rutas del backoffice, sin bucles ni destinos externos', () => {
   assert.equal(adminDestination('/admin/seguridad?tab=cuenta'), '/admin/seguridad?tab=cuenta')
-  for (const value of [undefined, '/perfil', '/admin/login', '/admin/login?next=/admin', '/administrador', '//externo.com', '/\\externo.com', ['/admin', '/perfil']]) {
+  for (const value of [undefined, '/perfil', '/admin/login', '/admin/login?next=/admin', '/admin/verificar/', '/admin/verificar?next=/admin', '/administrador', '//externo.com', '/\\externo.com', ['/admin', '/perfil']]) {
     assert.equal(adminDestination(value), '/admin')
   }
 })

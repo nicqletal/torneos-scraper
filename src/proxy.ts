@@ -68,6 +68,16 @@ export async function proxy(request: NextRequest) {
       homeUrl.searchParams.set('next', `${pathname}${request.nextUrl.search}`)
       return redirectWithCookies(homeUrl)
     }
+    if (pathname !== '/admin/verificar' && pathname !== '/admin/verificar/') {
+      const { data: verified, error: verificationError } = await supabase.rpc('is_verified_admin')
+      if (verificationError || verified !== true) {
+        const verificationUrl = request.nextUrl.clone()
+        verificationUrl.pathname = '/admin/verificar'
+        verificationUrl.search = ''
+        verificationUrl.searchParams.set('next', `${pathname}${request.nextUrl.search}`)
+        return redirectWithCookies(verificationUrl)
+      }
+    }
   }
 
   return supabaseResponse

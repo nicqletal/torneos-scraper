@@ -14,5 +14,5 @@ export async function saveSettings(_previous: SettingsState, form: FormData): Pr
   revalidatePath('/admin/configuracion')
   revalidatePath('/soporte')
   revalidatePath('/ayuda')
-  return { success: 'Configuración guardada. Recargá la página antes de volver a editar.' }
+  return { success: 'Configuración guardada.' }
 }
