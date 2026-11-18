@@ -79,18 +79,19 @@ select ok(
 );
 
 -- authenticated puede editar exactamente las columnas del formulario, más
--- `image_url`, que la escribe la Server Action después de subir el flyer.
+-- `image_url`, que la escribe la Server Action después de subir el flyer, y
+-- `accepts_requests`, el interruptor de Solicitudes de inscripción de Datos.
 select is(
   (select array_agg(column_name::text order by column_name::text)
      from information_schema.column_privileges
     where table_schema = 'public' and table_name = 'tournaments'
       and grantee = 'authenticated' and privilege_type = 'UPDATE'),
   array[
-    'capacity', 'contact_instagram', 'contact_whatsapp', 'description', 'end_date',
+    'accepts_requests', 'capacity', 'contact_instagram', 'contact_whatsapp', 'description', 'end_date',
     'image_url', 'inscription_deadline', 'name', 'price', 'rules', 'sport_modality', 'start_date',
     'venue_address', 'zone_id'
   ],
-  'authenticated edita solo las columnas del formulario y el flyer'
+  'authenticated edita solo las columnas del formulario, el flyer y el interruptor de solicitudes'
 );
 
 select * from finish();

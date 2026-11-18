@@ -6,6 +6,8 @@
 // `deadline` y dicen cuándo vence y qué pasa si no se responde, porque lo que
 // vence solo por el tiempo no avisa.
 
+import { managePath } from './tournament-manage.ts'
+
 // Los valores del enum `notice_kind` de la base (20261028000001_notices.sql).
 export type NoticeKind =
   | 'proposal_received'
@@ -26,6 +28,10 @@ export type NoticeKind =
   | 'rating_revealed'
   | 'tournament_withdrawn'
   | 'admin_message'
+  | 'inscription_request_received'
+  | 'inscription_request_accepted'
+  | 'inscription_request_rejected'
+  | 'inscription_request_withdrawn'
 
 // `params` es jsonb: cada disparador usa algunas de estas claves.
 //   rival_name           el otro equipo, visto desde quien recibe el aviso
@@ -34,6 +40,8 @@ export type NoticeKind =
 //   start_at, venue      hora exacta y cancha coordinadas
 //   deadline             cuándo vence el plazo que abre el aviso (ISO)
 //   mismatch             el resultado cargado no coincide con el que ya cargó quien recibe el aviso
+//   tournament_id/_name  el torneo, en los avisos de torneos y de Solicitudes de inscripción
+//   team_id, team_name   el equipo inscripto o que solicitó
 export type NoticeParams = Record<string, string | number | boolean | null | undefined>
 
 const TIME_ZONE = 'America/Argentina/Buenos_Aires'
@@ -135,16 +143,34 @@ export function noticeText(kind: NoticeKind, params: NoticeParams): string {
       return `Ya podés ver tu calificación del partido contra ${rival}.`
     case 'tournament_withdrawn':
       return `Se dio de baja el torneo '${str(params, 'tournament_name')}', en el que estaba anotado tu equipo ${str(params, 'team_name')}. Hablá con el organizador por lo que hayas pagado.`
+    case 'inscription_request_received':
+      return `'${str(params, 'team_name')}' mandó una solicitud de inscripción a '${str(params, 'tournament_name')}'. Escribile al capitán y aceptala o rechazala.`
+    case 'inscription_request_accepted':
+      return `Tu equipo '${str(params, 'team_name')}' quedó inscripto en '${str(params, 'tournament_name')}'.`
+    case 'inscription_request_rejected':
+      return `El organizador de '${str(params, 'tournament_name')}' no aceptó la solicitud de '${str(params, 'team_name')}'.`
+    case 'inscription_request_withdrawn':
+      return `Se dio de baja el torneo '${str(params, 'tournament_name')}', al que tu equipo ${str(params, 'team_name')} había pedido inscripción. Hablá con el organizador si ya pagaste algo.`
   }
 }
 
 // El link va a donde está el estado actual: todo lo de Partidos a /partidos;
-// la baja de torneo a la página del equipo, porque la ficha ya devuelve 404.
+// la baja de torneo a la página del equipo, porque la ficha ya devuelve 404;
+// la solicitud nueva a la pestaña Inscripciones del organizador, y la
+// respuesta a la ficha del torneo, donde el capitán ve cómo quedó.
 export function noticeLink(kind: NoticeKind, params: NoticeParams): string {
   if (kind === 'admin_message') {
     const path = str(params, 'href')
     return /^\/[A-Za-z0-9_-][A-Za-z0-9/_-]*$/.test(path) ? path : '/perfil'
   }
-  if (kind === 'tournament_withdrawn') return `/equipos/${str(params, 'team_id')}`
+  if (kind === 'tournament_withdrawn' || kind === 'inscription_request_withdrawn') {
+    return `/equipos/${str(params, 'team_id')}`
+  }
+  if (kind === 'inscription_request_received') {
+    return managePath(str(params, 'tournament_id'), 'inscripciones')
+  }
+  if (kind === 'inscription_request_accepted' || kind === 'inscription_request_rejected') {
+    return `/torneos/${str(params, 'tournament_id')}`
+  }
   return '/partidos'
 }

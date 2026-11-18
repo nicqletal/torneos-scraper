@@ -70,3 +70,28 @@ export async function updateTournament(
   // con "Ver ficha pública" (ver "Cuenta y acceso" en las decisiones).
   redirect(managePath(id, 'datos'))
 }
+
+// Interruptor "Recibir solicitudes desde la app", arriba del formulario de
+// Datos. Update directo: la policy de update deja tocar solo los torneos
+// propios y el grant de columna, solo esta columna (ver
+// supabase/migrations/20261118000002_inscription_requests.sql). Si falla,
+// vuelve a Datos con el error en la URL.
+export async function setAcceptsRequests(id: string, accepts: boolean) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect(manageLoginPath(id, 'datos'))
+
+  const { error } = await supabase
+    .from('tournaments')
+    .update({ accepts_requests: accepts })
+    .eq('id', id)
+  if (error) {
+    console.error(error)
+    redirect(managePath(id, 'datos', { error: error.code || 'desconocido' }))
+  }
+
+  revalidatePath('/')
+  revalidatePath('/mis-torneos')
+  revalidatePath(`/mis-torneos/${id}`)
+  revalidatePath(`/torneos/${id}`)
+}

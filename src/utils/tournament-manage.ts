@@ -22,7 +22,9 @@ export function manageTab(raw: string | string[] | undefined): ManageTab {
 export function managePath(
   id: string,
   tab: ManageTab,
-  extra: { q?: string; error?: string } = {}
+  // `section: 'solicitudes'` dice que el error vino de aceptar o rechazar una
+  // Solicitud de inscripción, para mostrarlo ahí y no en la carga a mano.
+  extra: { q?: string; error?: string; section?: 'solicitudes' } = {}
 ): string {
   const params = new URLSearchParams({ tab })
   for (const [key, value] of Object.entries(extra)) {

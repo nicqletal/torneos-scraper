@@ -111,3 +111,41 @@ export async function removeInscription(formData: FormData) {
 
   revalidateTournament(tournamentId)
 }
+
+// Aceptar o rechazar una Solicitud de inscripción. Es un <form> con los ids en
+// campos ocultos. Que el torneo sea del que llama y las reglas de la carga a
+// mano (no Finalizado, cupo, equipo no disuelto ni ya anotado) las decide la
+// base: aceptar crea la Inscripción vinculada con `add_linked_inscription`,
+// así que sus errores tienen los mismos códigos y mensajes.
+async function resolveRequest(formData: FormData, fn: 'accept_inscription_request' | 'reject_inscription_request') {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const tournamentId = formData.get('tournament_id')
+  const requestId = formData.get('request_id')
+  if (typeof tournamentId !== 'string' || typeof requestId !== 'string') return
+
+  if (!user) redirect(manageLoginPath(tournamentId, 'inscripciones'))
+
+  const { error } = await supabase.rpc(fn, { p_request_id: requestId })
+
+  if (error) {
+    console.error(error)
+    redirect(
+      managePath(tournamentId, 'inscripciones', {
+        error: inscriptionErrorCode(error.code),
+        section: 'solicitudes',
+      })
+    )
+  }
+
+  revalidateTournament(tournamentId)
+}
+
+export async function acceptInscriptionRequest(formData: FormData) {
+  await resolveRequest(formData, 'accept_inscription_request')
+}
+
+export async function rejectInscriptionRequest(formData: FormData) {
+  await resolveRequest(formData, 'reject_inscription_request')
+}
