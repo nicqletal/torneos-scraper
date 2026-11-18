@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Settings2, Trophy, Users } from 'lucide-react'
+import { BrandMark } from '@/components/BrandMark'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { sortForPanel, verificationAge, verifyBlock } from '@/utils/tournament-verification'
 import { modalityLabel } from '@/utils/modality'
@@ -128,7 +129,7 @@ export default async function MisTorneosPage() {
         </ul>
       ) : (
         <div className="p-12 bg-brand-surface border border-dashed border-brand-border rounded-sm text-center flex flex-col items-center gap-4">
-          <Trophy className="w-12 h-12 text-brand-lime/40 stroke-1" />
+          <BrandMark className="h-12 w-14 opacity-50" />
           <h2 className="text-2xl font-display font-bold tracking-wider text-foreground uppercase">
             Todavía no publicaste torneos
           </h2>

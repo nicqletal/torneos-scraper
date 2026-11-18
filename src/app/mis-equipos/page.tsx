@@ -37,6 +37,8 @@ export default async function MisEquiposPage() {
   const memberships = (data ?? []) as unknown as MembershipRow[]
   // Active teams first; dissolved ones keep their history, so they stay listed
   const sorted = [...memberships].sort((a, b) => Number(!!a.teams.dissolved_at) - Number(!!b.teams.dissolved_at))
+  const activeCount = sorted.filter(({ teams }) => !teams.dissolved_at).length
+  const dissolvedCount = sorted.length - activeCount
 
   return (
     <div className="max-w-3xl w-full mx-auto flex flex-col gap-8">
@@ -46,6 +48,12 @@ export default async function MisEquiposPage() {
         <div>
           <h1 className="text-4xl md:text-5xl font-display tracking-wider text-foreground uppercase leading-none">Mis equipos</h1>
           <p className="text-foreground/70 text-sm mt-2">Los equipos en los que jugás o sos capitán.</p>
+          {sorted.length > 0 && (
+            <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm text-foreground/60" aria-label="Resumen de tus equipos">
+              <span>{activeCount} {activeCount === 1 ? 'equipo activo' : 'equipos activos'}</span>
+              {dissolvedCount > 0 && <span>· {dissolvedCount} {dissolvedCount === 1 ? 'equipo disuelto' : 'equipos disueltos'}</span>}
+            </p>
+          )}
         </div>
         <Link
           href="/crear-equipo"

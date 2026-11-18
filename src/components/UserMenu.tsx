@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, useId } from 'react'
 import Link from 'next/link'
 import { logout } from '@/app/login/actions'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LogOut, ChevronDown, Trophy, UserRound, Users, ShieldCheck, Swords } from 'lucide-react'
+import { LogOut, ChevronDown, Trophy, UserRound, ShieldCheck } from 'lucide-react'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 interface UserMenuProps {
   email: string
@@ -75,24 +76,6 @@ export function UserMenu({ email, isAdmin = false }: UserMenuProps) {
             </Link>
 
             <Link
-              href="/mis-equipos"
-              onClick={() => setIsOpen(false)}
-              className="ui-action w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
-            >
-              <Users className="w-4 h-4" />
-              Mis equipos
-            </Link>
-
-            <Link
-              href="/partidos"
-              onClick={() => setIsOpen(false)}
-              className="ui-action w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
-            >
-              <Swords className="w-4 h-4" />
-              Partidos
-            </Link>
-
-            <Link
               href="/mis-torneos"
               onClick={() => setIsOpen(false)}
               className="ui-action w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-display tracking-wider uppercase text-foreground/90 hover:text-brand-bg hover:bg-brand-lime transition-colors"
@@ -112,6 +95,8 @@ export function UserMenu({ email, isAdmin = false }: UserMenuProps) {
               </Link>
             )}
 
+            <div className="h-px bg-brand-border my-1" />
+            <ThemeToggle className="ui-action w-full gap-2.5 px-4 py-2.5 text-left text-sm font-display tracking-wider uppercase text-foreground/90 transition-colors hover:bg-brand-lime hover:text-brand-bg" />
             <div className="h-px bg-brand-border my-1" />
             
             <Link href="/soporte" className="ui-action px-4 py-2 text-foreground/80" onClick={() => setIsOpen(false)}>Soporte</Link>

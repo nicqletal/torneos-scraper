@@ -24,30 +24,28 @@ export default async function Home(props: HomeProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* Sidebar Filtros */}
-        <div className="lg:col-span-3 lg:sticky lg:top-24">
-          <Suspense fallback={
-            <div className="h-96 bg-brand-surface border border-brand-border animate-pulse rounded-sm" />
-          }>
-            <Filters />
-          </Suspense>
-        </div>
-
-        {/* Listado Principal */}
-        <div className="lg:col-span-9">
-          <Suspense fallback={
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="catalog-layout grid grid-cols-1 items-start gap-5 xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-8">
+        <Suspense fallback={
+          <>
+            <div className="catalog-toolbar h-16 animate-pulse border-b border-brand-border xl:col-span-2" />
+            <div className="catalog-results order-3 xl:order-none xl:col-start-2 xl:row-start-2">
+              <div className="tournament-grid">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div 
                   key={i} 
-                  className="h-96 bg-brand-surface border border-brand-border animate-pulse rounded-sm" 
+                  className="tournament-card-skeleton bg-brand-surface border border-brand-border animate-pulse rounded-sm"
                 />
               ))}
+              </div>
             </div>
-          }>
-            <TournamentList searchParams={searchParams || {}} />
+          </>
+        }>
+          <TournamentList searchParams={searchParams || {}} />
+        </Suspense>
+
+        <div className="order-2 xl:sticky xl:top-24 xl:order-none xl:col-start-1 xl:row-start-2">
+          <Suspense fallback={<div className="h-11 rounded-sm border border-brand-border bg-brand-surface animate-pulse xl:h-28" />}>
+            <Filters />
           </Suspense>
         </div>
 

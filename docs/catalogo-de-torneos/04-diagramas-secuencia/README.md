@@ -1,10 +1,10 @@
 # Módulo Catálogo de torneos · Diagramas de secuencia
 
-Versión del **04/11/2026**. Un diagrama por caso de uso, en [Mermaid](https://mermaid.js.org/) (GitHub los dibuja directo). Siguen a las [pantallas](../03-pantallas.md) y se apoyan en los [casos de uso](../02-casos-de-uso.md).
+Actualizado el **18/11/2026**. Un diagrama por caso de uso, en [Mermaid](https://mermaid.js.org/) (GitHub los dibuja directo). Siguen a las [pantallas](../03-pantallas.md) y se apoyan en los [casos de uso](../02-casos-de-uso.md).
 
 | Diagrama | Caso de uso | Pantalla | Estado | PNG |
 |---|---|---|---|---|
-| [S01 · Ver el catálogo](uc-b01-ver-catalogo.md) | UC-B01 | P1 | Parcial (sin paginar) | [img/s01-ver-catalogo.png](img/s01-ver-catalogo.png) |
+| [S01 · Ver el catálogo](uc-b01-ver-catalogo.md) | UC-B01 | P1 | Implementado | [img/s01-ver-catalogo.png](img/s01-ver-catalogo.png) |
 | [S02 · Filtrar torneos](uc-b02-filtrar-torneos.md) | UC-B02 | P1 | Parcial (2 de 5 filtros) | [img/s02-filtrar-torneos.png](img/s02-filtrar-torneos.png) |
 | [S03 · Ver la ficha](uc-b03-ver-ficha-torneo.md) | UC-B03 | P2 | Parcial | [img/s03-ver-ficha-torneo.png](img/s03-ver-ficha-torneo.png) |
 | [S04 · Contactar al organizador](uc-b04-contactar-organizador.md) | UC-B04 | P2 | Implementado | [img/s04-contactar-organizador.png](img/s04-contactar-organizador.png) |

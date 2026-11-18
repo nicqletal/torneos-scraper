@@ -1,6 +1,6 @@
 # Módulo Catálogo de torneos · Especificación de requerimientos
 
-Versión del **04/11/2026**. Parte de la documentación del módulo: **requerimientos** → [casos de uso](02-casos-de-uso.md) → [pantallas](03-pantallas.md) → [diagramas de secuencia](04-diagramas-secuencia/README.md). El [README](README.md) tiene la matriz que los une.
+Actualizado el **18/11/2026**. Parte de la documentación del módulo: **requerimientos** → [casos de uso](02-casos-de-uso.md) → [pantallas](03-pantallas.md) → [diagramas de secuencia](04-diagramas-secuencia/README.md). El [README](README.md) tiene la matriz que los une.
 
 Fuentes, en orden de autoridad: [decisiones-casos-de-uso.md](../especificaciones-y-requerimientos/decisiones-casos-de-uso.md), [casos-de-uso.md](../casos-de-uso/casos-de-uso.md) (módulo B, 03/11/2026), el glosario [CONTEXT.md](../../CONTEXT.md) y el código y las migraciones del repo al día de hoy. **Donde `casos-de-uso.md` y el código no coinciden, este documento lo señala** (ver la sección «Sin decisión»).
 
@@ -37,7 +37,7 @@ El módulo es la parte **pública** de los torneos: cualquiera, sin sesión, **e
 | ID | Requerimiento | Casos de uso | Estado |
 |---|---|---|---|
 | RF-B01 | `/` es el **catálogo público**: lista los torneos **no finalizados**, ordenados por **fecha de inicio** (el que empieza antes, primero). No hay «vista de jugador» ni «de organizador». | UC-B01 | Implementado |
-| RF-B02 | El listado está **paginado**. | UC-B01 | **Pendiente**: hoy se traen todos los torneos de una vez (ver «Sin decisión») |
+| RF-B02 | El listado está **paginado**. | UC-B01 | Implementado: 12, 24 o 48 por página; página y cantidad en la URL |
 | RF-B03 | Cada tarjeta muestra el **flyer** (o un marcador), el nombre, la Zona con su corredor, la modalidad, el precio, el **Estado del torneo** y la **antigüedad de verificación**; y toda la tarjeta es el link a la ficha. | UC-B01 | Implementado |
 | RF-B04 | **Precio:** vacío se muestra como «Consultar» y 0 como «Gratis». | UC-B01, UC-B03 | Implementado |
 | RF-B05 | **Antigüedad de verificación:** desde 30 días completos sin verificar, en ámbar; desde 60, en rojo con «Sin confirmar». Un Finalizado no la muestra. | UC-B01, UC-B03 | Implementado |
@@ -53,7 +53,7 @@ El módulo es la parte **pública** de los torneos: cualquiera, sin sesión, **e
 | RF-B10 | Filtrar por **precio máximo** y por **fechas de inicio**. | UC-B02 | **Pendiente** (solo figura en `casos-de-uso.md`) |
 | RF-B11 | Los filtros viven en la **URL** (`?modality=…&status=…`), nunca en estado local: una vista filtrada es siempre un **link compartible**, y cambiar un filtro vuelve a la primera página. | UC-B02 | Implementado |
 | RF-B12 | Un parámetro desconocido en la URL se ignora sin romper la página. | UC-B02 | **Parcial**: una clave desconocida se ignora, pero un valor inválido de `modality` o `status` no se valida antes de consultar |
-| RF-B13 | Sin resultados, mostrar un mensaje y la forma de limpiar los filtros. | UC-B02 | **Parcial**: hay mensaje; limpiar es elegir «Todas las modalidades» y «Todos los estados» (no hay un botón «Limpiar») |
+| RF-B13 | Sin resultados, mostrar un mensaje y la forma de limpiar los filtros. | UC-B02 | Implementado: el estado vacío ofrece «Ver todos los torneos» |
 
 ### Ficha del torneo
 
@@ -108,7 +108,6 @@ Estas diferencias salieron de comparar `casos-de-uso.md` (marca todo el módulo 
 
 | Tema | Lo que dice `casos-de-uso.md` | Lo que hace el código |
 |---|---|---|
-| Paginación | El listado está paginado (UC-B01). | `TournamentList` trae todos los torneos; el filtro borra `page` de la URL pero no existe. |
 | Filtros | Modalidad, estado, **Zona o Corredor**, **precio máximo** y **fechas de inicio** (UC-B02). `decisiones-casos-de-uso.md` define `?zona=` (una Zona o un Corredor). | Solo modalidad y estado. La rama `feat/dynamic-filters` tiene un filtro por Zona (por texto) y por rango de precio, pero **no está integrada** a `main` y es anterior a la tabla `zones`. |
 | Finalizados en el catálogo | UC-B01 A4: «solo aparecen si se filtra explícitamente por ese estado». La regla transversal dice que el Finalizado **sale del catálogo**. | La consulta excluye siempre los Finalizados y el filtro no ofrece ese Estado: **nunca aparecen**. Coincide con la regla transversal, no con A4. |
 | Sin resultados | «No hay torneos con esos filtros» y la opción de limpiar. | «No hay torneos registrados», con el texto «Probá cambiando las opciones en el panel lateral o limpiando los filtros». Sin botón. |

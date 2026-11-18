@@ -1,16 +1,15 @@
-import { Trophy } from 'lucide-react'
+import { BrandMark } from '@/components/BrandMark'
 import { PublishTournamentLink } from '@/components/PublishTournamentLink'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
-export function Footer() {
+export function Footer({ showThemeToggle = false }: { showThemeToggle?: boolean }) {
   return (
     <footer className="w-full border-t border-brand-border bg-brand-secondary mt-auto">
       <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
         
         {/* Brand Logo & Name */}
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-sm bg-brand-lime flex items-center justify-center">
-            <Trophy className="w-3.5 h-3.5 text-brand-bg stroke-[2.5]" />
-          </div>
+          <BrandMark className="h-6 w-7" />
           <span className="font-display text-lg tracking-wider uppercase text-foreground font-bold">
             Matchmaking
           </span>
@@ -21,6 +20,9 @@ export function Footer() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+          {showThemeToggle && (
+            <ThemeToggle className="ui-action gap-1.5 text-sm font-display tracking-wider uppercase text-foreground/60 transition-colors hover:text-brand-lime" />
+          )}
           <PublishTournamentLink className="text-xs text-foreground/60 hover:text-brand-lime transition-colors" />
           <a
             href="https://instagram.com/torneosscraper"

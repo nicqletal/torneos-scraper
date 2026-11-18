@@ -78,9 +78,12 @@ export default async function TournamentDetail({
   // La ficha se arma en bloques porque el orden cambia según haya flyer o no
   // (ver el `return`). Se usa `hasFlyer`, igual que <TournamentFlyer>: un
   // `image_url` que no es de nuestro bucket cuenta como "sin flyer".
-  const withFlyer = hasFlyer(tournament.image_url)
+  const demoFlyerUrl = typeof tournament.source_url === 'string' && tournament.source_url.startsWith('demo://')
+    ? `/demo-flyers/${tournament.source_url.split('/').pop()}.svg`
+    : null
+  const withFlyer = hasFlyer(tournament.image_url) || demoFlyerUrl !== null
 
-  // Estado y "Últimos cupos": van sobre el flyer, o arriba del título si no hay.
+  // Estado y "Últimos cupos": debajo del Flyer o arriba del título si no hay.
   const statusBadges = (
     <>
       <span className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider border font-display rounded-sm ${statusStyles[status]}`}>
@@ -323,19 +326,19 @@ export default async function TournamentDetail({
           {/* Flyer (Left Column) */}
           {/* 4:5 es la proporción de un posteo de Instagram, de donde salen los flyers.
               Se muestra entero (contain): recortarlo tapa fechas y premios. */}
-          <div className="lg:col-span-5 lg:self-start aspect-[4/5] relative bg-brand-surface border border-brand-border rounded-sm overflow-hidden">
-            <TournamentFlyer
-              imageUrl={tournament.image_url}
-              name={tournament.name}
-              priority
-              fit="contain"
-              sizes="(max-width: 1024px) 100vw, 400px"
-              className={status === 'cerrado' ? 'grayscale opacity-60' : undefined}
-            />
-
-            <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-              {statusBadges}
+          <div className="lg:col-span-5 flex flex-col gap-3 lg:self-start">
+            <div className="aspect-[4/5] relative bg-brand-surface border border-brand-border rounded-sm overflow-hidden">
+              <TournamentFlyer
+                imageUrl={tournament.image_url}
+                demoFlyerUrl={demoFlyerUrl}
+                name={tournament.name}
+                priority
+                fit="contain"
+                sizes="(max-width: 1024px) 100vw, 400px"
+                className={status === 'cerrado' ? 'grayscale opacity-60' : undefined}
+              />
             </div>
+            <div className="flex flex-wrap gap-2">{statusBadges}</div>
           </div>
 
           {/* Info Content (Right Column) */}

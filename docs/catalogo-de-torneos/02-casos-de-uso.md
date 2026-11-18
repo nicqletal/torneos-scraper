@@ -1,6 +1,6 @@
 # Módulo Catálogo de torneos · Casos de uso
 
-Versión del **04/11/2026**. Detalla los casos de uso del módulo B de [casos-de-uso.md](../casos-de-uso/casos-de-uso.md) (UC-B01 a UC-B06) con los requerimientos que cubre cada uno ([01-requerimientos.md](01-requerimientos.md)), la pantalla que lo representa ([03-pantallas.md](03-pantallas.md)) y su diagrama de secuencia ([04-diagramas-secuencia](04-diagramas-secuencia/README.md)).
+Actualizado el **18/11/2026**. Detalla los casos de uso del módulo B de [casos-de-uso.md](../casos-de-uso/casos-de-uso.md) (UC-B01 a UC-B06) con los requerimientos que cubre cada uno ([01-requerimientos.md](01-requerimientos.md)), la pantalla que lo representa ([03-pantallas.md](03-pantallas.md)) y su diagrama de secuencia ([04-diagramas-secuencia](04-diagramas-secuencia/README.md)).
 
 **Cómo leerlo.** Cada caso expresa una meta y tiene **un actor iniciador**. **Estado** dice si está en `main`. Cuando el código **no coincide** con lo que dice `casos-de-uso.md`, el flujo alternativo afectado lleva la marca ⚠️ y se explica; el resumen está en [«Sin decisión»](01-requerimientos.md#5-sin-decisión-lo-que-casos-de-usomd-dice-y-el-código-no-hace).
 
@@ -8,7 +8,7 @@ Versión del **04/11/2026**. Detalla los casos de uso del módulo B de [casos-de
 
 | Caso | Meta del actor | Actor | Estado | ID en el PDF original |
 |---|---|---|---|---|
-| [UC-B01](#uc-b01--ver-el-catálogo-de-torneos) | Ver el catálogo de torneos | Invitado | **Parcial** (sin paginar) | UC-08 |
+| [UC-B01](#uc-b01--ver-el-catálogo-de-torneos) | Ver el catálogo de torneos | Invitado | Implementado | UC-08 |
 | [UC-B02](#uc-b02--filtrar-torneos-y-compartir-la-búsqueda) | Filtrar torneos y compartir la búsqueda | Invitado | **Parcial** (solo 2 de los 5 filtros) | UC-09 y UC-10 |
 | [UC-B03](#uc-b03--ver-la-ficha-pública-de-un-torneo) | Ver la ficha pública de un torneo | Invitado | **Parcial** (3 salvedades) | UC-11 |
 | [UC-B04](#uc-b04--contactar-al-organizador) | Contactar al organizador | Invitado | Implementado | UC-12 |
@@ -26,19 +26,20 @@ Versión del **04/11/2026**. Detalla los casos de uso del módulo B de [casos-de
 - **Precondiciones:** ninguna. `/` es el catálogo para cualquiera.
 - **Flujo principal:**
   1. Entra a la portada.
-  2. El sistema lista los torneos **no finalizados**, ordenados por **fecha de inicio**.
-  3. Cada tarjeta muestra el **flyer** (o un marcador con el nombre), el nombre, la Zona con su corredor, la modalidad, el precio, el **Estado del torneo** y la **antigüedad de verificación**.
-  4. Toca una tarjeta y se abre la ficha (UC-B03).
+  2. El sistema lista los torneos **no finalizados**, ordenados por **fecha de inicio**, con 12 por página por defecto. Puede elegir 12, 24 o 48 y navegar con páginas numeradas, Anterior y Siguiente; ve el rango actual y el total.
+  3. Puede elegir las tarjetas Compacta, Normal o Amplia; Compacta es el valor inicial. Todos los tamaños mantienen los datos y adaptan la grilla, el Flyer, la tipografía y los espacios. En móvil se mantiene una sola columna.
+  4. Cada tarjeta muestra el **flyer** (o un marcador con el nombre), el nombre, la Zona con su corredor, la modalidad, el precio, el **Estado del torneo** y la **antigüedad de verificación**.
+  5. Toca una tarjeta y se abre la ficha (UC-B03).
 - **Flujos alternativos:**
   - **A1. Precio:** vacío se muestra como «Consultar»; 0, como «Gratis».
   - **A2. Antigüedad de verificación:** desde 30 días completos sin verificar, en ámbar; desde 60, en rojo con «Sin confirmar».
   - **A3. Últimos cupos:** etiqueta sobre un torneo **Abierto** con 2 lugares o menos. No es un Estado.
   - **A4. Finalizados:** ⚠️ `casos-de-uso.md` dice que solo aparecen si se filtra explícitamente por ese Estado. **En el código nunca aparecen**: la consulta los excluye siempre y el filtro no ofrece «Finalizado». Coincide con la regla transversal («el Finalizado sale del catálogo»).
-  - **A5. Sin torneos:** «No hay torneos registrados».
+  - **A5. Sin torneos:** se aclara que todavía no hay torneos disponibles, o que ninguno coincide con los filtros; si hay filtros activos, se puede volver al catálogo completo.
   - **A6. Falla la consulta:** «Hubo un error al cargar los torneos deportivos.» El panel de filtros sigue visible.
-  - **A7. Paginación:** ⚠️ `casos-de-uso.md` dice «paginados». **Hoy no hay paginación**: se traen todos los torneos de una vez.
+  - **A7. Paginación:** la página (`pagina`) y la cantidad por página (`por_pagina`) quedan en la URL. Cambiar filtros o cantidad vuelve a la primera página y conserva la cantidad elegida. El tamaño de las tarjetas se guarda solo en el dispositivo.
 - **Postcondición:** la persona ve los torneos vigentes y puede abrir uno.
-- **Estado:** **Parcial** (`src/app/page.tsx`, `TournamentList`, `TournamentCard`): todo salvo la paginación.
+- **Estado:** Implementado (`src/app/page.tsx`, `TournamentList`, `TournamentCard`).
 
 ## UC-B02 · Filtrar torneos y compartir la búsqueda
 

@@ -49,6 +49,12 @@ Revisión de [casos-de-uso.pdf](../casos-de-uso/casos-de-uso.pdf) (módulos A–
 
 ## Torneos
 
+### Catálogo público
+
+- **Orden y paginación (18/11/2026):** el catálogo muestra primero los Torneos Abiertos. Dentro de cada estado, prioriza los que tienen foto de perfil del organizador disponible en la app y luego ordena por fecha de inicio ascendente. Los Torneos no Finalizados se distribuyen en páginas de 12, 24 o 48; 12 es el valor inicial. `pagina` y `por_pagina` viven en la URL y se conservan al navegar las páginas. Al cambiar filtros o cantidad por página, vuelve a la página 1; el tamaño elegido se conserva.
+- **Tamaño de las tarjetas (18/11/2026):** Compacta, Normal o Amplia; Compacta es la opción inicial. Cambia columnas, tamaño del Flyer, tipografía y espacios, pero nunca oculta datos de la tarjeta. En móvil sigue habiendo una columna y los tamaños ajustan la altura y el espaciado. Se guarda en el dispositivo y no forma parte de la URL.
+- **Panel de filtros (18/11/2026):** en escritorio amplio hay una sidebar angosta y sticky; Modalidad y Estado de inscripción aparecen plegados y resumen la selección actual. En móvil y tablet se accede con «Filtros», que abre un panel lateral desde la derecha. Los cambios se aplican de inmediato y el panel sigue abierto para combinar filtros. «Limpiar» aparece solo con filtros activos. Se mantienen los filtros vigentes; no se agregan chips en el catálogo.
+
 ### Quién publica
 
 - **Organizadores:** cualquier usuario con sesión y sin suspensión.

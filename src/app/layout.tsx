@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Bebas_Neue, Plus_Jakarta_Sans } from "next/font/google";
+import { Bebas_Neue, Exo_2, Plus_Jakarta_Sans } from "next/font/google";
 import Link from "next/link";
-import { Trophy } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { UserMenu } from "@/components/UserMenu";
+import { BrandMark } from "@/components/BrandMark";
+import { MainNavigation } from '@/components/MainNavigation'
 import { NoticeBell, type BellNotice } from "@/components/NoticeBell";
 import { noticeDate, noticeLink, noticeText, type NoticeKind } from "@/utils/notices";
 import { Footer } from "@/components/Footer";
-import { Atmosphere } from "@/components/Atmosphere";
 import { AppFrame } from "@/components/AppFrame";
 import "./globals.css";
 
@@ -19,6 +19,12 @@ const bebasNeue = Bebas_Neue({
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
+  subsets: ["latin"],
+});
+
+const exo = Exo_2({
+  weight: "700",
+  variable: "--font-brand-name",
   subsets: ["latin"],
 });
 
@@ -37,7 +43,7 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Solo decide si se muestra el link al Panel de administración: el acceso
+  // Solo decide si se muestra el enlace al Panel de administración: el acceso
   // real lo controlan el proxy y cada página de /admin con is_admin().
   const { data: isAdmin } = user ? await supabase.rpc('is_admin') : { data: false };
 
@@ -45,6 +51,7 @@ export default async function RootLayout({
   // a los del usuario; el texto se arma acá con `notices.ts`.
   let notices: BellNotice[] = [];
   let unreadCount = 0;
+  let hasPendingAction = false
   if (user) {
     const [{ data: rows }, { count }] = await Promise.all([
       supabase
@@ -67,21 +74,44 @@ export default async function RootLayout({
       unread: n.read_at === null,
     }));
     unreadCount = count ?? 0;
+
+    const [{ data: proposals }, { data: captainRows }, { data: matches }] = await Promise.all([
+      supabase.from('proposal_details').select('to_team_id, status').eq('status', 'pendiente'),
+      supabase.from('team_members').select('team_id').eq('user_id', user.id).eq('is_captain', true),
+      supabase.from('match_details').select('phase, is_captain, start_at, deadline, going_at, venue, venue_start_at, venue_by_own, coordinated_at, mutual_drop_by_own, mutual_drop_answered_at, mutual_drop_reason, no_show_at, rival_no_show_at, goals_for, goals_against, rival_goals_for, rival_goals_against').eq('is_captain', true),
+    ])
+
+    const now = new Date()
+    const captainTeamIds = new Set((captainRows ?? []).map((row) => row.team_id))
+    const receivedProposal = (proposals ?? []).some((proposal) => captainTeamIds.has(proposal.to_team_id))
+    hasPendingAction = receivedProposal || (matches ?? []).some((match) => {
+      if (match.phase === 'por_jugarse') {
+        const incomingCoordination = Boolean(match.venue && match.venue_start_at && !match.coordinated_at && match.venue_by_own === false)
+        const confirmAttendance = match.deadline !== null && match.going_at === null && now.getTime() >= new Date(match.start_at).getTime() - 24 * 60 * 60 * 1000
+        const answerMutualDrop = match.mutual_drop_by_own === false && match.mutual_drop_answered_at === null && match.mutual_drop_reason !== null && now < new Date(match.start_at)
+        return incomingCoordination || confirmAttendance || answerMutualDrop
+      }
+
+      if (match.phase === 'esperando_resultado') {
+        return match.rival_goals_for !== null || match.rival_no_show_at !== null
+      }
+
+      return false
+    })
   }
 
-  // Barra mínima: sin sesión, un solo botón destacado ("Crear cuenta"); con
-  // sesión, solo el menú de usuario. Ver "Cuenta y acceso" en
-  // docs/decisiones-casos-de-uso.md.
+  // Los módulos aparecen en MainNavigation según la sesión; los accesos de
+  // cuenta y el Panel de organizador quedan en el menú de usuario.
   const navbar = (
     <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-      <Link href="/" className="flex items-center gap-2 group">
-        <div className="w-8 h-8 rounded-sm bg-brand-lime flex items-center justify-center font-bold text-brand-bg shadow-sm transition-transform duration-200 group-hover:scale-105">
-          <Trophy className="w-4.5 h-4.5 stroke-[2.5]" />
-        </div>
-        <span className="font-display text-2xl tracking-wider uppercase text-foreground group-hover:text-brand-lime transition-colors">
+      <Link href="/" className="flex flex-col items-center justify-center leading-none group">
+        <div className="flex items-center transition-transform duration-200 group-hover:scale-105"><BrandMark className="h-7 w-9" /></div>
+        <span className={`${exo.className} mt-0.5 text-sm leading-none tracking-tight text-foreground group-hover:text-brand-lime transition-colors`}>
           Matchmaking
         </span>
       </Link>
+
+      <MainNavigation signedIn={Boolean(user)} hasPendingAction={hasPendingAction} />
 
       <div className="flex items-center gap-4">
         {!user && (
@@ -110,15 +140,20 @@ export default async function RootLayout({
     </div>
   );
 
+  const themeBootstrap = `(function(){var root=document.documentElement;var path=window.location.pathname;if(path==='/admin'||path.indexOf('/admin/')===0)return;var theme;var density='compacta';try{theme=window.localStorage.getItem('matchmaking-theme');var savedDensity=window.localStorage.getItem('matchmaking-density');if(savedDensity==='compacta'||savedDensity==='normal'||savedDensity==='amplia')density=savedDensity}catch(e){}if(theme!=='light'&&theme!=='dark')theme=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';root.dataset.theme=theme;root.dataset.density=density;})();`
+
   return (
-    <html 
+    <html
       lang="es" 
-      className={`${bebasNeue.variable} ${plusJakartaSans.variable} h-full antialiased`}
+      className={`${bebasNeue.variable} ${plusJakartaSans.variable} ${exo.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
+      </head>
       <body className="app-shell min-h-full flex flex-col bg-brand-bg text-foreground">
-        <Atmosphere />
         {/* AppFrame solo saca la barra y el footer en /admin, que tiene su sidebar */}
-        <AppFrame navbar={navbar} footer={<Footer />}>
+        <AppFrame navbar={navbar} footer={<Footer showThemeToggle={!user} />} showMobileNav={Boolean(user)}>
           {children}
         </AppFrame>
       </body>
