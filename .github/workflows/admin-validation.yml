@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 3.2.0
       - name: Iniciar Supabase local y aplicar migraciones
         run: supabase start
       - name: Verificar permisos y reglas con pgTAP
