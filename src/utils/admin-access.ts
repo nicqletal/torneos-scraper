@@ -13,7 +13,7 @@ export function isProtectedAdminPath(pathname: string) {
 export function adminDestination(next: unknown) {
   const destination = safeNextPath(next, '/admin')
   const pathname = new URL(destination, 'http://internal.invalid').pathname
-  return isProtectedAdminPath(pathname) ? destination : '/admin'
+  return isProtectedAdminPath(pathname) && pathname !== '/admin/verificar' && pathname !== '/admin/verificar/' ? destination : '/admin'
 }
 
 export const ADMIN_ACCESS_ERRORS = {

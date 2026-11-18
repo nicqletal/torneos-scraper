@@ -174,6 +174,12 @@ _Avoid_: bloqueo (solo se dice del **Bloqueo por faltas**), baneo
 
 ### Avisos
 
+**Soporte**:
+Conversación privada de ayuda entre un usuario y el Administrador, que conserva las consultas y sus respuestas.
+
+**Registro de actividad**:
+Historial de las decisiones y cambios administrativos, con la cuenta que los realizó, el momento y su resultado.
+
 **Aviso**:
 Mensaje que un usuario ve en la campanita al entrar a la app, que le cuenta algo que hizo otro y lo lleva a donde mirarlo o responder; no existe ningún envío por email ni push.
 _Avoid_: notificación
@@ -225,7 +231,7 @@ _Avoid_: notificación
 
 ### Moderación
 
-- Un **Reporte** de equipo solo lo puede hacer alguien que jugó al menos un partido contra ese equipo; la responsabilidad por la conducta del **Plantel** es del **Capitán**, y la **Suspensión** recae sobre él
+- Un **Reporte** de equipo solo lo puede hacer un integrante actual de un equipo con un **Partido Jugado** contra el reportado; el Administrador identifica explícitamente la cuenta responsable antes de aplicar una **Suspensión**, sin atribuírsela automáticamente a quien ahora ocupa la capitanía
 - La **Suspensión** de un **Capitán** deja a su **Equipo** fuera de las búsquedas de rival, hace caer sus partidos futuros sin **Falta** para nadie y bloquea el cambio de capitán mientras dure
 
 ## Example dialogue

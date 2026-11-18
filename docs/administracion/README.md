@@ -1,5 +1,9 @@
 # Módulo Administración · Documentación
 
+**Actualización del 17/11/2026:** el panel completo está implementado en el código de esta entrega. Ver [alcance, permisos, verificación y activación](../especificaciones-y-requerimientos/panel-administracion.md) y los [casos de uso F01–F18 vigentes](../casos-de-uso/casos-de-uso.md#módulo-f--administración). Las migraciones y TOTP requieren activación en la base compartida antes de operarlo allí.
+
+Los documentos y hallazgos del 04/11 que siguen son una **foto histórica de la primera etapa**: sus marcas «Pendiente», preguntas abiertas y capturas del panel inicial no describen el estado actual. Los acuerdos confirmados del 17/11 están en la fuente de verdad de [decisiones](../especificaciones-y-requerimientos/decisiones-casos-de-uso.md#administración).
+
 Documentación completa del módulo F (Administración) de Matchmaking, versión del **04/11/2026**. Sigue el mismo orden que la de los módulos [Equipos](../equipos/README.md), [Cuenta y acceso](../cuenta-y-acceso/README.md) y [Catálogo de torneos](../catalogo-de-torneos/README.md):
 
 | Paso | Documento | Qué contiene |

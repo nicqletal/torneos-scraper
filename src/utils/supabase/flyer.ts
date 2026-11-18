@@ -39,4 +39,5 @@ export async function uploadFlyer(supabase: SupabaseClient, tournamentId: string
 export async function removeFlyer(supabase: SupabaseClient, tournamentId: string) {
   const { error } = await supabase.storage.from('flyers').remove([tournamentId])
   if (error) console.error(error)
+  return !error
 }

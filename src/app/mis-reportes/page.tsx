@@ -1,0 +1,13 @@
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/utils/supabase/server'
+export default async function MyReports({searchParams}:{searchParams:Promise<{tipo?:string;pagina?:string;ok?:string;error?:string}>}){
+ const db=await createClient();const {data:{user}}=await db.auth.getUser();if(!user)redirect('/login?next=/mis-reportes')
+ const p=await searchParams,type=p.tipo==='equipos'?'equipos':'torneos',n=Number(p.pagina),page=Number.isSafeInteger(n)&&n>0&&n<=10000?n:1
+ const {data,error,count}=await db.from(type==='equipos'?'team_reports':'tournament_reports').select('*',{count:'exact'}).eq('reporter_id',user.id).order('created_at',{ascending:false}).order('id').range((page-1)*20,page*20-1)
+ const labels:Record<string,string>={violencia:'Violencia o agresiones',cuenta_falsa:'Cuenta falsa',abuso_calificaciones:'Abuso de calificaciones',ya_no_existe:'Ya no existe',datos_incorrectos:'Datos incorrectos',no_es_torneo:'No es un torneo',descartado:'Descartado',observado:'Observado',baja:'Baja',baja_organizador:'Baja del organizador',suspension:'Suspensión'}
+ const href=(value:number)=>`/mis-reportes?tipo=${type}&pagina=${value}`
+ return <main className="max-w-3xl w-full mx-auto flex flex-col gap-5"><h1 className="font-display text-4xl">Mis reportes</h1><nav className="flex gap-5"><Link href="/mis-reportes?tipo=torneos" className="text-brand-lime">Torneos</Link><Link href="/mis-reportes?tipo=equipos" className="text-brand-lime">Equipos</Link></nav>{p.ok&&<p role="status">Reporte registrado. Elegí la pestaña correspondiente para consultarlo.</p>}{p.error&&<p role="alert">No pudimos guardar el reporte.</p>}
+ {error?<p role="alert">No pudimos cargar tus reportes.</p>:<><p>{count??0} reportes · Página {page}</p>{data?.length?<ul className="flex flex-col gap-4">{data.map(row=><li key={row.id} className="p-5 border border-brand-border rounded-sm"><h2 className="text-xl font-semibold">{row.team_name??row.tournament_name}</h2><p className="text-foreground/70">{labels[row.reason]??row.reason} · {new Date(row.created_at).toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'})}</p>{row.detail&&<p className="whitespace-pre-wrap my-2">{row.detail}</p>}<p>{row.resolution?`Resuelto: ${labels[row.resolution]??row.resolution}`:'Pendiente'}</p></li>)}</ul>:<p>Todavía no hay reportes en esta vista.</p>}<nav aria-label="Páginas de mis reportes" className="flex justify-between"><span>{page>1&&<Link href={href(page-1)}>Anterior</Link>}</span>{page*20<(count??0)&&<Link href={href(page+1)}>Siguiente</Link>}</nav></>}
+ </main>
+}

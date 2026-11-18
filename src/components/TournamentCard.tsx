@@ -12,6 +12,7 @@ import { modalityLabel, type SportModality } from '@/utils/modality'
 
 export interface Tournament {
   id: string
+  observed_at?: string | null
   name: string
   description: string | null
   sport_modality: SportModality
@@ -51,6 +52,7 @@ export function TournamentCard({ tournament, index, verification }: TournamentCa
       style={{ '--i': Math.min(index, 5) } as React.CSSProperties}
       className="group flex flex-col bg-brand-surface border border-brand-border hover:border-brand-lime h-full transition-colors animate-card-in [animation-delay:calc(var(--i)*40ms)] focus-visible:outline-2 focus-visible:outline-brand-lime focus-visible:outline-offset-2"
     >
+      {tournament.observed_at && <p className="px-4 py-2 text-sm text-brand-amber border-b border-brand-border">Información reportada en revisión</p>}
       {/* Flyer Header */}
       <div className="relative h-44 w-full bg-brand-bg overflow-hidden">
         <TournamentFlyer

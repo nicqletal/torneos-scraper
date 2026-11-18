@@ -1,35 +1,14 @@
 import { requireAdmin } from '@/utils/admin'
-import { ShieldCheck, LockKeyhole } from 'lucide-react'
-
-export default async function AdminSecurityPage() {
-  // La comprobación también vive junto a los datos, no solo en el layout.
-  const user = await requireAdmin()
-  return (
-    <div className="max-w-4xl flex flex-col gap-8">
-      <div className="border-b border-brand-border pb-6 flex flex-col gap-3">
-        <p className="text-sm text-brand-lime font-semibold">Panel de administración</p>
-        <h1 className="font-display text-4xl sm:text-5xl tracking-wide leading-none">Seguridad y acceso</h1>
-        <p className="text-base text-foreground/70">Estado de acceso de tu cuenta y límites de esta etapa.</p>
-      </div>
-      <section className="p-5 sm:p-6 bg-brand-surface border border-brand-border rounded-sm flex flex-col gap-5" aria-labelledby="account-access">
-        <h2 id="account-access" className="text-xl font-semibold flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-brand-lime" aria-hidden="true" />Acceso confirmado</h2>
-        <dl className="grid gap-4 text-base">
-          <div><dt className="text-sm text-foreground/60">Cuenta actual</dt><dd className="break-all">{user.email ?? 'Sin email'}</dd></div>
-          <div><dt className="text-sm text-foreground/60">Rol</dt><dd>Administrador, verificado en el servidor</dd></div>
-          <div><dt className="text-sm text-foreground/60">Asignación del rol</dt><dd>Manual en la base. No se puede cambiar desde el perfil ni el formulario de acceso.</dd></div>
-        </dl>
-      </section>
-      <section className="p-5 sm:p-6 border border-brand-border rounded-sm flex flex-col gap-4" aria-labelledby="access-controls">
-        <h2 id="access-controls" className="text-xl font-semibold flex items-center gap-2"><LockKeyhole className="w-5 h-5 text-brand-lime" aria-hidden="true" />Controles de esta etapa</h2>
-        <ul className="list-disc pl-5 space-y-3 text-base text-foreground/80">
-          <li>Autenticación con la misma cuenta de Supabase del sitio.</li>
-          <li>Comprobación de sesión y rol antes de mostrar datos del backoffice.</li>
-          <li>Acceso denegado cuando la comprobación del rol falla.</li>
-          <li>Destino de retorno limitado a rutas internas del backoffice.</li>
-          <li>Cerrar sesión afecta solo este dispositivo.</li>
-        </ul>
-        <p className="text-sm text-foreground/60 border-t border-brand-border pt-4">MFA, gestión de sesiones, permisos granulares, suspensiones y registro de actividad requieren sus propias etapas. Esta pantalla no es una auditoría completa de seguridad.</p>
-      </section>
-    </div>
-  )
+import { AdminPasswordForm } from '@/components/AdminPasswordForm'
+import { SubmitButton } from '@/components/SubmitButton'
+import { closeAdminSession } from './actions'
+export default async function SecurityPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+ const user = await requireAdmin(), { error } = await searchParams
+ return <div className="max-w-4xl flex flex-col gap-7"><div className="border-b border-brand-border pb-6"><p className="text-brand-lime">Panel de administración</p><h1 className="font-display text-4xl mt-2">Seguridad y acceso</h1></div>
+ {error && <p role="alert" className="p-4 border border-brand-red text-brand-red">{error === 'confirmacion' ? 'Confirmá el cierre de todas tus sesiones.' : 'No pudimos completar la operación. Tu sesión no se dio por cerrada. Reintentá.'}</p>}
+ <section className="p-5 bg-brand-surface border border-brand-border rounded-sm"><h2 className="font-semibold text-xl">Acceso verificado en dos pasos</h2><p className="mt-2 break-all">{user.email}</p><p className="text-foreground/70 mt-2">Rol y segundo factor comprobados. Si perdés el autenticador, una persona autorizada deberá verificar tu identidad para restablecerlo. Los roles se asignan manualmente.</p></section>
+ <section className="p-5 border border-brand-border rounded-sm"><AdminPasswordForm /></section>
+ <section className="p-5 border border-brand-border rounded-sm flex flex-col gap-5"><h2 className="font-semibold text-xl">Tus sesiones</h2><form action={closeAdminSession}><input type="hidden" name="scope" value="local" /><SubmitButton pendingLabel="Cerrando…" className="ui-action px-4 py-3 border border-brand-border">Cerrar sesión en este dispositivo</SubmitButton></form>
+ <form action={closeAdminSession} className="flex flex-col gap-3"><input type="hidden" name="scope" value="global" /><label className="flex gap-3 items-start"><input name="confirm" type="checkbox" required className="mt-1" />Entiendo que tendré que ingresar nuevamente en todos mis dispositivos.</label><SubmitButton pendingLabel="Cerrando sesiones…" className="ui-action w-fit px-4 py-3 border border-brand-red text-brand-red">Cerrar todas las sesiones de mi cuenta</SubmitButton></form>
+ <p className="text-sm text-foreground/60">El cierre impide renovar las sesiones. Un acceso ya emitido en otro dispositivo puede seguir vigente hasta su vencimiento.</p></section></div>
 }
