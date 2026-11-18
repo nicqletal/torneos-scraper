@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Settings2, Trophy, Users } from 'lucide-react'
+import { Plus, Settings2, Users } from 'lucide-react'
 import { BrandMark } from '@/components/BrandMark'
 import { TournamentStatus, statusLabels, statusStyles } from '@/utils/tournament-status'
 import { sortForPanel, verificationAge, verifyBlock } from '@/utils/tournament-verification'
