@@ -2,11 +2,10 @@
 
 import { useLayoutEffect, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { Grid2X2, Grid3X3, LayoutGrid } from 'lucide-react'
+import { Grid2X2, LayoutGrid } from 'lucide-react'
 
 const DENSITY_STORAGE_KEY = 'matchmaking-density'
 const densities = [
-  { value: 'compacta', label: 'Compacta', icon: Grid3X3 },
   { value: 'normal', label: 'Normal', icon: Grid2X2 },
   { value: 'amplia', label: 'Amplia', icon: LayoutGrid },
 ] as const
@@ -15,7 +14,7 @@ type Density = (typeof densities)[number]['value']
 const densityValues = new Set<string>(densities.map(({ value }) => value))
 
 export function TournamentCatalogControls({ pageSize }: { pageSize: 12 | 24 | 48 }) {
-  const [density, setDensity] = useState<Density>('compacta')
+  const [density, setDensity] = useState<Density>('normal')
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -29,8 +28,8 @@ export function TournamentCatalogControls({ pageSize }: { pageSize: 12 | 24 | 48
     } catch {
       saved = undefined
     }
-    const initial = document.documentElement.dataset.density ?? saved ?? 'compacta'
-    const next = densityValues.has(initial) ? initial as Density : 'compacta'
+    const initial = document.documentElement.dataset.density ?? saved ?? 'normal'
+    const next = densityValues.has(initial) ? initial as Density : 'normal'
     document.documentElement.dataset.density = next
     setDensity(next)
   }, [])
