@@ -3,7 +3,7 @@ on:
   push:
     branches: [codex/admin-completo]
   pull_request:
-    paths: ['src/**', 'supabase/**', '.github/workflows/admin-validation.yml']
+    paths: ['src/**', 'supabase/**', 'scripts/test-admin-*.mjs', 'scripts/test-admin-*.py', '.github/workflows/admin-validation.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,6 +20,13 @@ jobs:
         run: supabase start
       - name: Verificar permisos y reglas con pgTAP
         run: supabase test db
+      - name: Verificar Suspensiones concurrentes con conexiones reales
+        env:
+          ADMIN_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: |
+          python3 -m venv /tmp/admin-concurrency
+          /tmp/admin-concurrency/bin/pip install 'psycopg[binary]>=3.2,<4'
+          /tmp/admin-concurrency/bin/python scripts/test-admin-concurrency.py
       - uses: actions/setup-node@v4
         with:
           node-version: 24

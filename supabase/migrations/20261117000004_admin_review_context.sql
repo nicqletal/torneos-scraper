@@ -27,3 +27,27 @@ returns boolean language sql stable set search_path='' as $$
 $$;
 revoke execute on function public.suspension_active(public.account_suspensions) from public,anon;
 grant execute on function public.suspension_active(public.account_suspensions) to authenticated;
+
+-- Contexto acotado de la cuenta elegida para revisar una decisión. No expone
+-- contactos, otros integrantes del Plantel ni detalles privados de Partidos.
+create function public.admin_user_context(p_user_id uuid)
+returns jsonb language plpgsql stable security definer set search_path='' as $$
+declare v_teams jsonb; v_tournaments jsonb; v_reports jsonb;
+begin
+ if not public.is_verified_admin() then raise exception 'Acceso denegado' using errcode='42501'; end if;
+ select coalesce(jsonb_agg(to_jsonb(x)),'[]'::jsonb) into v_teams from(
+  select t.id,t.name,m.is_captain,t.dissolved_at from public.team_members m
+  join public.teams t on t.id=m.team_id where m.user_id=p_user_id
+  order by t.created_at desc,t.id limit 50) x;
+ select coalesce(jsonb_agg(to_jsonb(x)),'[]'::jsonb) into v_tournaments from(
+  select id,name from public.tournaments where user_id=p_user_id order by created_at desc,id limit 50) x;
+ select coalesce(jsonb_agg(to_jsonb(x)),'[]'::jsonb) into v_reports from(
+  select * from(
+   select id,'torneo' as kind,tournament_name as name,created_at,resolution from public.tournament_reports where reporter_id=p_user_id
+   union all
+   select id,'equipo' as kind,team_name as name,created_at,resolution from public.team_reports where reporter_id=p_user_id
+  ) r order by created_at desc,id limit 50) x;
+ return jsonb_build_object('teams',v_teams,'tournaments',v_tournaments,'reports',v_reports);
+end; $$;
+revoke execute on function public.admin_user_context(uuid) from public,anon;
+grant execute on function public.admin_user_context(uuid) to authenticated;

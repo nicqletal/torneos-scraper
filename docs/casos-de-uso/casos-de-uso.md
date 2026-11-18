@@ -1,6 +1,6 @@
 # Casos de uso de Torneos Amateur BA
 
-Versión del **03/11/2026**. Reemplaza a los documentos de casos de uso dispersos en Google Docs (última versión del 27/09/2026, módulos A–F y T) y al PDF `docs/casos-de-uso/casos-de-uso.pdf`. Está escrito a partir de las reglas vigentes en [decisiones-casos-de-uso.md](../especificaciones-y-requerimientos/decisiones-casos-de-uso.md), el glosario [CONTEXT.md](../../CONTEXT.md), los ADR y el código del repo al día de hoy.
+Versión del **17/11/2026** (actualización de Administración y Soporte). Reemplaza a los documentos de casos de uso dispersos en Google Docs (última versión del 27/09/2026, módulos A–F y T) y al PDF `docs/casos-de-uso/casos-de-uso.pdf`. Está escrito a partir de las reglas vigentes en [decisiones-casos-de-uso.md](../especificaciones-y-requerimientos/decisiones-casos-de-uso.md), el glosario [CONTEXT.md](../../CONTEXT.md), los ADR y el código de esta versión. «Implementado» describe el código versionado; la [activación de las migraciones y TOTP](../especificaciones-y-requerimientos/panel-administracion.md#verificación-y-activación) en la base compartida se verifica por separado.
 
 **Cómo leerlo**
 
@@ -185,7 +185,7 @@ Límite de producto que atraviesa todo: **la app nunca inscribe ni cobra**. Todo
   3. El sistema guarda el **Reporte** para el administrador (UC-F03).
 - **Flujos alternativos:** **A1.** Una sola vez por usuario y torneo; el segundo intento se rechaza.
 - **Postcondición:** el reporte queda pendiente en el panel de administración. Cada usuario ve solo los suyos.
-- **Estado:** Pendiente.
+- **Estado:** Implementado (`reportTournament`, `report_tournament`, `/mis-reportes`).
 
 ---
 
@@ -295,10 +295,10 @@ Límite de producto que atraviesa todo: **la app nunca inscribe ni cobra**. Todo
 
 ### UC-C10 · Reportar un equipo
 
-- **Actor:** Capitán o jugador de un equipo que jugó al menos un partido contra el reportado.
+- **Actor:** Capitán o jugador que integra actualmente un Equipo con un **Partido Jugado** contra el reportado.
 - **Flujo principal:** en la página del equipo toca "Reportar", elige el motivo ("Violencia o agresiones", "Cuenta falsa" o "Abuso de calificaciones") y lo envía al administrador (UC-F04).
-- **Reglas:** la responsabilidad por la conducta del plantel es del capitán: la eventual **Suspensión** recae sobre él. El botón solo aparece con sesión y con un partido jugado en común.
-- **Estado:** Pendiente.
+- **Reglas:** sesión y pertenencia actual verificadas en la base; los exintegrantes quedan fuera hasta contar con historial de pertenencia. Un reporte pendiente por cuenta y Equipo; después de resolverlo se permite otro por hechos nuevos. No hay plazo adicional desde el Partido. El Administrador identifica explícitamente a la cuenta responsable antes de sancionar; no se selecciona automáticamente al Capitán actual.
+- **Estado:** Implementado (`reportTeam`, `report_team`, `/mis-reportes?tipo=equipos`).
 
 ---
 
@@ -593,7 +593,8 @@ El **Administrador** es un rol distinto del organizador. Se asigna insertando el
 - **Actor:** Administrador.
 - **Flujo principal:**
   1. Entra a `/admin/login` con la misma cuenta de Supabase.
-  2. El servidor verifica el rol con `is_admin()`. Si confirma, entra al backoffice (sidebar propia, sin la barra ni el footer del catálogo).
+  2. El servidor verifica el rol con `is_admin()` y pide un código del autenticador. Si todavía no tiene uno, lo configura (UC-F14).
+  3. Solo con rol y segundo factor verificados entra al backoffice (sidebar propia, sin la barra ni el footer del catálogo). Conserva el destino pedido.
 - **Flujos alternativos:**
   - **A1. Cuenta común:** conserva su sesión normal pero recibe acceso denegado.
   - **A2. No se puede verificar el rol:** acceso denegado.
@@ -604,8 +605,8 @@ El **Administrador** es un rol distinto del organizador. Se asigna insertando el
 
 - **Actor:** Administrador.
 - **Flujo principal:** en el resumen ve los contadores reales de la plataforma (usuarios, torneos, equipos) y en "Seguridad y acceso", los datos de su propia cuenta.
-- **Reglas:** una consulta fallida muestra "No disponible", nunca un cero inventado. Las secciones Usuarios, Torneos y equipos, Reportes, Registro de actividad, Soporte, Avisos y Configuración figuran como pendientes, sin enlaces ficticios.
-- **Estado:** Implementado parcialmente (resumen y seguridad); el resto, Pendiente.
+- **Reglas:** una consulta fallida muestra "No disponible", nunca un cero inventado. Incluye reportes de torneos y Equipos pendientes y consultas abiertas, con enlaces a las secciones operativas.
+- **Estado:** Implementado (`/admin`).
 
 ### UC-F03 · Resolver un reporte de torneo
 
@@ -616,15 +617,17 @@ El **Administrador** es un rol distinto del organizador. Se asigna insertando el
   - **Marcar el torneo como Observado:** la marca se ve en el catálogo y la ficha; solo él la saca ("Sigue vigente" del organizador no la toca).
   - **Dar de baja** el torneo, con las mismas consecuencias que UC-E05 (avisos a los planteles vinculados).
 - **Postcondición:** la resolución queda en el registro de acciones (quién, cuándo, qué decidió).
-- **Estado:** Pendiente.
+- **Reglas:** descartar resuelve solo el elegido; Observado y Baja resuelven los pendientes del torneo. Baja confirma nombre y número de inscripciones vigentes; si cambian, exige revisar de nuevo. Solo el Administrador retira Observado con motivo.
+- **Estado:** Implementado (`resolve_tournament_report`, `unobserve_tournament`).
 
 ### UC-F04 · Resolver un reporte de equipo
 
 - **Actor:** Administrador.
 - **Precondiciones:** hay un reporte pendiente sobre un equipo (UC-C10).
-- **Flujo principal:** abre el reporte, revisa la página del equipo y los comentarios privados de calificación que recibió, y elige **descartar** o **suspender al capitán** (UC-F05), que responde por la conducta del plantel.
-- **Postcondición:** queda en el registro de acciones.
-- **Estado:** Pendiente.
+- **Flujo principal:** abre el reporte, revisa la página del Equipo y los comentarios privados que recibió; descarta o busca y elige explícitamente la cuenta responsable para aplicar una **Suspensión** (UC-F05), con motivo.
+- **Postcondición:** queda en el registro de acciones. Se resuelve solo el reporte elegido; otros siguen pendientes.
+- **Flujos alternativos:** cuenta administrativa protegida, Suspensión ya vigente o falta de correo de soporte: se rechaza sin resolver el reporte.
+- **Estado:** Implementado (`/admin/reportes/equipos`, `resolve_team_report`).
 
 ### UC-F05 · Suspender una cuenta
 
@@ -638,13 +641,102 @@ El **Administrador** es un rol distinto del organizador. Se asigna insertando el
   - Los partidos pendientes de resultado los puede terminar de cargar.
   - Su equipo no aparece en los compatibles, su página sigue visible y **no puede cambiar de capitán** mientras dure.
 - **No confundir** con el **Bloqueo por faltas**, que es automático, recae sobre el equipo y no lo decide nadie.
-- **Estado:** Pendiente. Hoy la base solo contempla que un suspendido no reciba la capitanía.
+- **Reglas:** se elige explícitamente la cuenta responsable; sus efectos alcanzan los Equipos que actualmente capitanea. No se suspenden cuentas administrativas. Como máximo una Suspensión vigente por cuenta; para reemplazarla hay que levantar primero la anterior. Al vencer recupera permisos sin reactivar compromisos anteriores.
+- **Estado:** Implementado (`suspend_account`, restricciones de base y registro de actividad).
 
 ### UC-F06 · Buscar usuarios
 
 - **Actor:** Administrador.
 - **Flujo principal:** busca por nombre o email y abre la cuenta para ver sus equipos, torneos y reportes, y suspenderla si corresponde.
-- **Estado:** Pendiente.
+- **Estado:** Implementado (`admin_search_users`, `admin_get_user`, `admin_user_context`).
+
+### UC-F07 · Levantar una Suspensión
+
+- **Actor:** Administrador con segundo factor verificado.
+- **Precondición:** Suspensión vigente.
+- **Flujo principal:** abre la cuenta, escribe un motivo y confirma el levantamiento.
+- **Postcondición:** se conservan la sanción original y el levantamiento en el historial y en el registro. La cuenta recupera permisos; no se reactivan búsquedas, propuestas ni Partidos anteriores.
+- **Alternativo:** otra persona ya la levantó o venció: se rechaza sin pisar el historial.
+- **Estado:** Implementado (`lift_suspension`).
+
+### UC-F08 · Consultar el Registro de actividad
+
+- **Actor:** Administrador con segundo factor verificado.
+- **Flujo principal:** filtra y pagina decisiones, respuestas/cierres de Soporte, cambios de Configuración y eventos de acceso; ve autor, momento, recurso y resultado.
+- **Reglas:** no hay edición ni baja de registros desde la app; nunca se guardan contraseñas, secretos ni códigos. Los cierres de sesión figuran como solicitudes. Los eventos de Auth son informados por la aplicación y no reemplazan los registros independientes de ese servicio.
+- **Estado:** Implementado (`/admin/actividad`).
+
+### UC-F09 · Consultar Avisos administrativos
+
+- **Actor:** Administrador con segundo factor verificado.
+- **Flujo principal:** consulta Avisos automáticos, destinatario, fecha y estado de lectura, con paginación.
+- **Reglas:** no hay envío manual masivo ni modificación de Avisos ajenos; la campanita personal muestra solo los propios.
+- **Estado:** Implementado (`/admin/avisos`).
+
+### UC-F10 · Configurar contacto y ayuda
+
+- **Actor:** Administrador con segundo factor verificado.
+- **Flujo principal:** edita correo de soporte, título/texto y enlace HTTPS opcional; guarda. La Ayuda pública refleja esos datos y el cambio queda auditado.
+- **Alternativo:** otra persona guardó una versión más nueva: debe recargar antes de editar.
+- **Reglas:** no se editan plazos ni sanciones desde Configuración. El correo debe estar configurado antes de aplicar Suspensiones.
+- **Estado:** Implementado (`/admin/configuracion`, `/ayuda`, `update_site_settings`).
+
+### UC-F11 · Cambiar la contraseña administrativa
+
+- **Actor:** Administrador con segundo factor verificado.
+- **Flujo principal:** ingresa contraseña actual, una nueva y su repetición; el servicio de acceso verifica y cambia la clave propia.
+- **Alternativos:** clave actual incorrecta, nuevas claves diferentes o error del servicio: informa el fallo. Si cambió pero falló la auditoría, aclara que la anterior ya no sirve.
+- **Estado:** Implementado (`/admin/seguridad`).
+
+### UC-F12 · Cerrar la sesión administrativa actual
+
+- **Actor:** Administrador con segundo factor verificado.
+- **Flujo principal:** cierra la sesión en este dispositivo; se registra la solicitud y vuelve al acceso administrativo.
+- **Alternativo:** falla el servicio de acceso: informa que no se confirmó el cierre.
+- **Estado:** Implementado (`closeAdminSession`, alcance local).
+
+### UC-F13 · Cerrar todas las sesiones propias
+
+- **Actor:** Administrador con segundo factor verificado.
+- **Flujo principal:** confirma explícitamente el cierre global; el servicio impide renovar las sesiones de su cuenta y vuelve al acceso.
+- **Reglas:** solo cuenta propia; los accesos ya emitidos en otros dispositivos pueden continuar hasta vencer.
+- **Estado:** Implementado (`closeAdminSession`, alcance global).
+
+### UC-F14 · Configurar el segundo factor administrativo
+
+- **Actor:** Administrador con contraseña y rol comprobados.
+- **Flujo principal:** prepara el autenticador, escanea el QR o carga la clave manual y verifica un código temporal. Recién entonces accede al panel.
+- **Alternativos:** código inválido/vencido: reintenta; pérdida del dispositivo: recuperación manual por persona autorizada tras verificar identidad, desde Supabase. No hay bypass desde la app.
+- **Estado:** Implementado (`/admin/verificar`).
+
+### UC-F15 · Responder una consulta de Soporte
+
+- **Actor:** Administrador con segundo factor verificado.
+- **Precondición:** consulta abierta.
+- **Flujo principal:** lee la conversación y envía una respuesta de texto. El autor recibe un Aviso y la respuesta queda auditada.
+- **Reglas:** conversación privada; sin categorías ni adjuntos. Una consulta cerrada no recibe respuesta administrativa hasta que el autor la reabra enviando un mensaje.
+- **Estado:** Implementado (`/admin/soporte`, `send_support_message`).
+
+### UC-F16 · Cerrar una consulta de Soporte
+
+- **Actor:** Administrador con segundo factor verificado, o autor de la consulta.
+- **Flujo principal:** cierra la consulta; se conserva la conversación. Un cierre administrativo queda auditado.
+- **Regla:** el autor puede reabrirla con un nuevo mensaje.
+- **Estado:** Implementado (`close_support_thread`).
+
+### UC-F17 · Crear una consulta de Soporte
+
+- **Actor:** Usuario con sesión.
+- **Flujo principal:** desde Soporte escribe asunto y primer mensaje; se crea una conversación privada con Administración.
+- **Reglas:** asunto de 3 a 100 caracteres; mensaje de 1 a 2000; sin categorías ni adjuntos. Cada usuario consulta solo sus conversaciones.
+- **Estado:** Implementado (`/soporte`, `create_support_thread`).
+
+### UC-F18 · Enviar un mensaje a Soporte
+
+- **Actor:** Autor de la consulta, con sesión.
+- **Flujo principal:** abre su consulta y envía un nuevo mensaje de texto; si estaba cerrada, se reabre.
+- **Reglas:** no puede responder conversaciones ajenas ni modificar mensajes anteriores.
+- **Estado:** Implementado (`/soporte/[id]`, `send_support_message`).
 
 ---
 
@@ -689,6 +781,8 @@ Todo **Aviso** nace de la acción de un usuario y nunca le llega a quien la hizo
 | Responde "fuimos" o acusación cruzada → en conflicto (UC-D12) | "Partido en conflicto" | los dos planteles |
 | La segunda calificación revela las dos (UC-D13) | "Ya podés ver tu calificación" | capitán que calificó primero |
 | Baja de un torneo con inscriptos vinculados (UC-E05, UC-F03) | "Se dio de baja el torneo 'X'…" | plantel de cada equipo vinculado |
+| Suspensión o levantamiento (UC-F05, UC-F07) | Motivo y contacto / levantamiento | cuenta afectada |
+| Respuesta administrativa en Soporte (UC-F15) | "Tenés una respuesta nueva en Soporte" | autor de la consulta |
 
 **Sin aviso, a propósito:** quedar Confirmado, publicar una búsqueda, cancelar una propuesta propia, y todo lo que pasa solo por el tiempo (vencer una propuesta, quedar Jugado a las 48 h, la falta por no responder, la calificación revelada al vencer, "El rival todavía no confirmó", el bloqueo por faltas).
 
@@ -709,5 +803,10 @@ Base de las policies de RLS. Cada fila existe como policy o vista, no solo como 
 | Comentarios de calificación | ❌ | Solo el administrador |
 | Reportes | ❌ | El administrador; cada usuario los suyos |
 | Gestión de inscripciones | ❌ | Solo el organizador del torneo |
+| Conversaciones de Soporte | ❌ | Su autor y Administración con segundo factor |
+| Historial de Suspensiones | ❌ | Cuenta afectada y Administración con segundo factor |
+| Registro de actividad y consulta general de Avisos | ❌ | Solo Administración con segundo factor |
+| Contenido y contacto de Ayuda | ✅ | ✅ |
+| Configuración interna | ❌ | Solo Administración con segundo factor |
 
 Reglas de seguridad que acompañan: el rol de administrador nunca se escribe desde el cliente; las transiciones de partidos y propuestas van por funciones de Postgres, no por `update` directos; al cliente solo llega la `anon key`.

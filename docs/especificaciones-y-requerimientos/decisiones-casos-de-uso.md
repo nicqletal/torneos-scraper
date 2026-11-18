@@ -297,13 +297,14 @@ Se eligió con un prototipo (rama `prototype/partidos-navegacion`) y se rediseñ
 ## Administración
 
 - **Acceso diferenciado (14/10/2026):** `/admin/login` usa la misma cuenta de Supabase; exige que `is_admin()` confirme el rol en el servidor. No hay registro de administradores ni selección de rol en el formulario. El rol sigue asignándose manualmente en `public.admins`, nunca desde la app. Una cuenta común que se autentica aquí conserva su sesión normal, pero recibe acceso denegado al backoffice. Si no se puede verificar el rol, también se deniega el acceso.
-- **Backoffice inicial:** `/admin` muestra el resumen y `/admin/seguridad` muestra el acceso de la cuenta actual, ambos con comprobación de sesión y rol junto a sus datos. Sidebar propia, desplegable en móvil, sin navbar ni footer del catálogo. Usuarios, contenido, reportes, actividad, soporte, avisos y configuración se señalan como etapas pendientes, sin enlaces ni acciones ficticias. Alcance y verificación en [acceso-administrador.md](acceso-administrador.md).
+- **Panel completo (acuerdo del 17/11/2026):** resumen con contadores reales; Usuarios; Torneos y equipos; Reportes de torneos y Equipos; Registro de actividad; Soporte; Avisos; Seguridad y acceso; Configuración. Sidebar propia, desplegable en móvil, sin navbar ni footer del catálogo. El diseño inicial de [acceso-administrador.md](acceso-administrador.md) queda ampliado por estos acuerdos.
+- **Segundo factor obligatorio:** para consultar o escribir datos administrativos se requieren el rol y un código de una app de autenticación. Al primer acceso solo se ofrece configurar ese factor; no se accede al panel antes de verificarlo. Perder el dispositivo requiere que una persona autorizada verifique la identidad y restablezca el factor manualmente en Supabase. No existe un mecanismo de recuperación que permita saltarse el segundo factor desde la app.
 - **Panel de administración** (solo para el rol administrador):
   - tablero con números
   - reportes pendientes
   - buscador de usuarios por nombre o email
 - **Reportar un torneo:** botón en la ficha, solo con sesión. Motivos: "Ya no existe", "Datos incorrectos" o "No es un torneo". Una vez por usuario y torneo. El administrador puede **descartar** el reporte, **marcar el torneo como Observado** o **darle de baja**.
-- **Reportar un equipo:** botón en la página del equipo, solo con sesión y **solo si jugaste contra ellos**. Motivos: "Violencia o agresiones", "Cuenta falsa" o "Abuso de calificaciones". El administrador puede **descartar** el reporte o **suspender al capitán**, que responde por la conducta del plantel.
+- **Reportar un equipo:** botón en la página del equipo, con sesión y pertenencia actual a un Equipo con un **Partido Jugado** contra el reportado. No se agrega un límite de días desde el Partido. Los exintegrantes quedan fuera de este flujo hasta contar con historial de pertenencia. Motivos: "Violencia o agresiones", "Cuenta falsa" o "Abuso de calificaciones". Un reporte pendiente por cuenta y Equipo; después de resolverlo se permite otro por hechos nuevos. El Administrador puede **descartar** el reporte o aplicar una **Suspensión** a la cuenta responsable, elegida explícitamente después de revisar los hechos. Si cambió el Capitán, el nuevo no recibe automáticamente la sanción. Se registran la cuenta elegida y el motivo. Resolver un reporte de Equipo deja los demás pendientes para revisión individual.
 - **Suspensión:** 7 días, 30 días o indefinida, con un motivo. El usuario puede entrar y mirar, pero no puede publicar torneos, crear equipos ni buscar rival. No hay apelación dentro de la app: el aviso incluye un email de contacto. Sobre lo que ya existía:
 
 | Lo que ya existía | Qué pasa |
@@ -316,6 +317,15 @@ Se eligió con un prototipo (rama `prototype/partidos-navegacion`) y se rediseñ
 | Su equipo | No aparece en las búsquedas; su página sigue visible; **no puede cambiar de capitán** |
 
 - **Registro de acciones:** toda resolución del administrador queda guardada (quién, cuándo y qué decidió).
+- **Historial de Suspensiones:** como máximo una vigente por cuenta. Para reemplazarla se levanta la anterior con un motivo y luego se aplica otra; se conservan ambas decisiones. El Administrador puede levantarla antes del vencimiento, con motivo y registro. Al vencer o levantarse recupera permisos para nuevas acciones; no reaparecen búsquedas, propuestas ni Partidos terminados. Se protegen todas las cuentas administrativas: sus permisos se siguen retirando manualmente, nunca mediante una Suspensión desde el panel.
+- **Alcance de los efectos:** la sanción recae sobre la cuenta identificada y los Equipos que actualmente capitanea. El resto del Plantel puede seguir consultando. No se cambia el resultado de Partidos anteriores ni se generan Faltas por las caídas administrativas.
+- **Soporte:** consulta privada entre su autor y Administración, con asunto y mensajes de texto. Sin categorías ni adjuntos. El autor puede responder, cerrar o reabrir respondiendo; Administración puede responder mientras esté abierta y cerrarla. Una respuesta administrativa genera un Aviso al autor. Se auditan las respuestas y cierres administrativos.
+- **Avisos administrativos:** consulta de los Avisos automáticos, con destinatario, fecha y lectura. No hay envío manual masivo, email ni push. La campanita personal siempre muestra exclusivamente los del usuario actual, incluso si tiene rol administrativo.
+- **Configuración:** se editan solo el correo de contacto de soporte y el título, texto y enlace HTTPS de ayuda. La página Ayuda es pública. Hace falta configurar el correo antes de aplicar Suspensiones. Una edición concurrente exige recargar para no pisar los cambios de otra persona. No se editan plazos, sanciones ni otras reglas de negocio desde la UI.
+- **Seguridad de la cuenta propia:** cambio de contraseña comprobando la actual; cierre en este dispositivo y cierre de todas las sesiones de la cuenta propia. El cierre global pide confirmación. Impide renovar las sesiones; los accesos ya emitidos pueden seguir vigentes hasta vencer.
+- **Auditoría ampliada:** se registran las escrituras administrativas sobre reportes, Observado, Suspensiones, respuestas y cierres de soporte, y Configuración, con actor, momento, recurso y resultado. Los eventos de acceso también se registran, sin contraseñas, claves del autenticador ni códigos. Los cierres de sesión se registran como solicitudes, porque después del cierre no queda una sesión para confirmar el evento.
+
+La implementación, sus permisos y los pasos de activación se describen en [panel-administracion.md](panel-administracion.md). El código versionado no implica que las migraciones ya estén aplicadas a la base compartida.
 
 ## Visibilidad
 
@@ -334,6 +344,11 @@ Esta tabla es la base de las reglas de acceso (RLS) de la base de datos.
 | Comentarios de calificación | ❌ | Solo el administrador |
 | Reportes | ❌ | El administrador; cada usuario ve solo los suyos |
 | Gestión de inscripciones | ❌ | Solo el organizador del torneo |
+| Conversaciones de Soporte | ❌ | Su autor y Administración con segundo factor |
+| Historial de Suspensiones | ❌ | La cuenta afectada y Administración con segundo factor |
+| Registro de actividad y consulta general de Avisos | ❌ | Solo Administración con segundo factor |
+| Correo, textos y enlace de Ayuda | ✅ | ✅ |
+| Edición de Configuración | ❌ | Solo Administración con segundo factor |
 
 ## Zonas
 

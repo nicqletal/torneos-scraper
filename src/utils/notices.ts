@@ -143,7 +143,7 @@ export function noticeText(kind: NoticeKind, params: NoticeParams): string {
 export function noticeLink(kind: NoticeKind, params: NoticeParams): string {
   if (kind === 'admin_message') {
     const path = str(params, 'href')
-    return /^\/[A-Za-z0-9/_-]*$/.test(path) ? path : '/perfil'
+    return /^\/[A-Za-z0-9_-][A-Za-z0-9/_-]*$/.test(path) ? path : '/perfil'
   }
   if (kind === 'tournament_withdrawn') return `/equipos/${str(params, 'team_id')}`
   return '/partidos'

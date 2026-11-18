@@ -4,6 +4,7 @@
 - [Especificación del módulo Equipos](modulo-equipos-especificacion.md) y [PDF](modulo-equipos-especificacion.pdf).
 - [Diseño de Partidos](diseno-partidos.md).
 - [Acceso del Administrador](acceso-administrador.md).
+- [Panel de administración completo](panel-administracion.md): flujos, permisos, verificación y activación.
 - [Mejoras de experiencia de Equipos](mejoras-equipos-ux.md).
 
 Los [casos de uso vigentes](../casos-de-uso/casos-de-uso.md) describen los flujos. El [glosario](../../CONTEXT.md) define los términos.

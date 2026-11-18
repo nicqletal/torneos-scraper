@@ -190,7 +190,7 @@ test('fecha del aviso en la campanita, en hora de Buenos Aires', () => {
 test('Aviso administrativo: texto recibido y destino interno seguro', () => {
   assert.equal(noticeText('admin_message', { body: 'Respondimos tu consulta.' }), 'Respondimos tu consulta.')
   assert.equal(noticeLink('admin_message', { href: '/soporte/abc-123' }), '/soporte/abc-123')
-  for (const href of ['//externo.example', 'https://externo.example', '/\\externo.example', 'javascript:alert(1)']) {
+  for (const href of ['//externo', '//externo.example', 'https://externo.example', '/\\externo.example', 'javascript:alert(1)']) {
     assert.equal(noticeLink('admin_message', { href }), '/perfil')
   }
 })

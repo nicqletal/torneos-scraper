@@ -6,6 +6,12 @@ import { createClient } from '@/utils/supabase/server'
 import { SuspensionControls } from '@/components/SuspensionControls'
 import { AdminUserAvatar } from '@/components/AdminUserAvatar'
 
+type UserContext = {
+  teams: { id: string; name: string; is_captain: boolean; dissolved_at: string | null }[]
+  tournaments: { id: string; name: string }[]
+  reports: { id: string; name: string; kind: 'torneo' | 'equipo'; resolution: string | null }[]
+}
+
 export default async function AdminUserPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; ok?: string }> }) {
   await requireAdmin()
   const { id } = await params
@@ -16,6 +22,8 @@ export default async function AdminUserPage({ params, searchParams }: { params: 
   if (error) return <p role="alert" className="text-brand-red">No pudimos cargar el usuario. Volvé a intentar.</p>
   const user = data?.[0]
   if (!user) notFound()
+  const { data: contextData, error: contextError } = await supabase.rpc('admin_user_context', { p_user_id: id })
+  const context = contextData as UserContext | null
 
   return <div className="max-w-3xl flex flex-col gap-8">
     <Link href="/admin/usuarios" className="ui-action gap-2 w-fit text-foreground/80 hover:text-brand-lime"><ArrowLeft className="w-4 h-4" aria-hidden="true" />Usuarios</Link>
@@ -31,6 +39,11 @@ export default async function AdminUserPage({ params, searchParams }: { params: 
         <div><dt className="text-sm text-foreground/60">Fecha de alta</dt><dd>{new Date(user.created_at).toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: 'long', year: 'numeric' })}</dd></div>
       </dl>
     </section>
+    {contextError || !context ? <p role="alert">No pudimos cargar los Equipos, torneos y reportes de esta cuenta.</p> : <>
+      <section className="border border-brand-border rounded-sm p-5 flex flex-col gap-3"><h2 className="text-xl font-semibold">Equipos actuales (hasta 50 recientes)</h2>{context.teams.length ? <ul>{context.teams.map(team => <li key={team.id} className="py-2"><Link href={`/admin/contenido/equipos/${team.id}`} className="text-brand-lime">{team.name}</Link> · {team.is_captain ? 'Capitán' : 'Jugador'}{team.dissolved_at ? ' · Disuelto' : ''}</li>)}</ul> : <p>No integra Equipos.</p>}</section>
+      <section className="border border-brand-border rounded-sm p-5 flex flex-col gap-3"><h2 className="text-xl font-semibold">Torneos publicados (hasta 50 recientes)</h2>{context.tournaments.length ? <ul>{context.tournaments.map(tournament => <li key={tournament.id} className="py-2"><Link href={`/admin/contenido/torneos/${tournament.id}`} className="text-brand-lime">{tournament.name}</Link></li>)}</ul> : <p>No publicó torneos.</p>}</section>
+      <section className="border border-brand-border rounded-sm p-5 flex flex-col gap-3"><h2 className="text-xl font-semibold">Reportes presentados (hasta 50 recientes)</h2>{context.reports.length ? <ul>{context.reports.map(report => <li key={report.id} className="py-2">{report.name} · {report.kind === 'equipo' ? 'Equipo' : 'Torneo'} · {report.resolution ?? 'Pendiente'}{report.kind === 'equipo' && <> · <Link href={`/admin/reportes/equipos/${report.id}`} className="text-brand-lime">Ver reporte</Link></>}</li>)}</ul> : <p>No presentó reportes.</p>}</section>
+    </>}
     {state.error && <p role="alert" className="text-brand-red">No se pudo aplicar el cambio. Revisá que no exista una Suspensión vigente y que el correo de soporte esté configurado.</p>}
     {state.ok && <p role="status" className="text-brand-lime">Cambio de Suspensión guardado.</p>}
     <SuspensionControls userId={id} name={user.display_name} />
